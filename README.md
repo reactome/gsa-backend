@@ -1,6 +1,6 @@
 # ReactomeGSA Analysis System
 
-<img src="./docs/project_overview.svg" width = 500 />
+<img src="./docs/project_overview_landscape.png" width = 500 />
 
 The ReactomeGSA Analysis System is a kubernetes application to perform
 multi-species, multi-omics, comparative pathway analyses.
@@ -63,7 +63,21 @@ Then, simply download the (kubernetes/analysis_system_example.yaml)[kubernetes/a
 to your computer. Once minikube is installed and running, simply execute:
 
 ```bash
+# setup the ReactomeGSA Analysis System
 kubectl apply -f analysis_system_example.yaml
+
+# see the running pods
+kubectl get pods
+
+# open the analysis API in your browser
+minikube service reactome-analysis-api 
+```
+
+The ReactomeGSA Analysis System kubernetes deployment can be customized using a configuration file
+(`kubernetes/example_config.yaml`). To render the template, we provide a custom python script:
+
+```bash
+python3 kubernetes/render_template.py --template kubernetes/analysis_system.yaml.template --config kubernetes/example_config.yaml --output /tmp/my_analysis_system.yaml
 ```
 
 ## Getting help & reporting issues
