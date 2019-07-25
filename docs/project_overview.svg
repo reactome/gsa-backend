@@ -17,9 +17,9 @@
    viewBox="0 0 297.96332 111.96817"
    version="1.1"
    id="svg8"
-   inkscape:export-filename="/home/jg/Research/18-10_ReactomeGSA/materials/project_overview_landscape.png"
-   inkscape:export-xdpi="199.97017"
-   inkscape:export-ydpi="199.97017">
+   inkscape:export-filename="/home/jg/Projects/reactome/gsa-backend/docs/project_overview_landscape.png"
+   inkscape:export-xdpi="75.087418"
+   inkscape:export-ydpi="75.087418">
   <sodipodi:namedview
      fit-margin-bottom="0"
      fit-margin-right="0"
@@ -32,8 +32,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.35355339"
-     inkscape:cx="-718.40126"
-     inkscape:cy="312.07905"
+     inkscape:cx="-1346.3121"
+     inkscape:cy="300.76534"
      inkscape:document-units="mm"
      inkscape:current-layer="g862"
      showgrid="false"
@@ -100,7 +100,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
