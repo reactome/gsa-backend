@@ -36,6 +36,8 @@ RUNNING_REPORTS = prometheus_client.Gauge("reactome_report_running",
                                           "Number of reports currently being created.")
 COMPLETED_REPORTS = prometheus_client.Counter("reactome_report_completed",
                                               "Number of successfully completed reports.")
+SENT_EMAILS = prometheus_client.Counter("reactome_report_emails_sent",
+                                        "Number of sent e-mails.")
 
 
 class ReactomeAnalysisReportGenerator:
@@ -369,6 +371,8 @@ class ReactomeAnalysisReportGenerator:
             s.login(user=smtp_user, password=smtp_pwd)
             s.ehlo()
             s.send_message(msg)
+
+        SENT_EMAILS.inc()
 
     @staticmethod
     def get_name_for_extension(extension: str) -> str:
