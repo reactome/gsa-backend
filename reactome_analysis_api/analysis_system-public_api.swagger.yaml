@@ -1,0 +1,527 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is a REACTOME analysis service. It provides gene set analysis methods
+    whose results can be visualized using the REACTOME pathway browser.
+  version: 0.1.0
+  title: REACTOME Analysis Service
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+basePath: /0.1
+tags:
+  - name: Analysis
+    description: Functions to initiate the analysis
+  - name: Result
+    description: Functions to check the status of running analyses and retrieve the result.
+schemes:
+  - https
+  - http
+paths:
+  /methods:
+    get:
+      tags:
+        - Analysis
+      summary: Lists the available analysis methods
+      description: >-
+        Some analysis services may provide different methods to process the
+        data. The available methods and their specification can be retrieved
+        using this function. Most services will only support a single method
+        though.
+      operationId: listMethods
+      parameters: []
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: List of available methods
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Method'
+  /types:
+    get:
+      tags:
+        - Analysis
+      summary: Lists the supported data types
+      description: >-
+        The REACTOME Analysis system can analyse different types of 'omics data.
+        This function returns a list of all currently supported types.
+      operationId: listTypes
+      parameters: []
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: List of supported data types
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DataType'
+  /analysis:
+    post:
+      tags:
+        - Analysis
+      summary: Performs the specified gene set analysis
+      operationId: startAnalysis
+      consumes:
+        - application/json
+      produces:
+        - text/plain; charset=utf-8
+      parameters:
+        - in: body
+          name: body
+          description: Specification of analysis to perform
+          required: true
+          schema:
+            $ref: '#/definitions/AnalysisInput'
+      responses:
+        '200':
+          description: Successfull start of the analysis. Returns the identifier of the running analysis.
+          schema:
+            type: string
+            example: Analysis00371643
+        '400':
+          description: JSON request does not follow the specification.
+        '404':
+          description: Unknown analysis method selected.
+        '406':
+          description: Invalid analysis specifcation submitted.
+        '503':
+          description: >-
+            The internal queuing or storage system are currently unavailable. This is generally due to an
+            ongoing update. Please retry in 4 seconds.
+  '/status/{analysisId}':
+    get:
+      tags:
+        - Result
+      summary: Retrieves the status for the specified analysis.
+      operationId: getStatus
+      parameters:
+        - in: path
+          name: analysisId
+          required: true
+          type: string
+          description: The analysis identifier returned by '/analysis'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successfull operation returning the current status of the task.
+          schema:
+            $ref: '#/definitions/AnalysisStatus'
+        '404':
+          description: Unknown identifier passed.
+  '/report_status/{analysisId}':
+    get:
+      tags:
+        - Result
+      summary: Retrieves the status of the report generation.
+      operationId: getReportStatus
+      parameters:
+        - in: path
+          name: analysisId
+          required: true
+          type: string
+          description: The report identifier which is identical to the analysis identifier returned by '/analysis'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successfull operation returning the current status of the report generation.
+          schema:
+            $ref: '#/definitions/ReportStatus'
+        '404':
+          description: Unknown identifier passed.
+  '/result/{analysisId}':
+    get:
+      tags:
+        - Result
+      summary: Retrieves the result for the completed analysis task
+      operationId: getResult
+      parameters:
+        - in: path
+          name: analysisId
+          required: true
+          type: string
+          description: The analysis identified returned by '/analysis'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Sucessfull operation returning the analysis result.
+          schema:
+            $ref: '#/definitions/AnalysisResult'
+        '404':
+          description: Unknown analysis identifier passed.
+        '406':
+          description: >-
+            Analysis is not 'complete'. The application should use '/status' to
+            retrieve information about the current status.
+definitions:
+  Method:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        example: Camera
+      description:
+        type: string
+        example: An extension of the classical Gene Set Enrichment Algorithm for generalized linear models.
+      parameters:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - type
+            - scope
+          properties:
+            name:
+              type: string
+              example: permutations
+            display_name:
+              type: string
+              example: Permutations
+              description: Nicely formatted name
+            type:
+              type: string
+              enum:
+                - int
+                - string
+                - float
+              example: int
+            scope:
+              type: string
+              enum:
+                - analysis
+                - dataset
+                - common
+              description: >-
+                Defines at what level a parameter can be specified. "analysis" level parameters must only be specified
+                as part of the general 'parameters' object. "dataset" level parameters may either be specified at the
+                dataset or at the analysis level. At the analysis level, this value is used as default for all datasets.
+                In case the same parameter is also specified on the / a dataset level, this value overwrites the analysis'
+                method's parameter for the given dataset. Finally, "common" parameters must also only be defined on the
+                analysis level but influence the general behaviour of the system (for example, whether an e-mail
+                notification is sent) that do not influence the actual result.
+            default:
+              type: string
+              example: 10
+              description: The default value of the specified parameter.
+            values:
+              description: Limits the allowed values to the following list
+              type: array
+              items:
+                type: string
+              example:
+                - '10'
+                - '100'
+                - '1000'
+            description:
+              type: string
+              example: Number of permutations.
+  DataType:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        example: proteomics_int
+      name:
+        type: string
+        description: Nice name of the data type
+        example: Proteomics (intensity-based)
+      description:
+        type: string
+        example: >-
+          Intensity-based quantitative proteomics data (for example, iTRAQ/TMT or intensity-based label-free
+          quantitation).
+  AnalysisInput:
+    type: object
+    required:
+      - methodName
+      - datasets
+    properties:
+      methodName:
+        type: string
+        example: Camera
+      datasets:
+        type: array
+        items:
+          $ref: '#/definitions/Dataset'
+      parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Parameter'
+      analysisId:
+        type: string
+        description: This field is only used internally and will be ignored if set in the request.
+  Dataset:
+    type: object
+    required:
+      - name
+      - type
+      - data
+    properties:
+      name:
+        type: string
+        example: First experiment
+        description: Every dataset must have a unique name.
+      type:
+        type: string
+        enum:
+          - rnaseq_counts
+          - rnaseq_norm
+          - proteomics_int
+          - proteomics_sc
+          - microarray_norm
+        example: rnaseq_counts
+        description: >-
+          Specifies the type of dataset. Currently supported types are RNA-seq
+          (raw read counts), intensity-based proteomics quantification
+          (proteomics-int), raw proteomics spectral counts (proteomics-sc), and
+          microarray data.
+      data:
+        type: string
+        description: >-
+          Tab-delimited expression matrix with the first column containing gene
+          / protein identifiers, the first row containing the sample labels and
+          each subsequent row corresponding to the expression of one gene in all
+          samples. The 'tab' character must be escaped using '\t' and new-lines
+          must be escaped using '\n'. If multiple datasets are submitted, shared
+          samples between the datasets must contain identical labels.
+        example: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\nMITF\t3\t9\t20\nPTEN\t10\t4\t20\n"
+      design:
+        $ref: '#/definitions/Design'
+      parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Parameter'
+  Parameter:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+        example: permutations
+      value:
+        type: string
+        example: '10'
+        description: All parameter values must be converted to strings.
+  Design:
+    type: object
+    description: Specifies the experimental design for a dataset.
+    required:
+      - samples
+      - comparison
+      - analysisGroup
+    properties:
+      samples:
+        type: array
+        items:
+          type: string
+        example:
+          - Sample 1
+          - Sample 2
+          - Sample 3
+        description: >-
+          List of all samples in the dataset. This will overwrite the sample names (= column names) in the
+          expression matrix. Therefore, the number of entries in the array must match the number of samples in the
+          expression matrix.
+      comparison:
+        type: object
+        description: >-
+          Specifies the main comparison to perform in the analysis. 'group1' and
+          'group2' refer to the labels specified in the 'analysisGroup' array.
+        required:
+          - group1
+          - group2
+        properties:
+          group1:
+            type: string
+            example: Control
+          group2:
+            type: string
+            example: Treatment
+      analysisGroup:
+        type: array
+        items:
+          type: string
+        example:
+          - Treatment
+          - Control
+          - Treatment
+        description: Names the group to use for the main analysis
+    additionalProperties:
+      type: array
+      description: >-
+        Additional confounding factors can be specified as arrays following the
+        format of 'analysisGroup'. Not all GSA methods will make use of these
+        factors.
+      items:
+        type: string
+      example:
+        - Lab 1
+        - Lab 1
+        - Lab 2
+  AnalysisStatus:
+    type: object
+    required:
+      - id
+      - status
+    properties:
+      id:
+        type: string
+        description: The identifier of the running task
+        example: Analysis00371643
+      status:
+        type: string
+        enum:
+          - running
+          - complete
+          - failed
+        description: Current status of the analysis
+      description:
+        type: string
+        description: Some methods may return a more verbose status of the process.
+        example: Converting identifiers
+      completed:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Current progress of the task.
+  ReportStatus:
+    type: object
+    required:
+      - id
+      - status
+    properties:
+      id:
+        type: string
+        description: The identifier of the running task
+        example: Report00371643
+      status:
+        type: string
+        enum:
+          - running
+          - complete
+          - failed
+        description: Current status of the report generation
+      description:
+        type: string
+        description: Some methods may return a more verbose status of the process.
+        example: Creating XLSX file
+      completed:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Current progress of the report generation.
+      reports:
+        type: array
+        description: If the report generation was completed, this array contains the list of all generated reports.
+        items:
+          type: object
+          required:
+            - name
+            - url
+          properties:
+            name:
+              type: string
+              description: Name of the created report
+              example: "PDF Report"
+            url:
+              type: string
+              description: URL of the report
+              example: "http://gsa.reactome.org/results/MY_ANALYSIS.pdf"
+            mimetype:
+              type: string
+              description: For some reports a mimetype may be provided
+              example: "application/pdf"
+  AnalysisResult:
+    type: object
+    description: Result of the performed GSA.
+    required:
+      - release
+      - results
+      - mappingResult
+    properties:
+      release:
+        type: string
+        description: Release version of the REACTOME pathway database used.
+        example: "65"
+      results:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - pathways
+          properties:
+            name:
+              type: string
+              description: >-
+                Name of the dataset the result refers to. May also contain another
+                identifier if a meta-analysis combining the data from various
+                datasets is performed.
+              example: Experiment 1
+            pathways:
+              type: string
+              description: >-
+                The pathway-centric result matrix as a tab-delimted matrix with the
+                pathways as rows. Required columns are 'Pathway', 'Direction' indicating 'up' or 'down',
+                'FDR' for the corrected p-values, and 'PValue' for the uncorrected p-value.
+                Tab is escaped using \t and new-lines are escaped using \n
+              example: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\tup\t0.001\t0.000004\n"
+            fold_changes:
+              type: string
+              description: >-
+                Some analysis may report gene / protein centric fold changes. These
+                are reported as a tab-delimited matrix with the genes / proteins as
+                rows.
+      reactome_links:
+        type: array
+        items:
+          type: object
+          required:
+            - url
+            - name
+            - token
+          properties:
+            url:
+              type: string
+              description: Link to the result visualization in the Reactome pathway browser
+              example: "https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS=MjAxOTA0MDkxMDI3MjNfMTc%3D"
+            name:
+              type: string
+              description: Short name of the type of visualization
+              example: "GSA Regulation"
+            token:
+              type: string
+              description: The token of the Reactome analysis
+              example: "ANALYSIS_1"
+            description:
+              type: string
+              description: A description of the visualization type.
+              example: "Gene set analysis result visualization in the Reactome pathway browser."
+      mappings:
+        type: array
+        items:
+          type: object
+          required:
+            - identifier
+            - mapped_to
+          properties:
+            identifier:
+              type: string
+              description: The originally submitted identifier
+            mapped_to:
+              type: array
+              description: All identifiers this identifier was mapped to.
+              items:
+                type: string

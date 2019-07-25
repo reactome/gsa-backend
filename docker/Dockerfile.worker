@@ -1,0 +1,44 @@
+FROM r-base:3.5.2
+
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y python3 python3-rpy2 python3-redis python3-pika python3-pip python3-scipy libcurl4-openssl-dev libxml2-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir /data && \
+    apt-get clean
+
+# Copy the script required to install the R packages
+COPY install_libraries.R /tmp/
+
+# Install the R libraries
+RUN R --vanilla < /tmp/install_libraries.R
+
+# Copy our python packages
+COPY reactome_analysis_utils-*.whl /tmp/
+COPY reactome_analysis_api-*.whl /tmp/
+COPY reactome_analysis_worker-*.whl /tmp/
+
+# install the python packages and create the /data directory
+RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
+    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_utils-*.whl && \
+    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_api-*.whl && \
+    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_worker-*.whl && \
+    # cleanup
+    pip3 --cache-dir /tmp/pip_cache uninstall -y setuptools && \
+    rm -rf /tmp/*
+
+# environment variables that govern some functionality of the image
+ENV REACTOME_STORAGE_PATH /data
+ENV REACTOME_SOURCE /data
+ENV REACTOME_INTERACTOR_FILE /data/interactors.txt
+ENV REACTOME_VERSION 68
+
+# Copy the REACTOME related pathway files
+COPY IntAct_Static.txt /data/interactors.txt
+COPY UniProt2Reactome_All_Levels.txt /data/
+COPY Ensembl2Reactome_All_Levels.txt /data/
+
+# create the gene sets
+RUN python3 -m reactome_analysis_worker.geneset_builder
+
+CMD ["python3", "-m", "reactome_analysis_worker"]

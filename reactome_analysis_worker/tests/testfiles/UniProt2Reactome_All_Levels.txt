@@ -1,0 +1,100 @@
+A0A075B6P5	R-HSA-109582	https://reactome.org/PathwayBrowser/#/R-HSA-109582	Hemostasis	TAS	Homo sapiens
+A0A075B6P5	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	TAS	Homo sapiens
+A0A075B6P5	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	IEA	Homo sapiens
+A0A075B6P5	R-HSA-166658	https://reactome.org/PathwayBrowser/#/R-HSA-166658	Complement cascade	TAS	Homo sapiens
+A0A075B6P5	R-HSA-166663	https://reactome.org/PathwayBrowser/#/R-HSA-166663	Initial triggering of complement	TAS	Homo sapiens
+A0A075B6P5	R-HSA-166786	https://reactome.org/PathwayBrowser/#/R-HSA-166786	Creation of C4 and C2 activators	TAS	Homo sapiens
+A0A075B6P5	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	TAS	Homo sapiens
+A0A075B6P5	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	IEA	Homo sapiens
+A0A075B6P5	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	TAS	Homo sapiens
+A0A075B6P5	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	IEA	Homo sapiens
+A0A075B6P5	R-HSA-173623	https://reactome.org/PathwayBrowser/#/R-HSA-173623	Classical antibody-mediated complement activation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-198933	https://reactome.org/PathwayBrowser/#/R-HSA-198933	Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell	TAS	Homo sapiens
+A0A075B6P5	R-HSA-202733	https://reactome.org/PathwayBrowser/#/R-HSA-202733	Cell surface interactions at the vascular wall	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	IEA	Homo sapiens
+A0A075B6P5	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	IEA	Homo sapiens
+A0A075B6P5	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2029482	https://reactome.org/PathwayBrowser/#/R-HSA-2029482	Regulation of actin dynamics for phagocytic cup formation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2029485	https://reactome.org/PathwayBrowser/#/R-HSA-2029485	Role of phospholipids in phagocytosis	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2168880	https://reactome.org/PathwayBrowser/#/R-HSA-2168880	Scavenging of heme from plasma	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2173782	https://reactome.org/PathwayBrowser/#/R-HSA-2173782	Binding and Uptake of Ligands by Scavenger Receptors	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2454202	https://reactome.org/PathwayBrowser/#/R-HSA-2454202	Fc epsilon receptor (FCERI) signaling	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2454202	https://reactome.org/PathwayBrowser/#/R-HSA-2454202	Fc epsilon receptor (FCERI) signaling	IEA	Homo sapiens
+A0A075B6P5	R-HSA-2730905	https://reactome.org/PathwayBrowser/#/R-HSA-2730905	Role of LAT2/NTAL/LAB on calcium mobilization	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2730905	https://reactome.org/PathwayBrowser/#/R-HSA-2730905	Role of LAT2/NTAL/LAB on calcium mobilization	IEA	Homo sapiens
+A0A075B6P5	R-HSA-2871796	https://reactome.org/PathwayBrowser/#/R-HSA-2871796	FCERI mediated MAPK activation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2871809	https://reactome.org/PathwayBrowser/#/R-HSA-2871809	FCERI mediated Ca+2 mobilization	IEA	Homo sapiens
+A0A075B6P5	R-HSA-2871809	https://reactome.org/PathwayBrowser/#/R-HSA-2871809	FCERI mediated Ca+2 mobilization	TAS	Homo sapiens
+A0A075B6P5	R-HSA-2871837	https://reactome.org/PathwayBrowser/#/R-HSA-2871837	FCERI mediated NF-kB activation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-5653656	https://reactome.org/PathwayBrowser/#/R-HSA-5653656	Vesicle-mediated transport	TAS	Homo sapiens
+A0A075B6P5	R-HSA-5690714	https://reactome.org/PathwayBrowser/#/R-HSA-5690714	CD22 mediated BCR regulation	TAS	Homo sapiens
+A0A075B6P5	R-HSA-977606	https://reactome.org/PathwayBrowser/#/R-HSA-977606	Regulation of Complement cascade	TAS	Homo sapiens
+A0A075B6P5	R-HSA-983695	https://reactome.org/PathwayBrowser/#/R-HSA-983695	Antigen activates B Cell Receptor (BCR) leading to generation of second messengers	TAS	Homo sapiens
+A0A075B6P5	R-HSA-983695	https://reactome.org/PathwayBrowser/#/R-HSA-983695	Antigen activates B Cell Receptor (BCR) leading to generation of second messengers	IEA	Homo sapiens
+A0A075B6P5	R-HSA-983705	https://reactome.org/PathwayBrowser/#/R-HSA-983705	Signaling by the B Cell Receptor (BCR)	TAS	Homo sapiens
+A0A075B6P5	R-HSA-983705	https://reactome.org/PathwayBrowser/#/R-HSA-983705	Signaling by the B Cell Receptor (BCR)	IEA	Homo sapiens
+A0A075B6S6	R-HSA-109582	https://reactome.org/PathwayBrowser/#/R-HSA-109582	Hemostasis	TAS	Homo sapiens
+A0A075B6S6	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	TAS	Homo sapiens
+A0A075B6S6	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	IEA	Homo sapiens
+A0A075B6S6	R-HSA-166658	https://reactome.org/PathwayBrowser/#/R-HSA-166658	Complement cascade	TAS	Homo sapiens
+A0A075B6S6	R-HSA-166663	https://reactome.org/PathwayBrowser/#/R-HSA-166663	Initial triggering of complement	TAS	Homo sapiens
+A0A075B6S6	R-HSA-166786	https://reactome.org/PathwayBrowser/#/R-HSA-166786	Creation of C4 and C2 activators	TAS	Homo sapiens
+A0A075B6S6	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	TAS	Homo sapiens
+A0A075B6S6	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	IEA	Homo sapiens
+A0A075B6S6	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	TAS	Homo sapiens
+A0A075B6S6	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	IEA	Homo sapiens
+A0A075B6S6	R-HSA-173623	https://reactome.org/PathwayBrowser/#/R-HSA-173623	Classical antibody-mediated complement activation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-198933	https://reactome.org/PathwayBrowser/#/R-HSA-198933	Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell	TAS	Homo sapiens
+A0A075B6S6	R-HSA-202733	https://reactome.org/PathwayBrowser/#/R-HSA-202733	Cell surface interactions at the vascular wall	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	IEA	Homo sapiens
+A0A075B6S6	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	IEA	Homo sapiens
+A0A075B6S6	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2029482	https://reactome.org/PathwayBrowser/#/R-HSA-2029482	Regulation of actin dynamics for phagocytic cup formation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2029485	https://reactome.org/PathwayBrowser/#/R-HSA-2029485	Role of phospholipids in phagocytosis	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2168880	https://reactome.org/PathwayBrowser/#/R-HSA-2168880	Scavenging of heme from plasma	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2173782	https://reactome.org/PathwayBrowser/#/R-HSA-2173782	Binding and Uptake of Ligands by Scavenger Receptors	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2454202	https://reactome.org/PathwayBrowser/#/R-HSA-2454202	Fc epsilon receptor (FCERI) signaling	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2454202	https://reactome.org/PathwayBrowser/#/R-HSA-2454202	Fc epsilon receptor (FCERI) signaling	IEA	Homo sapiens
+A0A075B6S6	R-HSA-2730905	https://reactome.org/PathwayBrowser/#/R-HSA-2730905	Role of LAT2/NTAL/LAB on calcium mobilization	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2730905	https://reactome.org/PathwayBrowser/#/R-HSA-2730905	Role of LAT2/NTAL/LAB on calcium mobilization	IEA	Homo sapiens
+A0A075B6S6	R-HSA-2871796	https://reactome.org/PathwayBrowser/#/R-HSA-2871796	FCERI mediated MAPK activation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2871809	https://reactome.org/PathwayBrowser/#/R-HSA-2871809	FCERI mediated Ca+2 mobilization	IEA	Homo sapiens
+A0A075B6S6	R-HSA-2871809	https://reactome.org/PathwayBrowser/#/R-HSA-2871809	FCERI mediated Ca+2 mobilization	TAS	Homo sapiens
+A0A075B6S6	R-HSA-2871837	https://reactome.org/PathwayBrowser/#/R-HSA-2871837	FCERI mediated NF-kB activation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-5653656	https://reactome.org/PathwayBrowser/#/R-HSA-5653656	Vesicle-mediated transport	TAS	Homo sapiens
+A0A075B6S6	R-HSA-5690714	https://reactome.org/PathwayBrowser/#/R-HSA-5690714	CD22 mediated BCR regulation	TAS	Homo sapiens
+A0A075B6S6	R-HSA-977606	https://reactome.org/PathwayBrowser/#/R-HSA-977606	Regulation of Complement cascade	TAS	Homo sapiens
+A0A075B6S6	R-HSA-983695	https://reactome.org/PathwayBrowser/#/R-HSA-983695	Antigen activates B Cell Receptor (BCR) leading to generation of second messengers	TAS	Homo sapiens
+A0A075B6S6	R-HSA-983695	https://reactome.org/PathwayBrowser/#/R-HSA-983695	Antigen activates B Cell Receptor (BCR) leading to generation of second messengers	IEA	Homo sapiens
+A0A075B6S6	R-HSA-983705	https://reactome.org/PathwayBrowser/#/R-HSA-983705	Signaling by the B Cell Receptor (BCR)	TAS	Homo sapiens
+A0A075B6S6	R-HSA-983705	https://reactome.org/PathwayBrowser/#/R-HSA-983705	Signaling by the B Cell Receptor (BCR)	IEA	Homo sapiens
+A0A0A6YYK7	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-198933	https://reactome.org/PathwayBrowser/#/R-HSA-198933	Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-202403	https://reactome.org/PathwayBrowser/#/R-HSA-202403	TCR signaling	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-202424	https://reactome.org/PathwayBrowser/#/R-HSA-202424	Downstream TCR signaling	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-202427	https://reactome.org/PathwayBrowser/#/R-HSA-202427	Phosphorylation of CD3 and TCR zeta chains	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-202430	https://reactome.org/PathwayBrowser/#/R-HSA-202430	Translocation of ZAP-70 to Immunological synapse	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-202433	https://reactome.org/PathwayBrowser/#/R-HSA-202433	Generation of second messenger molecules	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-388841	https://reactome.org/PathwayBrowser/#/R-HSA-388841	Costimulation by the CD28 family	TAS	Homo sapiens
+A0A0A6YYK7	R-HSA-389948	https://reactome.org/PathwayBrowser/#/R-HSA-389948	PD-1 signaling	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-109582	https://reactome.org/PathwayBrowser/#/R-HSA-109582	Hemostasis	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-1280218	https://reactome.org/PathwayBrowser/#/R-HSA-1280218	Adaptive Immune System	IEA	Homo sapiens
+A0A0C4DH25	R-HSA-166658	https://reactome.org/PathwayBrowser/#/R-HSA-166658	Complement cascade	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-166663	https://reactome.org/PathwayBrowser/#/R-HSA-166663	Initial triggering of complement	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-166786	https://reactome.org/PathwayBrowser/#/R-HSA-166786	Creation of C4 and C2 activators	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-168249	https://reactome.org/PathwayBrowser/#/R-HSA-168249	Innate Immune System	IEA	Homo sapiens
+A0A0C4DH25	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-168256	https://reactome.org/PathwayBrowser/#/R-HSA-168256	Immune System	IEA	Homo sapiens
+A0A0C4DH25	R-HSA-173623	https://reactome.org/PathwayBrowser/#/R-HSA-173623	Classical antibody-mediated complement activation	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-198933	https://reactome.org/PathwayBrowser/#/R-HSA-198933	Immunoregulatory interactions between a Lymphoid and a non-Lymphoid cell	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-202733	https://reactome.org/PathwayBrowser/#/R-HSA-202733	Cell surface interactions at the vascular wall	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-2029480	https://reactome.org/PathwayBrowser/#/R-HSA-2029480	Fcgamma receptor (FCGR) dependent phagocytosis	IEA	Homo sapiens
+A0A0C4DH25	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	IEA	Homo sapiens
+A0A0C4DH25	R-HSA-2029481	https://reactome.org/PathwayBrowser/#/R-HSA-2029481	FCGR activation	TAS	Homo sapiens
+A0A0C4DH25	R-HSA-2029482	https://reactome.org/PathwayBrowser/#/R-HSA-2029482	Regulation of actin dynamics for phagocytic cup formation	TAS	Homo sapiens

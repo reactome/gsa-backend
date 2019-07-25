@@ -1,0 +1,636 @@
+#  redis
+#  redis-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+  labels:
+    app: redis
+    tier: backend
+spec:
+  ports:
+  - port: {{ redis.port }}
+    protocol: TCP
+    targetPort: {{ redis.port }}
+  selector:
+    app: redis
+    tier: backend
+  {% if debug %}
+  type: NodePort
+  {% endif %}
+---
+#  redis-secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secret
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  password: {{ random_password(debug=debug) }}
+type: Opaque
+---
+#  redis-persistent-volume-claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    type: claim
+  name: redis-pv-claim
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  {%- if storage_class %}
+  storageClassName: {{ storage_class }}
+  {%- endif %}
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1000M
+status:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1000M
+---
+#  redis config-map
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  redis.conf: >
+    # disable the config command
+    rename-command CONFIG ""
+
+    # use redis like a cache - once the memory limit is reached, results / keys are deleted
+    maxmemory 900mb
+    maxmemory-policy allkeys-lru
+
+    # backup the data every 60 sec if at least 1 key changed
+    save 60 1
+# 
+---
+#  redis deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      tier: backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: backend
+    spec:
+      containers:
+      - name: redis
+        image: {{ redis.image }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ redis.port }}
+          protocol: TCP
+        command:
+          - /bin/bash
+          - -c
+          - |
+            REDIS_PASSWORD=`cat /etc/redis/secret/redis.password`
+            ARGS=("--requirepass" "${REDIS_PASSWORD}")
+            ARGS+=("--port" "{{ redis.port }}")
+            ARGS+=("--include" "/etc/redis/config/redis.conf")
+            redis-server "${ARGS[@]}"
+        resources:
+          requests:
+            cpu: {{ redis.min_cpu }}
+            memory: {{ redis.min_mem }}
+          limits:
+            cpu: {{ redis.max_cpu }}
+            memory: {{ redis.max_mem }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/redis/config
+          name: redis-config
+          readOnly: true
+        - mountPath: /etc/redis/secret
+          name: redis-password-file
+          readOnly: true
+        - mountPath: /data
+          name: redis-persistent-storage
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-config
+      - name: redis-password-file
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: redis-persistent-storage
+        persistentVolumeClaim:
+          claimName: redis-pv-claim
+---
+#  rabbit-mq service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbit-mq
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+  labels:
+    app: rabbit-mq
+    tier: backend
+spec:
+  ports:
+  - port: 5672
+    protocol: TCP
+    targetPort: 5672
+  selector:
+    app: rabbit-mq
+    tier: backend
+  {% if debug %}
+  type: NodePort
+  {% endif %}
+---
+#  rabbit-mq monitoring service
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbit-mq-monitor
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+  labels:
+    app: rabbit-mq
+    tier: backend
+spec:
+  ports:
+  - port: 15672
+    protocol: TCP
+    targetPort: 15672
+  selector:
+    app: rabbit-mq
+    tier: backend
+  type: NodePort
+---
+#  rabbit-mq secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  password: {{ random_password(debug=debug, length=40) }}
+  user: {{ random_password(debug=debug, length=8) }}
+type: Opaque
+---
+#  rabbit-mq deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+  name: rabbit-mq
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbit-mq
+      tier: backend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rabbit-mq
+        tier: backend
+    spec:
+      containers:
+      - name: rabbit-mq
+        image: {{ rabbitmq.image }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5672
+          protocol: TCP
+        - containerPort: 15672
+          protocol: TCP
+        env:
+        - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
+          value: 400Mib
+        - name: RABBITMQ_ERLANG_COOKIE
+          value: {{ random_password(length=50) }}
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: rabbitmq-secret
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: rabbitmq-secret
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        resources:
+          requests:
+            cpu: {{ rabbitmq.min_cpu }}
+            memory: {{ rabbitmq.min_mem }}
+          limits:
+            cpu: {{ rabbitmq.max_cpu }}
+            memory: {{ rabbitmq.max_mem }}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+#  reactome service
+apiVersion: v1
+kind: Service
+metadata:
+  name: reactome
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+  labels:
+    tier: external
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+---
+#  reactome endpoint
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: reactome
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+subsets:
+- addresses:
+  - ip: 100.25.71.177
+  ports:
+  - port: 443
+    protocol: TCP
+---
+# REACTOME API service
+apiVersion: v1
+kind: Service
+metadata:
+  name: reactome-analysis-api
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+  labels:
+    app: reactome-analysis-api
+    tier: frontend
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: reactome-analysis-api
+    tier: frontend
+  type: {{ reactome_api.node_type }}
+---
+# Config Map for all REACTOME pods
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reactome-global-config
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  # number of tries to post a RABBIT message
+  MAX_MESSAGE_TRIES: "3"
+  RABBIT_HOST: "rabbit-mq"
+  RABBIT_PORT: "5672"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "{{ redis.port }}"
+  REDIS_DATABASE: "0"
+  RABBIT_MAX_QUEUE_LENGTH: "10"
+---
+# REACTOME API deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reactome-analysis-api
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ reactome_api.replicas }}
+  selector:
+    matchLabels:
+      app: reactome-analysis-api
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: reactome-analysis-api
+        tier: frontend
+    spec:
+      containers:
+      - name: reactome-analysis-api
+        image: {{ reactome_api.image }}
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: reactome-global-config
+        env:
+          - name: REDIS_PASSWORD_FILE
+            value: "/etc/redis/redis.password"
+          - name: RABBIT_USER_SECRETS_FILE
+            value: "/etc/rabbit/user"
+          - name: RABBIT_PASSWORD_SECRETS_FILE
+            value: "/etc/rabbit/password"
+        volumeMounts:
+        - mountPath: /etc/redis/
+          name: redis-secret-volume
+          readOnly: true
+        - mountPath: /etc/rabbit/
+          name: rabbit-secret-volume
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ reactome_api.min_cpu }}
+            memory: {{ reactome_api.min_mem }}
+          limits:
+            cpu: {{ reactome_api.max_cpu }}
+            memory: {{ reactome_api.max_mem }}
+      volumes:
+      - name: redis-secret-volume
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: rabbit-secret-volume
+        secret:
+          secretName: rabbitmq-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+---
+# REACTOME worker deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reactome-analysis-worker
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ reactome_worker.min_replicas }}
+  selector:
+    matchLabels:
+      app: reactome-analysis-worker
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: reactome-analysis-worker
+        tier: backend
+    spec:
+      containers:
+      - name: reactome-analysis-worker
+        image: {{ reactome_worker.image }}
+        {% if debug %}
+        imagePullPolicy: "Always"
+        {% endif %}
+        ports:
+        - containerPort: 9090
+          name: "prometheus"
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: reactome-global-config
+        env:
+          - name: PROMETHEUS_PORT
+            value: "9090"
+          - name: REDIS_PASSWORD_FILE
+            value: "/etc/redis/redis.password"
+          - name: RABBIT_USER_SECRETS_FILE
+            value: "/etc/rabbit/user"
+          - name: RABBIT_PASSWORD_SECRETS_FILE
+            value: "/etc/rabbit/password"
+	  {%- if reactome_worker.proxy %}
+          - name: PROXY
+            value: "{{ reactome_worker.proxy }}"
+          {%- endif %}
+        volumeMounts:
+        - mountPath: /etc/redis/
+          name: redis-secret-volume
+          readOnly: true
+        - mountPath: /etc/rabbit/
+          name: rabbit-secret-volume
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ reactome_worker.min_cpu }}
+            memory: {{ reactome_worker.min_mem }}
+          limits:
+            cpu: {{ reactome_worker.max_cpu }}
+            memory: {{ reactome_worker.max_mem }}
+      volumes:
+      - name: redis-secret-volume
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: rabbit-secret-volume
+        secret:
+          secretName: rabbitmq-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      tolerations:
+      - key: "stability"
+        operator: "Equal"
+        value: "pre-emptible"
+        effect: "NoSchedule"
+---
+# REACTOME worker autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-worker
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-worker
+  minReplicas: {{ reactome_worker.min_replicas }}
+  maxReplicas: {{ reactome_worker.max_replicas }}
+  targetCPUUtilizationPercentage: {{ reactome_worker.target_cpu_usage }} 
+---
+# Config Map for the e-mail settings
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reactome-email-config
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  SMTP_SERVER: "{{ mail.smtp_server }}"
+  SMTP_PORT: "{{ mail.smtp_port }}"
+  FROM_ADDRESS: "{{ mail.from_address }}"
+  BASE_URL: "{{ base_url }}"
+---
+#  mail-secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mail-secret
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  user: {{ mail.smtp_user }}
+  password: {{ mail.smtp_password }}
+type: Opaque
+---
+# REACTOME report deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reactome-analysis-report
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ reactome_report.replicas }}
+  selector:
+    matchLabels:
+      app: reactome-analysis-report
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: reactome-analysis-report
+        tier: backend
+    spec:
+      containers:
+      - name: reactome-analysis-report
+        image: {{ reactome_report.image }}
+        {% if debug %}
+        imagePullPolicy: "Always"
+        {% endif %}
+        ports:
+        - containerPort: 9090
+          name: "prometheus"
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: reactome-global-config
+        - configMapRef:
+            name: reactome-email-config
+        env:
+          - name: PROMETHEUS_PORT
+            value: "9090"
+          - name: REDIS_PASSWORD_FILE
+            value: "/etc/redis/redis.password"
+          - name: RABBIT_USER_SECRETS_FILE
+            value: "/etc/rabbit/user"
+          - name: RABBIT_PASSWORD_SECRETS_FILE
+            value: "/etc/rabbit/password"
+          - name: EMAIL_USER_FILE
+            value: "/etc/mail/user"
+          - name: EMAIL_PASSWORD_FILE
+            value: "/etc/mail/password"
+        volumeMounts:
+        - mountPath: /etc/redis/
+          name: redis-secret-volume
+          readOnly: true
+        - mountPath: /etc/rabbit/
+          name: rabbit-secret-volume
+          readOnly: true
+        - mountPath: /etc/mail/
+          name: mail-secret-volume
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ reactome_report.min_cpu }}
+            memory: {{ reactome_report.min_mem }}
+          limits:
+            cpu: {{ reactome_report.max_cpu }}
+            memory: {{ reactome_report.max_mem }}
+      volumes:
+      - name: redis-secret-volume
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: rabbit-secret-volume
+        secret:
+          secretName: rabbitmq-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      - name: mail-secret-volume
+        secret:
+          secretName: mail-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      tolerations:
+      - key: "stability"
+        operator: "Equal"
+        value: "pre-emptible"
+        effect: "NoSchedule"

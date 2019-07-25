@@ -1,0 +1,26 @@
+FROM alpine:3.9
+
+RUN apk update && apk add --no-cache uwsgi-python3
+
+RUN mkdir -p /usr/apps
+
+COPY reactome_analysis_utils-*.whl /usr/apps/
+COPY reactome_analysis_api-*.whl /usr/apps/
+
+# install the apps
+RUN pip3 install /usr/apps/reactome_analysis_utils*.whl && \
+    pip3 install /usr/apps/reactome_analysis_api-*.whl
+
+EXPOSE 8080
+
+CMD ["uwsgi", \ 
+     "--socket", "0.0.0.0:8080", \
+     "--uid", "uwsgi", \
+     "--gid", "uwsgi", \
+     "--plugins", "python3", \
+     "--protocol", "http", \
+     "--die-on-term", \
+     "--log-master", \
+     "--enable-threads", \
+     "--wsgi", "reactome_analysis_api.__main__:app_dispatch"]
+     

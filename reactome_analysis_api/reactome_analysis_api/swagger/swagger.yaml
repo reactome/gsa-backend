@@ -1,0 +1,737 @@
+---
+swagger: "2.0"
+info:
+  description: "This is a REACTOME analysis service. It provides gene set analysis\
+    \ methods whose results can be visualized using the REACTOME pathway browser."
+  version: "0.1.0"
+  title: "REACTOME Analysis Service"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+basePath: "/0.1"
+tags:
+- name: "Analysis"
+  description: "Functions to initiate the analysis"
+- name: "Result"
+  description: "Functions to check the status of running analyses and retrieve the\
+    \ result."
+schemes:
+- "https"
+- "http"
+paths:
+  /methods:
+    get:
+      tags:
+      - "Analysis"
+      summary: "Lists the available analysis methods"
+      description: "Some analysis services may provide different methods to process\
+        \ the data. The available methods and their specification can be retrieved\
+        \ using this function. Most services will only support a single method though."
+      operationId: "list_methods"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "List of available methods"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Method"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.analysis_controller"
+  /types:
+    get:
+      tags:
+      - "Analysis"
+      summary: "Lists the supported data types"
+      description: "The REACTOME Analysis system can analyse different types of 'omics\
+        \ data. This function returns a list of all currently supported types."
+      operationId: "list_types"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "List of supported data types"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/DataType"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.analysis_controller"
+  /analysis:
+    post:
+      tags:
+      - "Analysis"
+      summary: "Performs the specified gene set analysis"
+      operationId: "start_analysis"
+      consumes:
+      - "application/json"
+      produces:
+      - "text/plain; charset=utf-8"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Specification of analysis to perform"
+        required: true
+        schema:
+          $ref: "#/definitions/AnalysisInput"
+      responses:
+        200:
+          description: "Successfull start of the analysis. Returns the identifier\
+            \ of the running analysis."
+          schema:
+            type: "string"
+            example: "Analysis00371643"
+        400:
+          description: "JSON request does not follow the specification."
+        404:
+          description: "Unknown analysis method selected."
+        406:
+          description: "Invalid analysis specifcation submitted."
+        503:
+          description: "The internal queuing or storage system are currently unavailable.\
+            \ This is generally due to an ongoing update. Please retry in 4 seconds."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.analysis_controller"
+  /status/{analysisId}:
+    get:
+      tags:
+      - "Result"
+      summary: "Retrieves the status for the specified analysis."
+      operationId: "get_status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "analysisId"
+        in: "path"
+        description: "The analysis identifier returned by '/analysis'"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfull operation returning the current status of the\
+            \ task."
+          schema:
+            $ref: "#/definitions/AnalysisStatus"
+        404:
+          description: "Unknown identifier passed."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.result_controller"
+  /report_status/{analysisId}:
+    get:
+      tags:
+      - "Result"
+      summary: "Retrieves the status of the report generation."
+      operationId: "get_report_status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "analysisId"
+        in: "path"
+        description: "The report identifier which is identical to the analysis identifier\
+          \ returned by '/analysis'"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successfull operation returning the current status of the\
+            \ report generation."
+          schema:
+            $ref: "#/definitions/ReportStatus"
+        404:
+          description: "Unknown identifier passed."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.result_controller"
+  /result/{analysisId}:
+    get:
+      tags:
+      - "Result"
+      summary: "Retrieves the result for the completed analysis task"
+      operationId: "get_result"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "analysisId"
+        in: "path"
+        description: "The analysis identified returned by '/analysis'"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Sucessfull operation returning the analysis result."
+          schema:
+            $ref: "#/definitions/AnalysisResult"
+        404:
+          description: "Unknown analysis identifier passed."
+        406:
+          description: "Analysis is not 'complete'. The application should use '/status'\
+            \ to retrieve information about the current status."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.result_controller"
+definitions:
+  Method:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      name:
+        type: "string"
+        example: "Camera"
+      description:
+        type: "string"
+        example: "An extension of the classical Gene Set Enrichment Algorithm for\
+          \ generalized linear models."
+      parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Method_parameters"
+    example:
+      name: "Camera"
+      description: "An extension of the classical Gene Set Enrichment Algorithm for\
+        \ generalized linear models."
+      parameters:
+      - default: "10"
+        scope: "analysis"
+        values:
+        - "10"
+        - "100"
+        - "1000"
+        name: "permutations"
+        description: "Number of permutations."
+        display_name: "Permutations"
+        type: "int"
+      - default: "10"
+        scope: "analysis"
+        values:
+        - "10"
+        - "100"
+        - "1000"
+        name: "permutations"
+        description: "Number of permutations."
+        display_name: "Permutations"
+        type: "int"
+  DataType:
+    type: "object"
+    required:
+    - "id"
+    properties:
+      id:
+        type: "string"
+        example: "proteomics_int"
+      name:
+        type: "string"
+        example: "Proteomics (intensity-based)"
+        description: "Nice name of the data type"
+      description:
+        type: "string"
+        example: "Intensity-based quantitative proteomics data (for example, iTRAQ/TMT\
+          \ or intensity-based label-free quantitation)."
+    example:
+      name: "Proteomics (intensity-based)"
+      description: "Intensity-based quantitative proteomics data (for example, iTRAQ/TMT\
+        \ or intensity-based label-free quantitation)."
+      id: "proteomics_int"
+  AnalysisInput:
+    type: "object"
+    required:
+    - "datasets"
+    - "methodName"
+    properties:
+      methodName:
+        type: "string"
+        example: "Camera"
+      datasets:
+        type: "array"
+        items:
+          $ref: "#/definitions/Dataset"
+      parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Parameter"
+      analysisId:
+        type: "string"
+        description: "This field is only used internally and will be ignored if set\
+          \ in the request."
+    example:
+      methodName: "Camera"
+      analysisId: "analysisId"
+      datasets:
+      - data: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\nMITF\t\
+          3\t9\t20\nPTEN\t10\t4\t20\n"
+        design:
+          comparison:
+            group2: "Treatment"
+            group1: "Control"
+          analysisGroup:
+          - "Treatment"
+          - "Control"
+          - "Treatment"
+          samples:
+          - "Sample 1"
+          - "Sample 2"
+          - "Sample 3"
+        name: "First experiment"
+        type: "rnaseq_counts"
+        parameters:
+        - name: "permutations"
+          value: "10"
+        - name: "permutations"
+          value: "10"
+      - data: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\nMITF\t\
+          3\t9\t20\nPTEN\t10\t4\t20\n"
+        design:
+          comparison:
+            group2: "Treatment"
+            group1: "Control"
+          analysisGroup:
+          - "Treatment"
+          - "Control"
+          - "Treatment"
+          samples:
+          - "Sample 1"
+          - "Sample 2"
+          - "Sample 3"
+        name: "First experiment"
+        type: "rnaseq_counts"
+        parameters:
+        - name: "permutations"
+          value: "10"
+        - name: "permutations"
+          value: "10"
+      parameters:
+      - name: "permutations"
+        value: "10"
+      - name: "permutations"
+        value: "10"
+  Dataset:
+    type: "object"
+    required:
+    - "data"
+    - "name"
+    - "type"
+    properties:
+      name:
+        type: "string"
+        example: "First experiment"
+        description: "Every dataset must have a unique name."
+      type:
+        type: "string"
+        example: "rnaseq_counts"
+        description: "Specifies the type of dataset. Currently supported types are\
+          \ RNA-seq (raw read counts), intensity-based proteomics quantification (proteomics-int),\
+          \ raw proteomics spectral counts (proteomics-sc), and microarray data."
+        enum:
+        - "rnaseq_counts"
+        - "rnaseq_norm"
+        - "proteomics_int"
+        - "proteomics_sc"
+        - "microarray_norm"
+      data:
+        type: "string"
+        example: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\n\
+          MITF\t3\t9\t20\nPTEN\t10\t4\t20\n"
+        description: "Tab-delimited expression matrix with the first column containing\
+          \ gene / protein identifiers, the first row containing the sample labels\
+          \ and each subsequent row corresponding to the expression of one gene in\
+          \ all samples. The 'tab' character must be escaped using '\\t' and new-lines\
+          \ must be escaped using '\\n'. If multiple datasets are submitted, shared\
+          \ samples between the datasets must contain identical labels."
+      design:
+        $ref: "#/definitions/Design"
+      parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Parameter"
+    example:
+      data: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\nMITF\t\
+        3\t9\t20\nPTEN\t10\t4\t20\n"
+      design:
+        comparison:
+          group2: "Treatment"
+          group1: "Control"
+        analysisGroup:
+        - "Treatment"
+        - "Control"
+        - "Treatment"
+        samples:
+        - "Sample 1"
+        - "Sample 2"
+        - "Sample 3"
+      name: "First experiment"
+      type: "rnaseq_counts"
+      parameters:
+      - name: "permutations"
+        value: "10"
+      - name: "permutations"
+        value: "10"
+  Parameter:
+    type: "object"
+    required:
+    - "name"
+    - "value"
+    properties:
+      name:
+        type: "string"
+        example: "permutations"
+      value:
+        type: "string"
+        example: "10"
+        description: "All parameter values must be converted to strings."
+    example:
+      name: "permutations"
+      value: "10"
+  Design:
+    type: "object"
+    required:
+    - "analysisGroup"
+    - "comparison"
+    - "samples"
+    properties:
+      samples:
+        type: "array"
+        example:
+        - "Sample 1"
+        - "Sample 2"
+        - "Sample 3"
+        description: "List of all samples in the dataset. This will overwrite the\
+          \ sample names (= column names) in the expression matrix. Therefore, the\
+          \ number of entries in the array must match the number of samples in the\
+          \ expression matrix."
+        items:
+          type: "string"
+      comparison:
+        $ref: "#/definitions/Design_comparison"
+      analysisGroup:
+        type: "array"
+        example:
+        - "Treatment"
+        - "Control"
+        - "Treatment"
+        description: "Names the group to use for the main analysis"
+        items:
+          type: "string"
+    description: "Specifies the experimental design for a dataset."
+    example:
+      comparison:
+        group2: "Treatment"
+        group1: "Control"
+      analysisGroup:
+      - "Treatment"
+      - "Control"
+      - "Treatment"
+      samples:
+      - "Sample 1"
+      - "Sample 2"
+      - "Sample 3"
+    additionalProperties:
+      type: "array"
+      example:
+      - "Lab 1"
+      - "Lab 1"
+      - "Lab 2"
+      description: "Additional confounding factors can be specified as arrays following\
+        \ the format of 'analysisGroup'. Not all GSA methods will make use of these\
+        \ factors."
+      items:
+        type: "string"
+  AnalysisStatus:
+    type: "object"
+    required:
+    - "id"
+    - "status"
+    properties:
+      id:
+        type: "string"
+        example: "Analysis00371643"
+        description: "The identifier of the running task"
+      status:
+        type: "string"
+        description: "Current status of the analysis"
+        enum:
+        - "running"
+        - "complete"
+        - "failed"
+      description:
+        type: "string"
+        example: "Converting identifiers"
+        description: "Some methods may return a more verbose status of the process."
+      completed:
+        type: "number"
+        description: "Current progress of the task."
+        minimum: 0
+        maximum: 1
+    example:
+      description: "Converting identifiers"
+      id: "Analysis00371643"
+      completed: 0.080082819046101150206595775671303272247314453125
+      status: "running"
+  ReportStatus:
+    type: "object"
+    required:
+    - "id"
+    - "status"
+    properties:
+      id:
+        type: "string"
+        example: "Report00371643"
+        description: "The identifier of the running task"
+      status:
+        type: "string"
+        description: "Current status of the report generation"
+        enum:
+        - "running"
+        - "complete"
+        - "failed"
+      description:
+        type: "string"
+        example: "Creating XLSX file"
+        description: "Some methods may return a more verbose status of the process."
+      completed:
+        type: "number"
+        description: "Current progress of the report generation."
+        minimum: 0
+        maximum: 1
+      reports:
+        type: "array"
+        description: "If the report generation was completed, this array contains\
+          \ the list of all generated reports."
+        items:
+          $ref: "#/definitions/ReportStatus_reports"
+    example:
+      reports:
+      - name: "PDF Report"
+        mimetype: "application/pdf"
+        url: "http://gsa.reactome.org/results/MY_ANALYSIS.pdf"
+      - name: "PDF Report"
+        mimetype: "application/pdf"
+        url: "http://gsa.reactome.org/results/MY_ANALYSIS.pdf"
+      description: "Creating XLSX file"
+      id: "Report00371643"
+      completed: 0.080082819046101150206595775671303272247314453125
+      status: "running"
+  AnalysisResult:
+    type: "object"
+    required:
+    - "release"
+    - "results"
+    properties:
+      release:
+        type: "string"
+        example: "65"
+        description: "Release version of the REACTOME pathway database used."
+      results:
+        type: "array"
+        items:
+          $ref: "#/definitions/AnalysisResult_results"
+      reactome_links:
+        type: "array"
+        items:
+          $ref: "#/definitions/AnalysisResult_reactome_links"
+      mappings:
+        type: "array"
+        items:
+          $ref: "#/definitions/AnalysisResult_mappings"
+    description: "Result of the performed GSA."
+    example:
+      mappings:
+      - identifier: "identifier"
+        mapped_to:
+        - "mapped_to"
+        - "mapped_to"
+      - identifier: "identifier"
+        mapped_to:
+        - "mapped_to"
+        - "mapped_to"
+      release: "65"
+      reactome_links:
+      - name: "GSA Regulation"
+        description: "Gene set analysis result visualization in the Reactome pathway\
+          \ browser."
+        url: "https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS=MjAxOTA0MDkxMDI3MjNfMTc%3D"
+        token: "ANALYSIS_1"
+      - name: "GSA Regulation"
+        description: "Gene set analysis result visualization in the Reactome pathway\
+          \ browser."
+        url: "https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS=MjAxOTA0MDkxMDI3MjNfMTc%3D"
+        token: "ANALYSIS_1"
+      results:
+      - fold_changes: "fold_changes"
+        name: "Experiment 1"
+        pathways: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\t\
+          up\t0.001\t0.000004\n"
+      - fold_changes: "fold_changes"
+        name: "Experiment 1"
+        pathways: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\t\
+          up\t0.001\t0.000004\n"
+  Method_parameters:
+    required:
+    - "name"
+    - "scope"
+    - "type"
+    properties:
+      name:
+        type: "string"
+        example: "permutations"
+      display_name:
+        type: "string"
+        example: "Permutations"
+        description: "Nicely formatted name"
+      type:
+        type: "string"
+        example: "int"
+        enum:
+        - "int"
+        - "string"
+        - "float"
+      scope:
+        type: "string"
+        description: "Defines at what level a parameter can be specified. \"analysis\"\
+          \ level parameters must only be specified as part of the general 'parameters'\
+          \ object. \"dataset\" level parameters may either be specified at the dataset\
+          \ or at the analysis level. At the analysis level, this value is used as\
+          \ default for all datasets. In case the same parameter is also specified\
+          \ on the / a dataset level, this value overwrites the analysis' method's\
+          \ parameter for the given dataset. Finally, \"common\" parameters must also\
+          \ only be defined on the analysis level but influence the general behaviour\
+          \ of the system (for example, whether an e-mail notification is sent) that\
+          \ do not influence the actual result."
+        enum:
+        - "analysis"
+        - "dataset"
+        - "common"
+      default:
+        type: "string"
+        example: "10"
+        description: "The default value of the specified parameter."
+      values:
+        type: "array"
+        example:
+        - "10"
+        - "100"
+        - "1000"
+        description: "Limits the allowed values to the following list"
+        items:
+          type: "string"
+      description:
+        type: "string"
+        example: "Number of permutations."
+    example:
+      default: "10"
+      scope: "analysis"
+      values:
+      - "10"
+      - "100"
+      - "1000"
+      name: "permutations"
+      description: "Number of permutations."
+      display_name: "Permutations"
+      type: "int"
+  Design_comparison:
+    required:
+    - "group1"
+    - "group2"
+    properties:
+      group1:
+        type: "string"
+        example: "Control"
+      group2:
+        type: "string"
+        example: "Treatment"
+    description: "Specifies the main comparison to perform in the analysis. 'group1'\
+      \ and 'group2' refer to the labels specified in the 'analysisGroup' array."
+    example:
+      group2: "Treatment"
+      group1: "Control"
+  ReportStatus_reports:
+    required:
+    - "name"
+    - "url"
+    properties:
+      name:
+        type: "string"
+        example: "PDF Report"
+        description: "Name of the created report"
+      url:
+        type: "string"
+        example: "http://gsa.reactome.org/results/MY_ANALYSIS.pdf"
+        description: "URL of the report"
+      mimetype:
+        type: "string"
+        example: "application/pdf"
+        description: "For some reports a mimetype may be provided"
+    example:
+      name: "PDF Report"
+      mimetype: "application/pdf"
+      url: "http://gsa.reactome.org/results/MY_ANALYSIS.pdf"
+  AnalysisResult_results:
+    required:
+    - "name"
+    - "pathways"
+    properties:
+      name:
+        type: "string"
+        example: "Experiment 1"
+        description: "Name of the dataset the result refers to. May also contain another\
+          \ identifier if a meta-analysis combining the data from various datasets\
+          \ is performed."
+      pathways:
+        type: "string"
+        example: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\t\
+          up\t0.001\t0.000004\n"
+        description: "The pathway-centric result matrix as a tab-delimted matrix with\
+          \ the pathways as rows. Required columns are 'Pathway', 'Direction' indicating\
+          \ 'up' or 'down', 'FDR' for the corrected p-values, and 'PValue' for the\
+          \ uncorrected p-value. Tab is escaped using \\t and new-lines are escaped\
+          \ using \\n"
+      fold_changes:
+        type: "string"
+        description: "Some analysis may report gene / protein centric fold changes.\
+          \ These are reported as a tab-delimited matrix with the genes / proteins\
+          \ as rows."
+    example:
+      fold_changes: "fold_changes"
+      name: "Experiment 1"
+      pathways: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\t\
+        up\t0.001\t0.000004\n"
+  AnalysisResult_reactome_links:
+    required:
+    - "name"
+    - "token"
+    - "url"
+    properties:
+      url:
+        type: "string"
+        example: "https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS=MjAxOTA0MDkxMDI3MjNfMTc%3D"
+        description: "Link to the result visualization in the Reactome pathway browser"
+      name:
+        type: "string"
+        example: "GSA Regulation"
+        description: "Short name of the type of visualization"
+      token:
+        type: "string"
+        example: "ANALYSIS_1"
+        description: "The token of the Reactome analysis"
+      description:
+        type: "string"
+        example: "Gene set analysis result visualization in the Reactome pathway browser."
+        description: "A description of the visualization type."
+    example:
+      name: "GSA Regulation"
+      description: "Gene set analysis result visualization in the Reactome pathway\
+        \ browser."
+      url: "https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS=MjAxOTA0MDkxMDI3MjNfMTc%3D"
+      token: "ANALYSIS_1"
+  AnalysisResult_mappings:
+    required:
+    - "identifier"
+    - "mapped_to"
+    properties:
+      identifier:
+        type: "string"
+        description: "The originally submitted identifier"
+      mapped_to:
+        type: "array"
+        description: "All identifiers this identifier was mapped to."
+        items:
+          type: "string"
+    example:
+      identifier: "identifier"
+      mapped_to:
+      - "mapped_to"
+      - "mapped_to"

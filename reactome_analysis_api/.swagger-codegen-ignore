@@ -1,0 +1,13 @@
+# List all files that were changed
+reactome_analysis_api/controllers/*
+reactome_analysis_api/redis_util.py
+reactome_analysis_api/__main__.py
+reactome_analysis_api/util.py
+reactome_analysis_api/methods.py
+reactome_analysis_api/tests
+README.md
+requirements.txt
+test-requirements.txt
+setup.py
+.gitignore
+.swager-codegen-ignore

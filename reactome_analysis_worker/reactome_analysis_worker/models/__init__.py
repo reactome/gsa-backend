@@ -1,0 +1,1 @@
+from reactome_analysis_worker.models.gene_set import GeneSet

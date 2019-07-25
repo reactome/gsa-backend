@@ -1,0 +1,47 @@
+debug: True
+# Replace with your minikube installation f.e.
+base_url: "http://192.168.99.100:30966"
+# Report e-mails are only sent if a configuration is supplied
+mail:
+  smtp_server: ""
+  smtp_port: 587
+  from_address: ""
+  smtp_user: ""
+  smtp_password: ""
+redis:
+  port: 6379
+  image: redis:5.0.3
+  min_mem: "100Mi"
+  max_mem: "200Mi"
+  min_cpu: "100m"
+  max_cpu: "200m"
+rabbitmq:
+  image: rabbitmq:3.7-management-alpine
+  min_mem: "300Mi"
+  max_mem: "500Mi"
+  min_cpu: "100m"
+  max_cpu: "200m"
+reactome_api:
+  image: jgriss/reactome-analysis_public-api:latest
+  min_mem: "200Mi"
+  max_mem: "500Mi"
+  min_cpu: "100m"
+  max_cpu: "250m"
+  replicas: 1
+  node_type: "NodePort"
+reactome_worker:
+  image: jgriss/reactome-analysis_worker:latest
+  min_mem: "500Mi"
+  max_mem: "1000Mi"
+  min_cpu: "0.5"
+  max_cpu: "1"
+  min_replicas: 1
+  max_replicas: 1
+  target_cpu_usage: 75
+reactome_report:
+  image: jgriss/reactome-analysis_report:latest
+  min_mem: "250Mi"
+  max_mem: "1000Mi"
+  min_cpu: "0.3"
+  max_cpu: "1"
+  replicas: 1

@@ -1,0 +1,42 @@
+FROM jgriss/reactome-analysis_worker:THE_WORKER_VERSION
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV LD_LIBRARY_PATH /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64
+
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y openjdk-8-jdk-headless r-cran-rjava r-cran-devtools libssl-dev pandoc && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && \
+    R CMD javareconf
+
+# install texlive
+COPY texlive.profile /tmp/
+
+RUN wget -O /tmp/install_tl.tar.gz "http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz" && \
+    cd /tmp && tar -xzf /tmp/install_tl.tar.gz && cd /tmp/install-tl-* && \
+    ./install-tl --profile /tmp/texlive.profile && \
+    rm -rf /tmp/texlive* /tmp/install-tl-* /tmp/install_tl*
+
+ENV PATH "$PATH:/usr/local/texlive/2019/bin/x86_64-linux"
+
+# Install required texlive packages
+RUN tlmgr install lm ec booktabs titling xtab xcolor titlesec fancybox xetex mathspec etoolbox fontspec xkeyval zapfding 
+
+# Copy the script required to install the R packages
+COPY install_report_libraries.R /tmp/
+
+# Install the R libraries
+RUN R --vanilla < /tmp/install_report_libraries.R
+
+# Copy our python packages
+COPY reactome_analysis_report-*.whl /tmp/
+
+# install the python packages and create the /data directory
+RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
+    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_report-*.whl && \
+    # cleanup
+    pip3 --cache-dir /tmp/pip_cache uninstall -y setuptools && \
+    rm -rf /tmp/*
+
+# launch the report module by default
+CMD ["python3", "-m", "reactome_analysis_report"]

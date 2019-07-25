@@ -1,0 +1,6 @@
+# Ignore all build related files
+*.whl
+*.txt
+*.profile
+*.R
+Dockerfile.report_version
