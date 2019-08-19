@@ -151,7 +151,10 @@ def process_file_upload():
 
     # return the JSON data
     response_object = make_response(json.dumps(return_object))
-    response_object.headers["Content-Type"] = "application/json"
+    # Using the content-type "text/html" instead of the more
+    # appropriate "application/json" to circumvent the lacking
+    # support for JSON in GWT (used by Reactome's pathway browser)
+    response_object.headers["Content-Type"] = "text/html"
 
     return response_object
 
