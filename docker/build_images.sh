@@ -66,7 +66,7 @@ if [ "${UPDATE_REACTOME}" == "y" ]; then
 	check_error "$?" "Failed to get ENSEMBL mappings"
 
 	wget -O "IntAct_Static.txt" "https://reactome.org/download/current/IntAct_Static.txt"
-	check_erro "$?" "Failed to get IntAct mappings"
+	check_error "$?" "Failed to get IntAct mappings"
 fi
 
 # Make sure all files are present
