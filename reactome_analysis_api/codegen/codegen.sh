@@ -12,12 +12,6 @@ if [ ! -f "../.swagger-codegen-ignore" ]; then
 	exit 1
 fi
 
-# make sure java is installed
-if [ ! -e "java" ]; then
-	echo "Failed to find Java"
-	exit 1
-fi
-
 # move to the parent directory
 cd ..
 

@@ -1,10 +1,10 @@
 ---
 swagger: "2.0"
 info:
-  description: "This is a REACTOME analysis service. It provides gene set analysis\
-    \ methods whose results can be visualized using the REACTOME pathway browser."
+  description: "This is a Gene Set Analysis (GSA) Service, which provides GSA methods\
+    \  whose results can be visualized using the Reactome pathway browser."
   version: "0.1.0"
-  title: "REACTOME Analysis Service"
+  title: "Reactome Gene Set Analysis Service"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -44,7 +44,7 @@ paths:
       tags:
       - "Analysis"
       summary: "Lists the supported data types"
-      description: "The REACTOME Analysis system can analyse different types of 'omics\
+      description: "The Reactome Analysis system can analyse different types of 'omics\
         \ data. This function returns a list of all currently supported types."
       operationId: "list_types"
       produces:
@@ -514,7 +514,7 @@ definitions:
       release:
         type: "string"
         example: "65"
-        description: "Release version of the REACTOME pathway database used."
+        description: "Release version of the Reactome pathway database used."
       results:
         type: "array"
         items:

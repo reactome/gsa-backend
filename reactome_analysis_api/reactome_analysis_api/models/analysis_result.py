@@ -1,14 +1,15 @@
 # coding: utf-8
 
 from __future__ import absolute_import
+from datetime import date, datetime  # noqa: F401
 
-from typing import List  # noqa: F401
+from typing import List, Dict  # noqa: F401
 
-from reactome_analysis_api import util
+from reactome_analysis_api.models.base_model_ import Model
 from reactome_analysis_api.models.analysis_result_mappings import AnalysisResultMappings  # noqa: F401,E501
 from reactome_analysis_api.models.analysis_result_reactome_links import AnalysisResultReactomeLinks  # noqa: F401,E501
 from reactome_analysis_api.models.analysis_result_results import AnalysisResultResults  # noqa: F401,E501
-from reactome_analysis_api.models.base_model_ import Model
+from reactome_analysis_api import util
 
 
 class AnalysisResult(Model):
@@ -63,7 +64,7 @@ class AnalysisResult(Model):
     def release(self) -> str:
         """Gets the release of this AnalysisResult.
 
-        Release version of the REACTOME pathway database used.  # noqa: E501
+        Release version of the Reactome pathway database used.  # noqa: E501
 
         :return: The release of this AnalysisResult.
         :rtype: str
@@ -74,7 +75,7 @@ class AnalysisResult(Model):
     def release(self, release: str):
         """Sets the release of this AnalysisResult.
 
-        Release version of the REACTOME pathway database used.  # noqa: E501
+        Release version of the Reactome pathway database used.  # noqa: E501
 
         :param release: The release of this AnalysisResult.
         :type release: str

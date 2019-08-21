@@ -308,14 +308,28 @@ class ReactomeAnalysisReportGenerator:
         msg.set_content("""\
         Dear user,
         
-        Your analysis request to the Reactome Analysis Service is complete.
-
+        Your analysis request to the Reactome Gene Set Analysis Service is complete. 
+        
         You can download your results here:
         
           {reports}
 
         Kind regards,
         The Reactome Team
+
+        ----
+        DISCLAIMER
+
+        This message contains confidential data/information and is intended 
+        only for the individual named. If you are not the named addressee, 
+        you should not disseminate, distribute or copy this email. Please 
+        notify the sender immediately by email if you have received this email 
+        by mistake and delete this email from your system. Email transmission 
+        cannot be guaranteed to be secure or error-free, as information could 
+        be intercepted, corrupted, lost, destroyed, arrive late or incomplete, 
+        or contain viruses. The sender, therefore, does not accept liability for 
+        any errors or omissions in the contents of this message which arise as a 
+        result of email transmission.
         """.format(reports="\n".join(plain_report_lines)))
 
         # Add the html version.  This converts the message into a multipart/alternative
@@ -335,14 +349,27 @@ class ReactomeAnalysisReportGenerator:
           <head></head>
           <body>
             <p>Dear user,</p>
-            <p>Your analysis request to the Reactome Analysis Service is complete.
-            You can download your results here:</p>
+            <p>Your analysis request to the Reactome Gene Set Analysis Service 
+               is complete. You can download your results here:</p>
             <ul>
               {reports}
             </ul>
             <p>
               Kind regards, <br />
               The Reactome Team
+            </p>
+            <p>
+            <b>Disclaimer:</b></br>
+            This message contains confidential data/information and is intended 
+            only for the individual named. If you are not the named addressee, 
+            you should not disseminate, distribute or copy this email. Please 
+            notify the sender immediately by email if you have received this email 
+            by mistake and delete this email from your system. Email transmission 
+            cannot be guaranteed to be secure or error-free, as information could 
+            be intercepted, corrupted, lost, destroyed, arrive late or incomplete, 
+            or contain viruses. The sender, therefore, does not accept liability for 
+            any errors or omissions in the contents of this message which arise as a 
+            result of email transmission.
             </p>
           </body>
         </html>

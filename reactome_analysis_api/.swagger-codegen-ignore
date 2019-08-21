@@ -11,3 +11,10 @@ test-requirements.txt
 setup.py
 .gitignore
 .swager-codegen-ignore
+
+# List files that are not needed
+.dockerignore
+.travis.yml
+Dockerfile
+git_push.sh
+tox.ini

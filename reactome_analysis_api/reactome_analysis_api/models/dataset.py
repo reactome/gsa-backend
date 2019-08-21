@@ -1,13 +1,14 @@
 # coding: utf-8
 
 from __future__ import absolute_import
+from datetime import date, datetime  # noqa: F401
 
-from typing import List  # noqa: F401
+from typing import List, Dict  # noqa: F401
 
-from reactome_analysis_api import util
 from reactome_analysis_api.models.base_model_ import Model
 from reactome_analysis_api.models.design import Design  # noqa: F401,E501
 from reactome_analysis_api.models.parameter import Parameter  # noqa: F401,E501
+from reactome_analysis_api import util
 
 
 class Dataset(Model):

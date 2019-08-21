@@ -2,7 +2,6 @@
 
 # flake8: noqa
 from __future__ import absolute_import
-
 # import models into model package
 from reactome_analysis_api.models.analysis_input import AnalysisInput
 from reactome_analysis_api.models.analysis_result import AnalysisResult
