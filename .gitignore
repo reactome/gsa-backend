@@ -1,2 +1,4 @@
 embassy
 .vscode
+local_test
+.venv

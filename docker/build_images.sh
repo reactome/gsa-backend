@@ -103,7 +103,7 @@ fi
 # copy the python packages to the docker build context
 # For Docker, all files required within the images have
 # to be in the same folder as the Docker file
-find ../ -name "*.whl" -exec cp {} ${CUR_DIR}/ \;
+find ../reactome* -name "*.whl" -exec cp {} ${CUR_DIR}/ \;
 check_error $? "Failed to copy .whl files"
 
 cp ../reactome_analysis_worker/install_libraries.R ${CUR_DIR}/
