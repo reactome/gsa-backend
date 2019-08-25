@@ -77,8 +77,8 @@ paths:
           $ref: "#/definitions/AnalysisInput"
       responses:
         200:
-          description: "Successfull start of the analysis. Returns the identifier\
-            \ of the running analysis."
+          description: "Successful start of the analysis. Returns the identifier of\
+            \ the running analysis."
           schema:
             type: "string"
             example: "Analysis00371643"
@@ -132,8 +132,8 @@ paths:
         type: "string"
       responses:
         200:
-          description: "Successfull operation returning the current status of the\
-            \ report generation."
+          description: "Successful operation returning the current status of the report\
+            \ generation."
           schema:
             $ref: "#/definitions/ReportStatus"
         404:
@@ -155,7 +155,7 @@ paths:
         type: "string"
       responses:
         200:
-          description: "Sucessfull operation returning the analysis result."
+          description: "Successful operation returning the analysis result."
           schema:
             $ref: "#/definitions/AnalysisResult"
         404:
@@ -164,6 +164,21 @@ paths:
           description: "Analysis is not 'complete'. The application should use '/status'\
             \ to retrieve information about the current status."
       x-swagger-router-controller: "reactome_analysis_api.controllers.result_controller"
+  /data/examples:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Lists the available example datasets"
+      operationId: "get_examples"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful operation returning the list of example datasets."
+          schema:
+            $ref: "#/definitions/ExternalData"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
 definitions:
   Method:
     type: "object"
@@ -559,6 +574,48 @@ definitions:
         name: "Experiment 1"
         pathways: "Pathway\tName\tDirection\tFDR\tPValue\nPathway 1\tA first pathway\t\
           up\t0.001\t0.000004\n"
+  ExternalData:
+    type: "object"
+    required:
+    - "id"
+    - "title"
+    - "type"
+    properties:
+      id:
+        type: "string"
+        example: "EXAMPLE_1"
+        description: "The dataset's id"
+      title:
+        type: "string"
+        example: "Example dataset 1"
+        description: "The dataset's title"
+      type:
+        type: "string"
+        description: "The data type of the dataset. This value is the same as for\
+          \ submitted datasets."
+        enum:
+        - "rnaseq_counts"
+        - "rnaseq_norm"
+        - "proteomics_int"
+        - "proteomics_sc"
+        - "microarray_norm"
+      description:
+        type: "string"
+        example: "RNA-seq analysis of human melanoma induced B cells."
+        description: "A more verbose description of the dataset."
+      group:
+        type: "string"
+        example: "Griss Melanoma"
+        description: "Some datasets may be grouped together. In this case, they will\
+          \ share a common group id"
+    description: "Description of an externally loaded datasets (including example\
+      \ datasets)."
+    example:
+      description: "RNA-seq analysis of human melanoma induced B cells."
+      id: "EXAMPLE_1"
+      title: "Example dataset 1"
+      type: "rnaseq_counts"
+      group: "Griss Melanoma"
   Method_parameters:
     required:
     - "name"

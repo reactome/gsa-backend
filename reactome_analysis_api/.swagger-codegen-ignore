@@ -1,5 +1,7 @@
 # List all files that were changed
-reactome_analysis_api/controllers/*
+reactome_analysis_api/controllers/analysis_controller.py
+reactome_analysis_api/controllers/result_controller.py
+reactome_analysis_api/controllers/dataset_controller.py
 reactome_analysis_api/redis_util.py
 reactome_analysis_api/__main__.py
 reactome_analysis_api/util.py

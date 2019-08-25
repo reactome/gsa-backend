@@ -13,6 +13,7 @@ from reactome_analysis_api.models.data_type import DataType
 from reactome_analysis_api.models.dataset import Dataset
 from reactome_analysis_api.models.design import Design
 from reactome_analysis_api.models.design_comparison import DesignComparison
+from reactome_analysis_api.models.external_data import ExternalData
 from reactome_analysis_api.models.method import Method
 from reactome_analysis_api.models.method_parameters import MethodParameters
 from reactome_analysis_api.models.parameter import Parameter

@@ -77,7 +77,7 @@ paths:
             $ref: '#/definitions/AnalysisInput'
       responses:
         '200':
-          description: Successfull start of the analysis. Returns the identifier of the running analysis.
+          description: Successful start of the analysis. Returns the identifier of the running analysis.
           schema:
             type: string
             example: Analysis00371643
@@ -128,7 +128,7 @@ paths:
         - application/json
       responses:
         '200':
-          description: Successfull operation returning the current status of the report generation.
+          description: Successful operation returning the current status of the report generation.
           schema:
             $ref: '#/definitions/ReportStatus'
         '404':
@@ -149,7 +149,7 @@ paths:
         - application/json
       responses:
         '200':
-          description: Sucessfull operation returning the analysis result.
+          description: Successful operation returning the analysis result.
           schema:
             $ref: '#/definitions/AnalysisResult'
         '404':
@@ -158,6 +158,19 @@ paths:
           description: >-
             Analysis is not 'complete'. The application should use '/status' to
             retrieve information about the current status.
+  '/data/examples':
+    get:
+      tags:
+        - Datasets
+      summary: Lists the available example datasets
+      operationId: getExamples
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successful operation returning the list of example datasets.
+          schema:
+            $ref: '#/definitions/ExternalData'
 definitions:
   Method:
     type: object
@@ -525,3 +538,36 @@ definitions:
               description: All identifiers this identifier was mapped to.
               items:
                 type: string
+  ExternalData:
+    type: object
+    description: Description of an externally loaded datasets (including example datasets).
+    required:
+      - id
+      - title
+      - type
+    properties:
+      id:
+        type: string
+        description: The dataset's id
+        example: EXAMPLE_1
+      title:
+        type: string
+        description: The dataset's title
+        example: Example dataset 1
+      type:
+        type: string
+        enum:
+          - rnaseq_counts
+          - rnaseq_norm
+          - proteomics_int
+          - proteomics_sc
+          - microarray_norm
+        description: The data type of the dataset. This value is the same as for submitted datasets.
+      description:
+        type: string
+        description: A more verbose description of the dataset.
+        example: RNA-seq analysis of human melanoma induced B cells.
+      group:
+        type: string
+        description: Some datasets may be grouped together. In this case, they will share a common group id
+        example: Griss Melanoma
