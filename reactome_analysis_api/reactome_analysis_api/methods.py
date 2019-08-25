@@ -40,7 +40,14 @@ global_parameters = [
                          scope="common",
                          default="",
                          description="If set to a valid e-mail address, links to the analysis result (and report) will "
-                                     "be sent once the analysis is complete.")
+                                     "be sent once the analysis is complete."),
+        MethodParameters(name="reactome_server",
+                         display_name="Reactome server",
+                         type="string",
+                         scope="common",
+                         default="production",
+                         description="This parameter allows the usage of other reactome servers. Available options are "
+                                     "'production', 'dev', 'release'")
     ]
 
 available_methods = [

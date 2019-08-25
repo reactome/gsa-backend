@@ -74,7 +74,7 @@ class ReactomeAnalysisWorker:
                 self._storage = ReactomeStorage()
             except Exception as e:
                 LOGGER.error("Failed to connect to storage service: " + str(e))
-                raise("Failed to connect to storage service", e)
+                raise Exception("Failed to connect to storage service", e)
 
         return self._storage
 
@@ -194,11 +194,15 @@ class ReactomeAnalysisWorker:
             self._acknowledge_message(ch, method)
             return
 
+        # get the reactome server to use
+        reactome_server = request.parameter_dict.get("reactome_server", "www.reactome.org")
+        LOGGER.info("Reactome server: {}".format(reactome_server))
+
         # get the identifier mappings
         self._set_status(request.analysis_id, status="running", description="Mapping identifiers...", completed=0.1)
-
+        
         try:
-            identifier_mappings = util.map_identifiers(all_identifiers, return_all=True)
+            identifier_mappings = util.map_identifiers(all_identifiers, return_all=True, reactome_server=reactome_server)
         except util.MappingException as e:
             LOGGER.debug("Identifier mapping failed", exc_info=1)
             self._set_status(request.analysis_id, status="failed",
@@ -280,7 +284,8 @@ class ReactomeAnalysisWorker:
                 if request.parameter_dict.get("create_reactome_visualization").lower() == "true":
                     LOGGER.debug("Fetching blueprint for Reactome result conversion")
                     reactome_blueprint = result_converter.perform_reactome_gsa(identifiers=identifiers_after_filter,
-                                                                               use_interactors=use_interactors)
+                                                                               use_interactors=use_interactors,
+                                                                               reactome_server=reactome_server)
             except Exception as e:
                 LOGGER.warning("Failed to retrieve Reactome blueprint: " + str(e))
 
@@ -354,7 +359,8 @@ class ReactomeAnalysisWorker:
                         reactome_link = result_converter.submit_result_to_reactome(result=analysis_result,
                                                                                    result_type=reactome_type,
                                                                                    reactome_blueprint=reactome_blueprint,
-                                                                                   min_p=0.05)
+                                                                                   min_p=0.05,
+                                                                                   reactome_server=reactome_server)
                         analysis_result.reactome_links.append(reactome_link)
                     except Exception as e:
                         # simply ignore this error

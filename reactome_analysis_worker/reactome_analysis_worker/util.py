@@ -54,12 +54,13 @@ def string_to_array(string: str) -> np.ndarray:
         raise ConversionException(e)
 
 
-def map_identifiers(identifiers: set, return_all: bool = True) -> dict:
+def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: str = "production") -> dict:
     """
     Map the passed identifiers using REACTOME's mapping service but returns the result as a dict
     with the original identifier as a key and the mappings as values.
     :param identifiers: Identifiers to map.
     :param return_all: Indicates whether all mappings or just the first one should be used.
+    :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
     :return: A dict with the original identifier as key and the mapping result as values of a list
     """
     proxy = os.getenv("PROXY", None)
@@ -72,12 +73,13 @@ def map_identifiers(identifiers: set, return_all: bool = True) -> dict:
 
     LOGGER.debug("Mapping identifiers using REACTOME...")
 
-    url = "https://dev.reactome.org/AnalysisService/mapping/projection/?interactors=true"
+    reactome_url = get_reactome_url(reactome_server)
+    url = "https://{}/AnalysisService/mapping/projection/?interactors=true".format(reactome_url)
     request = http.request("POST", url, body="\n".join(set(identifiers)), headers={"content-type": "text/plain"},
                            timeout=5)
 
     if request.status != 200:
-        msg = "Failed to retrieve mappings: Invalid identifiers submitted".format(str(request.status))
+        msg = "Failed to retrieve mappings: Invalid identifiers submitted ({})".format(str(request.status))
         LOGGER.error(msg + " (" + str(request.status) + ")")
         raise MappingException(msg)
 
@@ -99,3 +101,19 @@ def map_identifiers(identifiers: set, return_all: bool = True) -> dict:
                 final_mappings[mapping["identifier"]].append(mapped_identifier["identifier"])
 
     return final_mappings
+
+
+def get_reactome_url(reactome_server: str) -> str:
+    """
+    Returns the URL for the specified Reactome server.
+    :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
+    :return str The URL for the server.
+    """
+    reactome_url = "www.reactome.org"
+
+    if reactome_server == "dev":
+        reactome_url = "dev.reactome.org"
+    if reactome_server == "release":
+        reactome_url = "release.reactome.org"
+
+    return reactome_url

@@ -36,15 +36,17 @@ class ReactomeResultTypes(enum.Enum):
     gsva = "gsva"
 
 
-def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = False) -> dict:
+def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = False, reactome_server: str = "production") -> dict:
     """
     Use the REACTOME GSA service to perform a complete overrepresentation analysis
     of all identifiers. This result is then used as a "blueprint" to enhance
     it with the results created from this project's analyses.
     :param identifiers: The identifiers to use for the ORA
     :param use_interactors: Indicates whether interactors should be included in the analysis.
+    :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
     :return: A dict object representing the JSON encoded result
     """
+    # use a proxy if set
     proxy = os.getenv("PROXY", None)
 
     if proxy:
@@ -53,16 +55,20 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
     else:
         http = urllib3.PoolManager()
 
+    # set the reactome server url
+    reactome_url = util.get_reactome_url(reactome_server)
+
     body_text = "#Multi-sample_analysis\n" + "\n".join(set(identifiers))
 
-    url = "https://dev.reactome.org/AnalysisService/identifiers/projection?interactors=" + str(use_interactors) + \
-          "&pageSize=0&page=1&sortBy=ENTITIES_PVALUE&order=ASC&resource=TOTAL&pValue=1&includeDisease=true"
+    url = "https://{}/AnalysisService/identifiers/projection?interactors={}" \
+          "&pageSize=0&page=1&sortBy=ENTITIES_PVALUE&order=ASC&resource=TOTAL&pValue=1&includeDisease=true" \
+          .format(reactome_url,  str(use_interactors))
     request = http.request("POST", url, body=body_text,
                            headers={"content-type": "text/plain"},
                            timeout=5)
 
     if request.status != 200:
-        msg = "Failed get REACTOME Analysis token: ".format(str(request.status))
+        msg = "Failed get REACTOME Analysis token: {}".format(str(request.status))
         LOGGER.error(msg + " (" + str(request.status) + ")")
         raise ConversionException(msg)
 
@@ -72,13 +78,13 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
     # extract the token
     try:
         token = reactome_result["summary"]["token"]
-    except Exception as e:
+    except Exception:
         msg = "REACTOME Analysis token missing in REACTOME response"
         LOGGER.error(msg)
         raise ConversionException(msg)
 
     # get the actual JSON file
-    file_url = "https://dev.reactome.org/AnalysisService/download/{}/result.json".format(token)
+    file_url = "https://{}/AnalysisService/download/{}/result.json".format(reactome_url, token)
     download_request = http.request("GET", file_url)
 
     if download_request.status != 200:
@@ -92,7 +98,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
 
 
 def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResultTypes, reactome_blueprint: dict,
-                              min_p: float = 0.05) -> AnalysisResultReactomeLinks:
+                              min_p: float = 0.05, reactome_server: str = "production") -> AnalysisResultReactomeLinks:
     """
     Submits the passed AnalysisResult object to Reactome and retrieves the matching token for the stored result.
 
@@ -103,6 +109,7 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
                                function.
     :param min_p: The minimum p-value to consider a pathway as significantly regulated. This is only used in the "gsa"
                   approach.
+    :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
     :return: An `AnalysisResultReactomeLinks` object representing the link
     """
     # convert the result
@@ -128,7 +135,9 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
         http = urllib3.PoolManager()
 
     # use the file upload end-point as it supports gziped content
-    url = "https://dev.reactome.org/AnalysisService/import/form"
+    reactome_url = util.get_reactome_url(reactome_server)
+
+    url = "https://{}/AnalysisService/import/form".format(reactome_url)
     # compress the data - this speeds up the upload dramatically
     compressed_data = gzip.compress(json.dumps(converted_result).encode("UTF-8"))
 
@@ -164,7 +173,7 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
         description = ""
 
     return AnalysisResultReactomeLinks(
-        url="https://dev.reactome.org/PathwayBrowser/#/DTAB=AN&ANALYSIS={}".format(result_object["token"]),
+        url="https://{}/PathwayBrowser/#/DTAB=AN&ANALYSIS={}".format(reactome_url, result_object["token"]),
         token=result_object["token"],
         name=name,
         description=description)
@@ -197,7 +206,7 @@ def _get_identifier_changes(identifier_fcs: list, all_identifiers: set, min_p: f
             identifier_index = identifier_fc.dtype.names.index("Identifier")
             fc_index = identifier_fc.dtype.names.index("logFC")
             p_index = identifier_fc.dtype.names.index("adjPVal")
-        except ValueError as e:
+        except ValueError:
             raise ConversionException("Missing required field in fold-change table")
 
         for identifier_row in identifier_fc:
@@ -589,7 +598,7 @@ def _get_pathway_changes(pathway_fcs: list, all_pathways: set, min_p: float, ret
             direction_column = pathway_fc.dtype.names.index("Direction")
             fdr_column = pathway_fc.dtype.names.index("FDR")
             pathway_index = pathway_fc.dtype.names.index("Pathway")
-        except ValueError as e:
+        except ValueError:
             raise ConversionException("Missing required pathway column")
 
         # process every pathway
