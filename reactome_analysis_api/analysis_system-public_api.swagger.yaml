@@ -14,6 +14,8 @@ tags:
     description: Functions to initiate the analysis
   - name: Result
     description: Functions to check the status of running analyses and retrieve the result.
+  - name: Datasets
+    description: Functions to retrieve external or example datasets for the subsequent analysis.
 schemes:
   - https
   - http
@@ -171,6 +173,74 @@ paths:
           description: Successful operation returning the list of example datasets.
           schema:
             $ref: '#/definitions/ExternalData'
+  '/data/load/{datasetId}':
+    get:
+      tags:
+        - Datasets
+      summary: Start the retrieval of an external or example dataset.
+      operationId: loadData
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          type: string
+          description: The identified of the dataset to load.
+      produces:
+        - text/plain; charset=utf-8
+      responses:
+        '200':
+          description: Successful start of the loading process. Returns the identifier of the running process.
+          schema:
+            type: string
+            example: EXAMPLE_1
+        '503':
+          description: >-
+            The internal queuing or storage system are currently unavailable. This is generally due to an
+            ongoing update. Please retry in 4 seconds.
+  '/data/status/{loadingId}':
+    get:
+      tags:
+        - Datasets
+      summary: Retrieves the status for the dataset loading process.
+      operationId: getStatus
+      parameters:
+        - in: path
+          name: loadingId
+          required: true
+          type: string
+          description: The loading identifier returned by '/data/load'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successful operation returning the current status of the task.
+          schema:
+            $ref: '#/definitions/AnalysisStatus'
+        '404':
+          description: Unknown identifier passed.
+  '/data/summary/{datasetId}':
+    get:
+      tags:
+        - Datasets
+      summary: >-
+        Retrieves a summary of the loaded data. This function is only available once. The
+        data is fully loaded.
+      operationId: getSummary
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          type: string
+          description: The dataset identifier originally used to trigger the download
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successful operation returning a summary of the loaded dataset.
+          schema:
+            $ref: '#/definitions/ExternalData'
+        '404':
+          description: Unknown identifier passed. This may also be the case if the dataset is not loaded yet.
 definitions:
   Method:
     type: object

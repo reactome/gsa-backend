@@ -15,6 +15,9 @@ tags:
 - name: "Result"
   description: "Functions to check the status of running analyses and retrieve the\
     \ result."
+- name: "Datasets"
+  description: "Functions to retrieve external or example datasets for the subsequent\
+    \ analysis."
 schemes:
 - "https"
 - "http"
@@ -178,6 +181,77 @@ paths:
           description: "Successful operation returning the list of example datasets."
           schema:
             $ref: "#/definitions/ExternalData"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/load/{datasetId}:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Start the retrieval of an external or example dataset."
+      operationId: "load_data"
+      produces:
+      - "text/plain; charset=utf-8"
+      parameters:
+      - name: "datasetId"
+        in: "path"
+        description: "The identified of the dataset to load."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful start of the loading process. Returns the identifier\
+            \ of the running process."
+          schema:
+            type: "string"
+            example: "EXAMPLE_1"
+        503:
+          description: "The internal queuing or storage system are currently unavailable.\
+            \ This is generally due to an ongoing update. Please retry in 4 seconds."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/status/{loadingId}:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Retrieves the status for the dataset loading process."
+      operationId: "get_status"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "loadingId"
+        in: "path"
+        description: "The loading identifier returned by '/data/load'"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful operation returning the current status of the task."
+          schema:
+            $ref: "#/definitions/AnalysisStatus"
+        404:
+          description: "Unknown identifier passed."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/summary/{datasetId}:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Retrieves a summary of the loaded data. This function is only available\
+        \ once. The data is fully loaded."
+      operationId: "get_summary"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "datasetId"
+        in: "path"
+        description: "The dataset identifier originally used to trigger the download"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Successful operation returning a summary of the loaded dataset."
+          schema:
+            $ref: "#/definitions/ExternalData"
+        404:
+          description: "Unknown identifier passed. This may also be the case if the\
+            \ dataset is not loaded yet."
       x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
 definitions:
   Method:

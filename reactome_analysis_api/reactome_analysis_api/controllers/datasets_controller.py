@@ -1,8 +1,23 @@
 import connexion
 import six
+import logging
+import prometheus_client
+from flask import abort, Response
+import uuid
+import socket
 
+from reactome_analysis_api.encoder import JSONEncoder
+from reactome_analysis_api.models.analysis_status import AnalysisStatus  # noqa: E501
 from reactome_analysis_api.models.external_data import ExternalData  # noqa: E501
 from reactome_analysis_api import util
+from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException, DATASET_QUEUE
+from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
+from reactome_analysis_utils.models.dataset_request import DatasetRequest
+
+
+LOGGER = logging.getLogger(__name__)
+DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
+                                                    "External datasets loaded.")
 
 
 def get_examples():  # noqa: E501
@@ -13,7 +28,122 @@ def get_examples():  # noqa: E501
 
     :rtype: ExternalData
     """
-    # this method is currently only intended for local testing
+    return [
+        ExternalData(id="EXAMPLE_MEL_RNA", title="Melanoma RNA-seq example", type="rnaseq_counts",
+                     description="RNA-seq analysis of melanoma associated B cells.",
+                     group="GRISS_MELANOMA"),
+        ExternalData(id="EXAMPLE_MEL_PROT", title="Melanoma proteomics example", type="proteomics_int",
+                     description="Quantitative (TMT-labelled) proteomics analysis of melanoma associated B cells.",
+                     group="GRISS_MELANOMA")
+    ]
 
-    return [ExternalData(id="griss_melanoma_rnaseq", title="Griss Melanoma RNA-seq", type="rnaseq_counts", 
-                         description="RNA-seq analysis of melanoma induced B cells.")]
+
+def get_status(loadingId):  # noqa: E501
+    """Retrieves the status for the dataset loading process.
+
+     # noqa: E501
+
+    :param loadingId: The loading identifier returned by &#39;/data/load&#39;
+    :type loadingId: str
+
+    :rtype: AnalysisStatus
+    """
+    try:
+        storage = ReactomeStorage()
+
+        status = storage.get_status(analysis_identifier=loadingId, data_type="dataset")
+
+        if status is None:
+            LOGGER.debug("Unknown identifier passed to get_status: " + loadingId)
+            abort(404, "Unknown identifier")
+        else:
+            # return a Response object to prevent connexion from
+            # de-serializing the object into a JSON object
+            return Response(response=status, status=200, headers={"content-type": "application/json"})
+    except ReactomeStorageException as e:
+        LOGGER.error("Failed to connect to redis: " + str(e))
+        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+
+
+def get_summary(datasetId):  # noqa: E501
+    """Retrieves a summary of the loaded data. This function is only available once. The data is fully loaded.
+
+     # noqa: E501
+
+    :param datasetId: The dataset identifier used to trigger the download
+    :type loadingId: str
+
+    :rtype: ExternalData
+    """
+    try:
+        storage = ReactomeStorage()
+
+        if not storage.request_data_summary_exists(datasetId):
+            abort(404, "Unknown identifier passed.")
+
+        summary_data = storage.get_request_data_summary(datasetId)
+
+        if summary_data is not None:
+            return Response(response=summary_data, status=200, headers={"content-type": "application/json"})
+
+        abort(404, "Unknown identifier passed.")
+    except ReactomeStorageException as e:
+        LOGGER.error("Failed to connect to redis: " + str(e))
+        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+
+
+def load_data(datasetId):  # noqa: E501
+    """Start the retrieval of an external or example dataset.
+
+     # noqa: E501
+
+    :param datasetId: The identified of the dataset to load.
+    :type datasetId: str
+
+    :rtype: str
+    """
+    try:
+        storage = ReactomeStorage()
+
+        # generate an id for the request
+        loading_id = str(uuid.uuid1())
+
+        # Set the initial status
+        encoder = JSONEncoder()
+        status = AnalysisStatus(id=loading_id, status="running", completed=0, description="Queued")
+        storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+
+        # create the request
+        request = DatasetRequest(loading_id=loading_id, dataset_id=datasetId)
+
+        try:
+            queue = ReactomeMQ(queue_name=DATASET_QUEUE)
+            queue.post_analysis(analysis=request.to_json(), method="DatasetLoading")
+            LOGGER.debug("Dataset process " + loading_id + " submitted to queue")
+            queue.close()
+
+            DATASET_LOADING_COUNTER.inc()
+
+            return loading_id
+        except socket.gaierror as e:
+            # update the status
+            LOGGER.error("Failed to connect to queuing system: " + str(e))
+            status = AnalysisStatus(id=loading_id, status="failed", completed=0,
+                                    description="Failed to connect to queuing system.")
+            storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+
+            abort(503, "Failed to connect to queuing system. Please try again in a few seconds.")
+        except ReactomeMQException as e:
+            LOGGER.error("Failed to post message to queuing system: " + str(e))
+            # update the status
+            status = AnalysisStatus(id=loading_id, status="failed", completed=0,
+                                    description="Failed to connect to queuing system.")
+            storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+
+            abort(503, "The number of analysis requests is currently too high. Please try again in a few minutes.")
+    except ReactomeStorageException as e:
+        LOGGER.error("Failed to connect to redis: " + str(e))
+        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+    except (socket.timeout, socket.gaierror) as e:
+        LOGGER.error("Socket timeout connecting to storage or queuing system: " + str(e))
+        abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
