@@ -30,6 +30,8 @@ ANALYSIS_QUEUE = "reactome_analysis_v0.1"
 """Queue used to send analysis requests to the worker"""
 REPORT_QUEUE = "reactome_report_v0.1"
 """Queue used to send complete results to the report generating function"""
+DATASET_QUEUE = "reactome_dataset_v0.1"
+"""Queue used to retrieve external datasets"""
 
 
 class ReactomeMQException(Exception):

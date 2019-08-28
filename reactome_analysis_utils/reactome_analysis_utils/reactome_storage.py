@@ -46,7 +46,7 @@ class ReactomeStorage:
         Returns the current status of the analysis.
 
         :param analysis_identifier: The analysis' identifier
-        :param data_type: The data type to get the status for ["analysis", "report"]
+        :param data_type: The data type to get the status for ["analysis", "report", "dataset"]
         :return: The status string (JSON-encoded) or None
         """
         try:
@@ -54,6 +54,8 @@ class ReactomeStorage:
                 status_key = self._get_report_status_key(analysis_identifier)
             elif data_type == "analysis":
                 status_key = self._get_status_key(analysis_identifier)
+            elif data_type == "dataset":
+                status_key = self._get_request_data_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -70,7 +72,7 @@ class ReactomeStorage:
         Set the status of the analysis.
 
         :param analysis_identifier: The analysis' identifier
-        :param data_type: The data type to get the status for ["analysis", "report"]
+        :param data_type: The data type to get the status for ["analysis", "report", "dataset"]
         :param status: The status as JSON encoded string
         """
         try:
@@ -78,6 +80,8 @@ class ReactomeStorage:
                 status_key = self._get_report_status_key(analysis_identifier)
             elif data_type == "analysis":
                 status_key = self._get_status_key(analysis_identifier)
+            elif data_type == "dataset":
+                status_key = self._get_request_data_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -187,6 +191,48 @@ class ReactomeStorage:
         except Exception as e:
             raise ReactomeStorageException(e)
 
+    def set_request_data_summary(self, token: str, data, expire: int = 3600):
+        """
+        Stores the passed request data summary under the specified token
+        :param token: The token to store the data under
+        :param data: The data to store
+        :param expire: If not none, the key will be expired in `expire` seconds. Default = 60 Minutes = 3600 seconds.
+        """
+        try:
+            request_key = self._get_request_data_summary_key(token)
+
+            self.r.set(request_key, data)
+
+            if expire is not None and expire > 0:
+                self.r.expire(request_key, expire)
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
+    def get_request_data_summary(self, token: str) -> str:
+        """
+        Retrieve the stored request data summary for the given token
+        :param token: The token under which the result was stored
+        :return: The data
+        """
+        try:
+            request_key = self._get_request_data_summary_key(token)
+            data = self.r.get(request_key)
+
+            return data
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
+    def request_data_summary_exists(self, token: str) -> bool:
+        """
+        Checks whether the request data summary already exists.
+        :param token: The token to check
+        :return: Boolean indicating whether the token exists
+        """
+        try:
+            return self.r.exists(self._get_request_data_summary_key(token))
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
     @staticmethod
     def _get_redis():
         """
@@ -282,6 +328,16 @@ class ReactomeStorage:
         return "report:{}:status".format(report_id)
 
     @staticmethod
+    def _get_dataset_status_key(dataset_id: str) -> str:
+        """
+        Creates the redis status key for the specified dataset status.
+
+        :param dataset_id: The dataset id
+        :return: The matching redis report id
+        """
+        return "dataset:{}:status".format(dataset_id)
+
+    @staticmethod
     def _get_request_data_key(token: str) -> str:
         """
         Creates the redis key for the specified request data
@@ -290,3 +346,13 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "request_data:{}".format(token)
+
+    @staticmethod
+    def _get_request_data_summary_key(token: str) -> str:
+        """
+        Creates the redis key for the specified request data summary
+
+        :param token: The token identifying the request data
+        :return: The matching redis key
+        """
+        return "request_data:{}:summary".format(token)
