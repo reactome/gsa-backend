@@ -29,7 +29,7 @@ def main():
     try:
         dataset_worker.start_listening()
     except Exception as e:
-        LOGGER.error("Report process failed: " + str(e))
+        LOGGER.error("Datasets process failed: " + str(e))
         # stack trace on debug
         LOGGER.debug("Error:", exc_info=1)
         dataset_worker.shutdown()

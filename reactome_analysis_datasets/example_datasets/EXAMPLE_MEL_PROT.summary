@@ -1,0 +1,52 @@
+{
+  "description": "Quantitative (TMT-labelled) proteomics analysis of melanoma associated B cells.",
+  "group": "GRISS_MELANOMA",
+  "id": "EXAMPLE_MEL_PROT",
+  "title": "Melanoma proteomics example",
+  "type": "proteomics_int",
+  "sample_ids": [
+    "M.D.MOCK.PBMCB",
+    "M.D.MCM.PBMCB",
+    "M.K.MOCK.PBMCB",
+    "M.K.MCM.PBMCB",
+    "P.A.MOCK.PBMCB",
+    "P.A.MCM.PBMCB",
+    "P.W.MOCK.PBMCB",
+    "P.W.MCM.PBMCB",
+    "all.MOCK.PBMCB",
+    "all.MCM.PBMCB",
+    "M.D.MOCK.TIBC",
+    "M.D.MCM.TIBC",
+    "M.K.MOCK.TIBC",
+    "M.K.MCM.TIBC",
+    "P.A.MOCK.TIBC",
+    "P.A.MCM.TIBC",
+    "P.W.MOCK.TIBC",
+    "P.W.MCM.TIBC",
+    "all.MOCK.TIBC",
+    "all.MCM.TIBC"
+  ],
+  "sample_metadata": [
+    {
+      "name": "patient.id",
+      "values": [
+        "P3", "P3", "P4", "P4", "P1", "P1", "P2", "P2", "all", "all", "P3", "P3",
+        "P4", "P4", "P1", "P1", "P2", "P2", "all", "all"
+      ]
+    },
+    {
+      "name": "condition",
+      "values": [
+        "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM", 
+        "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM", "MOCK", "MCM"
+      ]
+    },
+    {
+      "name": "cell.type",
+      "values": [
+        "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", "PBMCB", 
+        "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC"
+      ]
+    }
+  ]
+}
