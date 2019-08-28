@@ -1,0 +1,7 @@
+{
+  "description": "RNA-seq analysis of human melanoma induced B cells.",
+  "group": "Griss Melanoma",
+  "id": "EXAMPLE_1",
+  "title": "Example dataset 1",
+  "type": "rnaseq_counts"
+}
