@@ -6,6 +6,7 @@ import logging
 import os
 
 from prometheus_client import start_http_server
+from reactome_analysis_datasets.reactome_analysis_dataset_fetcher import ReactomeAnalysisDatasetFetcher
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
@@ -23,15 +24,15 @@ def main():
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
 
-    report_generator = reactome_analysis_report_generator.ReactomeAnalysisReportGenerator()
+    dataset_worker = ReactomeAnalysisDatasetFetcher()
 
     try:
-        report_generator.start_listening()
+        dataset_worker.start_listening()
     except Exception as e:
         LOGGER.error("Report process failed: " + str(e))
         # stack trace on debug
         LOGGER.debug("Error:", exc_info=1)
-        report_generator.shutdown()
+        dataset_worker.shutdown()
 
     LOGGER.info("Exiting.")
 
