@@ -142,10 +142,14 @@ class ReactomeAnalysisDatasetFetcher:
 
         # test if the dataset already exists
         if storage.request_token_exists(request.dataset_id):
-            self._set_status(request_id=request.loading_id, status="complete",
+            self._set_status(request_id=request.loading_id, status="complete", completion=1,
                             description="Dataset {} available.".format(request.dataset_id))
             self._acknowledge_message(ch, method)
             return
+
+        # update the status that it's being loaded
+        self._set_status(request_id=request.loading_id, status="running", completion=0.1,
+                         description="Dataset {} is being loaded".format(request.dataset_id))
 
         # get the loading class for the identifier type
         dataset_fetcher = self._get_dataset_fetcher_for_identifier(request.dataset_id)
@@ -166,13 +170,13 @@ class ReactomeAnalysisDatasetFetcher:
                 raise Exception("Failed to retrieve dataset summary.")
 
             # save the data
-            storage.set_request_data(token=request.dataset_id, data=data)
+            storage.set_request_data(token=request.dataset_id, data=data, expire=60*60*6)
 
             # save the summary
             storage.set_request_data_summary(token=request.dataset_id, data=json.dumps(summary.to_dict()))
 
             # update the status
-            self._set_status(request_id=request.loading_id, status="complete",
+            self._set_status(request_id=request.loading_id, status="complete", completion=1,
                             description="Dataset {} available.".format(request.dataset_id))
 
             # acknowledge the message
