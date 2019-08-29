@@ -1,0 +1,19 @@
+FROM jgriss/reactome-analysis_worker:THE_WORKER_VERSION
+
+ENV EXAMPLE_DIRECTORY /data/example_datasets
+
+# Copy our python packages
+COPY reactome_analysis_datasets-*.whl /tmp/
+
+RUN mkdir -p /data/example_datasets
+COPY example_datasets/* /data/example_datasets/
+
+# install the python packages and create the /data directory
+RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
+    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_datasets-*.whl && \
+    # cleanup
+    pip3 --cache-dir /tmp/pip_cache uninstall -y setuptools && \
+    rm -rf /tmp/*
+
+# launch the report module by default
+CMD ["python3", "-m", "reactome_analysis_datasets"]

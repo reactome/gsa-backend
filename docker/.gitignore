@@ -4,3 +4,5 @@
 *.profile
 *.R
 Dockerfile.report_version
+Dockerfile.datasets_version
+example_datasets

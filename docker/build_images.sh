@@ -16,7 +16,7 @@
 DOCKER_USER="jgriss"
 
 # make sure the working directory is the "docker" directory
-if [ ! -d "../reactome_analysis_api" -o ! -d "../reactome_analysis_utils" -o ! -d "../reactome_analysis_worker" ]; then
+if [ ! -d "../reactome_analysis_api" -o ! -d "../reactome_analysis_utils" -o ! -d "../reactome_analysis_worker" -o ! -d "../reactome_analysis_datasets" ]; then
     echo "Error: Failed to find required python directories. The script must be executed from within the 'docker' directory."
     exit 1
 fi
@@ -50,6 +50,9 @@ read REBUILD_WORKER
 echo -n "Rebuild report [version/N]: "
 read REBUILD_REPORT
 
+echo -n "Rebuild datasets [version/N]: "
+read REBUILD_DATASETS
+
 # get sudo privileges required to work with docker
 sudo echo ""
 
@@ -81,7 +84,7 @@ done
 if [ "${UPDATE_PYTHON}" != "n" ]; then
 	echo "Updating python packages..."
 
-	for PROJECT in "reactome_analysis_api" "reactome_analysis_utils" "reactome_analysis_worker" "reactome_analysis_report"; do
+	for PROJECT in "reactome_analysis_api" "reactome_analysis_utils" "reactome_analysis_worker" "reactome_analysis_report" "reactome_analysis_datasets"; do
 		echo -n "  ${PROJECT}..."
 		cd "../${PROJECT}"
         check_error $? "Failed to access directory"
@@ -106,6 +109,7 @@ fi
 find ../reactome* -name "*.whl" -exec cp {} ${CUR_DIR}/ \;
 check_error $? "Failed to copy .whl files"
 
+# copy all other required files
 cp ../reactome_analysis_worker/install_libraries.R ${CUR_DIR}/
 check_error $? "Failed to copy install_libraries.R"
 
@@ -113,6 +117,8 @@ cp ../reactome_analysis_report/install_libraries.R ${CUR_DIR}/install_report_lib
 check_error $? "Failed to copy install_libraries.R for report"
 
 cp ../reactome_analysis_report/texlive.profile ${CUR_DIR}/
+
+cp -r ../reactome_analysis_datasets/example_datasets ${CUR_DIR}/
 
 # Rebuild the images
 if [ -n "${REBUILD_API}" -a "${REBUILD_API}" != "n" ]; then
@@ -157,4 +163,28 @@ if [ -n "${REBUILD_REPORT}" -a "${REBUILD_REPORT}" != "n" ]; then
 
     # remove the versioned file
     rm Dockerfile.report_version	
+fi
+
+if [ -n "${REBUILD_DATASETS}" -a "${REBUILD_DATASETS}" != "n" ]; then
+    # TODO: Fix worker version reference
+    if [ -z "${REBUILD_WORKER}" -o "${REBUILD_WORKER}" == "n" ]; then
+        echo -n "Enter reactome_analysis_worker image version: "
+        read WORKER_VERSION
+    else
+        WORKER_VERSION="${REBUILD_WORKER}"
+    fi
+
+    # replace the worker version in the Docker file
+    sed "s/THE_WORKER_VERSION/${WORKER_VERSION}/" Dockerfile.datasets > Dockerfile.datasets_version
+
+	sudo docker build -t ${DOCKER_USER}/reactome-analysis_datasets:latest -f Dockerfile.datasets_version .
+    check_error $? "Failed to build datasets"
+
+	# additionally tag the image
+	if [ "${REBUILD_DATASETS}" != "y" -a "${REBUILD_DATASETS}" != "latest" ]; then
+		sudo docker tag ${DOCKER_USER}/reactome-analysis_datasets:latest ${DOCKER_USER}/reactome-analysis_datasets:${REBUILD_DATASETS}
+	fi
+
+    # remove the versioned file
+    rm Dockerfile.datasets_version	
 fi
