@@ -80,3 +80,48 @@ class ExternalDataTest(unittest.TestCase):
                                             content_type='application/json')
 
             self.assertEqual(200, analysis_response.status_code)
+
+    def test_rna_dataset(self):
+        token = "EXAMPLE_MEL_RNA"
+
+        with app.app.test_client() as client:
+            # load the dataset
+            load_response = client.get("/0.1/data/load/" + token)
+            self.assertEqual(200, load_response.status_code)
+
+            load_token = load_response.data.decode()
+
+            # get the status
+            load_status = client.get("/0.1/data/status/" + load_token)
+            self.assertEqual(200, load_status.status_code)
+
+            # assess the status
+            status_obj = json.loads(load_status.data)
+            # status updates happen but sometimes do not appear in the test
+            self.assertNotEqual("failed", status_obj["status"])
+
+            # get the summary
+            summary_response = client.get("/0.1/data/summary/" + token)
+            self.assertEqual(200, summary_response.status_code)
+
+            # make sure it's well formatted
+            summary_obj = json.loads(summary_response.data)
+            self.assertIsNotNone(summary_obj)
+
+            # submit an analysis request
+            request_json_string = '{"methodName": "Camera", "datasets": [{' \
+                                    '"data":"' + token + '",' \
+                                    '"design": {' \
+                                    '"analysisGroup": ["A", "A", "B"], ' \
+                                    '"comparison": {"group1": "A", "group2": "B"},' \
+                                    '"samples": ["Sample 1", "Sample 2", "Sample 3"]' \
+                                    '},' \
+                                    '"name": "storedResult", "type": "rnaseq_counts"' \
+                                    '}]}' \
+
+            analysis_response = client.open('/0.1/analysis',
+                                            method='POST',
+                                            data=request_json_string,
+                                            content_type='application/json')
+
+            self.assertEqual(200, analysis_response.status_code)

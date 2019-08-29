@@ -1,0 +1,90 @@
+{
+  "description": "RNA-seq analysis of melanoma associated B cells.",
+  "group": "GRISS_MELANOMA",
+  "id": "EXAMPLE_MEL_RNA",
+  "title": "Melanoma RNA-seq example",
+  "type": "rnaseq_counts",
+  "sample_ids": [
+    "X195.13",
+    "X195.14",
+    "X195.19",
+    "X195.20",
+    "X197.11",
+    "X197.12",
+    "X197.13",
+    "X197.14",
+    "X197.1",
+    "X197.2",
+    "X197.3",
+    "X197.4",
+    "X197.5",
+    "X197.6",
+    "X197.7",
+    "X197.8"
+  ],
+  "sample_metadata": [
+    {
+      "name": "patient.id",
+      "values": [
+        "P1",
+        "P1",
+        "P2",
+        "P2",
+        "P1",
+        "P1",
+        "P2",
+        "P2",
+        "P3",
+        "P3",
+        "P3",
+        "P3",
+        "P4",
+        "P4",
+        "P4",
+        "P4"
+      ]
+    },
+    {
+      "name": "condition",
+      "values": [
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM",
+        "MOCK",
+        "MCM"
+      ]
+    },
+    {
+      "name": "cell.type",
+      "values": [
+        "TIBC",
+        "TIBC",
+        "PBMCB",
+        "PBMCB",
+        "PBMCB",
+        "PBMCB",
+        "TIBC",
+        "TIBC",
+        "TIBC",
+        "TIBC",
+        "PBMCB",
+        "PBMCB",
+        "TIBC",
+        "TIBC",
+        "PBMCB",
+        "PBMCB"
+      ]
+    }
+  ]
+}
