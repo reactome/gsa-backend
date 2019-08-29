@@ -45,3 +45,10 @@ reactome_report:
   min_cpu: "0.3"
   max_cpu: "1"
   replicas: 1
+reactome_datasets:
+  image: jgriss/reactome-analysis_datasets:latest
+  min_mem: "100Mi"
+  max_mem: "200Mi"
+  min_cpu: "0.1"
+  max_cpu: "0.3"
+  replicas: 1

@@ -634,3 +634,81 @@ spec:
         operator: "Equal"
         value: "pre-emptible"
         effect: "NoSchedule"
+---
+# REACTOME datasets deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reactome-analysis-datasets
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ reactome_datasets.replicas }}
+  selector:
+    matchLabels:
+      app: reactome-analysis-datasets
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: reactome-analysis-datasets
+        tier: backend
+    spec:
+      containers:
+      - name: reactome-analysis-datasets
+        image: {{ reactome_datasets.image }}
+        {% if debug %}
+        imagePullPolicy: "Always"
+        {% endif %}
+        ports:
+        - containerPort: 9090
+          name: "prometheus"
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: reactome-global-config  
+        env:
+          - name: PROMETHEUS_PORT
+            value: "9090"
+          - name: REDIS_PASSWORD_FILE
+            value: "/etc/redis/redis.password"
+          - name: RABBIT_USER_SECRETS_FILE
+            value: "/etc/rabbit/user"
+          - name: RABBIT_PASSWORD_SECRETS_FILE
+            value: "/etc/rabbit/password"
+        volumeMounts:
+        - mountPath: /etc/redis/
+          name: redis-secret-volume
+          readOnly: true
+        - mountPath: /etc/rabbit/
+          name: rabbit-secret-volume
+          readOnly: true
+        resources:
+          requests:
+            cpu: {{ reactome_datasets.min_cpu }}
+            memory: {{ reactome_datasets.min_mem }}
+          limits:
+            cpu: {{ reactome_datasets.max_cpu }}
+            memory: {{ reactome_datasets.max_mem }}
+      volumes:
+      - name: redis-secret-volume
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: rabbit-secret-volume
+        secret:
+          secretName: rabbitmq-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      tolerations:
+      - key: "stability"
+        operator: "Equal"
+        value: "pre-emptible"
+        effect: "NoSchedule"

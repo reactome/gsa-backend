@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 400Mib
         - name: RABBITMQ_ERLANG_COOKIE
-          value: Tm02Mkp4WFZXczhEU8KnSkdpOUlDQjVWeEQ0Ky1XT1NIcUViR2xWR8KnV1k0MHhlMm44dA==
+          value: K1FqbmdJVU1Mck1tNVMvwqdtQkxXQ1FPcHc3TlNdPVhdTiZsN2tIYXQzc0ZLWVhUQjFS
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -583,6 +583,82 @@ spec:
       - name: mail-secret-volume
         secret:
           secretName: mail-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      tolerations:
+      - key: "stability"
+        operator: "Equal"
+        value: "pre-emptible"
+        effect: "NoSchedule"
+---
+# REACTOME datasets deployment
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: reactome-analysis-datasets
+  
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reactome-analysis-datasets
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: reactome-analysis-datasets
+        tier: backend
+    spec:
+      containers:
+      - name: reactome-analysis-datasets
+        image: jgriss/reactome-analysis_datasets:latest
+        
+        imagePullPolicy: "Always"
+        
+        ports:
+        - containerPort: 9090
+          name: "prometheus"
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: reactome-global-config  
+        env:
+          - name: PROMETHEUS_PORT
+            value: "9090"
+          - name: REDIS_PASSWORD_FILE
+            value: "/etc/redis/redis.password"
+          - name: RABBIT_USER_SECRETS_FILE
+            value: "/etc/rabbit/user"
+          - name: RABBIT_PASSWORD_SECRETS_FILE
+            value: "/etc/rabbit/password"
+        volumeMounts:
+        - mountPath: /etc/redis/
+          name: redis-secret-volume
+          readOnly: true
+        - mountPath: /etc/rabbit/
+          name: rabbit-secret-volume
+          readOnly: true
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 100Mi
+          limits:
+            cpu: 0.3
+            memory: 200Mi
+      volumes:
+      - name: redis-secret-volume
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+      - name: rabbit-secret-volume
+        secret:
+          secretName: rabbitmq-secret
           items:
           - key: user
             path: user
