@@ -55,7 +55,7 @@ class ReactomeStorage:
             elif data_type == "analysis":
                 status_key = self._get_status_key(analysis_identifier)
             elif data_type == "dataset":
-                status_key = self._get_request_data_key(analysis_identifier)
+                status_key = self._get_request_data_status_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -81,7 +81,7 @@ class ReactomeStorage:
             elif data_type == "analysis":
                 status_key = self._get_status_key(analysis_identifier)
             elif data_type == "dataset":
-                status_key = self._get_request_data_key(analysis_identifier)
+                status_key = self._get_request_data_status_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -346,6 +346,16 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "request_data:{}".format(token)
+
+    @staticmethod
+    def _get_request_data_status_key(token: str) -> str:
+        """
+        Creates the redis key for the specified request data
+
+        :param token: The token identifying the request data
+        :return: The matching redis key
+        """
+        return "request_data:{}:status".format(token)
 
     @staticmethod
     def _get_request_data_summary_key(token: str) -> str:
