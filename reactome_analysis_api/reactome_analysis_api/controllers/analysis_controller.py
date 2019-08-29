@@ -96,11 +96,12 @@ def start_analysis(body):  # noqa: E501
     try:
         storage = ReactomeStorage()
 
-        # test if the request data is in storage
+        # Load request data from storage
         for n_dataset in range(0, len(analysis_dict["datasets"])):
             data = analysis_dict["datasets"][n_dataset]["data"]
 
-            if data[0:4] == "rqu_":
+            # Update for external datasets
+            if data[0:4] == "rqu_" or len(data) < 20:
                 # make sure the request data exists
                 if not storage.request_token_exists(data):
                     MISSING_DATA_TOKEN_COUNTER.inc()

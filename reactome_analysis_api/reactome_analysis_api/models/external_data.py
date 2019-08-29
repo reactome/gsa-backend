@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from reactome_analysis_api.models.base_model_ import Model
+from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata  # noqa: F401,E501
 from reactome_analysis_api import util
 
 
@@ -15,7 +16,7 @@ class ExternalData(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, title: str=None, type: str=None, description: str=None, group: str=None):  # noqa: E501
+    def __init__(self, id: str=None, title: str=None, type: str=None, description: str=None, group: str=None, sample_ids: List[str]=None, sample_metadata: List[ExternalDataSampleMetadata]=None):  # noqa: E501
         """ExternalData - a model defined in Swagger
 
         :param id: The id of this ExternalData.  # noqa: E501
@@ -28,13 +29,19 @@ class ExternalData(Model):
         :type description: str
         :param group: The group of this ExternalData.  # noqa: E501
         :type group: str
+        :param sample_ids: The sample_ids of this ExternalData.  # noqa: E501
+        :type sample_ids: List[str]
+        :param sample_metadata: The sample_metadata of this ExternalData.  # noqa: E501
+        :type sample_metadata: List[ExternalDataSampleMetadata]
         """
         self.swagger_types = {
             'id': str,
             'title': str,
             'type': str,
             'description': str,
-            'group': str
+            'group': str,
+            'sample_ids': List[str],
+            'sample_metadata': List[ExternalDataSampleMetadata]
         }
 
         self.attribute_map = {
@@ -42,7 +49,9 @@ class ExternalData(Model):
             'title': 'title',
             'type': 'type',
             'description': 'description',
-            'group': 'group'
+            'group': 'group',
+            'sample_ids': 'sample_ids',
+            'sample_metadata': 'sample_metadata'
         }
 
         self._id = id
@@ -50,6 +59,8 @@ class ExternalData(Model):
         self._type = type
         self._description = description
         self._group = group
+        self._sample_ids = sample_ids
+        self._sample_metadata = sample_metadata
 
     @classmethod
     def from_dict(cls, dikt) -> 'ExternalData':
@@ -186,3 +197,47 @@ class ExternalData(Model):
         """
 
         self._group = group
+
+    @property
+    def sample_ids(self) -> List[str]:
+        """Gets the sample_ids of this ExternalData.
+
+        For some datasets, the sample ids (corresponding to the column headers in the expression matrix) may be available.  # noqa: E501
+
+        :return: The sample_ids of this ExternalData.
+        :rtype: List[str]
+        """
+        return self._sample_ids
+
+    @sample_ids.setter
+    def sample_ids(self, sample_ids: List[str]):
+        """Sets the sample_ids of this ExternalData.
+
+        For some datasets, the sample ids (corresponding to the column headers in the expression matrix) may be available.  # noqa: E501
+
+        :param sample_ids: The sample_ids of this ExternalData.
+        :type sample_ids: List[str]
+        """
+
+        self._sample_ids = sample_ids
+
+    @property
+    def sample_metadata(self) -> List[ExternalDataSampleMetadata]:
+        """Gets the sample_metadata of this ExternalData.
+
+
+        :return: The sample_metadata of this ExternalData.
+        :rtype: List[ExternalDataSampleMetadata]
+        """
+        return self._sample_metadata
+
+    @sample_metadata.setter
+    def sample_metadata(self, sample_metadata: List[ExternalDataSampleMetadata]):
+        """Sets the sample_metadata of this ExternalData.
+
+
+        :param sample_metadata: The sample_metadata of this ExternalData.
+        :type sample_metadata: List[ExternalDataSampleMetadata]
+        """
+
+        self._sample_metadata = sample_metadata

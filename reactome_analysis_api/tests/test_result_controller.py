@@ -2,10 +2,10 @@
 
 from __future__ import absolute_import
 
-from . import BaseTestCase
+from . import base_test_case
 
 
-class TestResultController(BaseTestCase):
+class TestResultController(base_test_case.BaseTestCase):
     """ResultController integration tests stubs"""
 
     def test_get_result(self):

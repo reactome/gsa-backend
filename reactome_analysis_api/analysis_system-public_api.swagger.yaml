@@ -641,3 +641,28 @@ definitions:
         type: string
         description: Some datasets may be grouped together. In this case, they will share a common group id
         example: Griss Melanoma
+      sample_ids:
+        type: array
+        items:
+          type: string
+          example: "Sample_1"
+        description: "For some datasets, the sample ids (corresponding to the column headers in the expression matrix) may be available."
+      sample_metadata:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - value
+          properties:
+            name:
+              type: string
+              description: "Name of the property"
+              example: "age"
+            values:
+              type: array
+              items:
+                type: string
+                example: "71"
+              description: "Values for the specified properties. This array will follow the same sort order as the 'sample_ids' array."
+          description: "For some datasets sample metadata may be available. This is reported here."

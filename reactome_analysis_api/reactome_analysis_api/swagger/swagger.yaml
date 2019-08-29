@@ -682,13 +682,36 @@ definitions:
         example: "Griss Melanoma"
         description: "Some datasets may be grouped together. In this case, they will\
           \ share a common group id"
+      sample_ids:
+        type: "array"
+        description: "For some datasets, the sample ids (corresponding to the column\
+          \ headers in the expression matrix) may be available."
+        items:
+          type: "string"
+          example: "Sample_1"
+      sample_metadata:
+        type: "array"
+        items:
+          $ref: "#/definitions/ExternalData_sample_metadata"
     description: "Description of an externally loaded datasets (including example\
       \ datasets)."
     example:
+      sample_metadata:
+      - values:
+        - "71"
+        - "71"
+        name: "age"
+      - values:
+        - "71"
+        - "71"
+        name: "age"
       description: "RNA-seq analysis of human melanoma induced B cells."
       id: "EXAMPLE_1"
       title: "Example dataset 1"
       type: "rnaseq_counts"
+      sample_ids:
+      - "Sample_1"
+      - "Sample_1"
       group: "Griss Melanoma"
   Method_parameters:
     required:
@@ -866,3 +889,25 @@ definitions:
       mapped_to:
       - "mapped_to"
       - "mapped_to"
+  ExternalData_sample_metadata:
+    required:
+    - "name"
+    properties:
+      name:
+        type: "string"
+        example: "age"
+        description: "Name of the property"
+      values:
+        type: "array"
+        description: "Values for the specified properties. This array will follow\
+          \ the same sort order as the 'sample_ids' array."
+        items:
+          type: "string"
+          example: "71"
+    description: "For some datasets sample metadata may be available. This is reported\
+      \ here."
+    example:
+      values:
+      - "71"
+      - "71"
+      name: "age"
