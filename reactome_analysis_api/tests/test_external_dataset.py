@@ -67,17 +67,19 @@ class ExternalDataTest(unittest.TestCase):
             request_json_string = '{"methodName": "Camera", "datasets": [{' \
                                     '"data":"' + token + '",' \
                                     '"design": {' \
-                                    '"analysisGroup": ["A", "A", "B"], ' \
+                                    '"analysisGroup": ["A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "B", "B", "B", "B", "B", "B", "B", "B", "B", "B"], ' \
                                     '"comparison": {"group1": "A", "group2": "B"},' \
-                                    '"samples": ["Sample 1", "Sample 2", "Sample 3"]' \
+                                    '"samples": ["Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5", "Sample 6", "S7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"]' \
                                     '},' \
-                                    '"name": "storedResult", "type": "rnaseq_counts"' \
+                                    '"name": "storedResult", "type": "proteomics_int"' \
                                     '}]}' \
 
             analysis_response = client.open('/0.1/analysis',
                                             method='POST',
                                             data=request_json_string,
                                             content_type='application/json')
+
+            print("Analysis id = " + analysis_response.data.decode())
 
             self.assertEqual(200, analysis_response.status_code)
 
