@@ -141,7 +141,7 @@ class ReactomeAnalysisDatasetFetcher:
             return
 
         # test if the dataset already exists
-        if storage.request_token_exists(request.dataset_id):
+        if storage.request_token_exists(request.dataset_id) and storage.request_data_summary_exists(request.dataset_id):
             self._set_status(request_id=request.loading_id, status="complete", completion=1,
                             description="Dataset {} available.".format(request.dataset_id))
             self._acknowledge_message(ch, method)
