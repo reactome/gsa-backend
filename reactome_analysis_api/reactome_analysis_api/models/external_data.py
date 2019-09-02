@@ -6,6 +6,7 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from reactome_analysis_api.models.base_model_ import Model
+from reactome_analysis_api.models.external_data_default_parameters import ExternalDataDefaultParameters  # noqa: F401,E501
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata  # noqa: F401,E501
 from reactome_analysis_api import util
 
@@ -16,7 +17,7 @@ class ExternalData(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, title: str=None, type: str=None, description: str=None, group: str=None, sample_ids: List[str]=None, sample_metadata: List[ExternalDataSampleMetadata]=None):  # noqa: E501
+    def __init__(self, id: str=None, title: str=None, type: str=None, description: str=None, group: str=None, sample_ids: List[str]=None, sample_metadata: List[ExternalDataSampleMetadata]=None, default_parameters: List[ExternalDataDefaultParameters]=None):  # noqa: E501
         """ExternalData - a model defined in Swagger
 
         :param id: The id of this ExternalData.  # noqa: E501
@@ -33,6 +34,8 @@ class ExternalData(Model):
         :type sample_ids: List[str]
         :param sample_metadata: The sample_metadata of this ExternalData.  # noqa: E501
         :type sample_metadata: List[ExternalDataSampleMetadata]
+        :param default_parameters: The default_parameters of this ExternalData.  # noqa: E501
+        :type default_parameters: List[ExternalDataDefaultParameters]
         """
         self.swagger_types = {
             'id': str,
@@ -41,7 +44,8 @@ class ExternalData(Model):
             'description': str,
             'group': str,
             'sample_ids': List[str],
-            'sample_metadata': List[ExternalDataSampleMetadata]
+            'sample_metadata': List[ExternalDataSampleMetadata],
+            'default_parameters': List[ExternalDataDefaultParameters]
         }
 
         self.attribute_map = {
@@ -51,7 +55,8 @@ class ExternalData(Model):
             'description': 'description',
             'group': 'group',
             'sample_ids': 'sample_ids',
-            'sample_metadata': 'sample_metadata'
+            'sample_metadata': 'sample_metadata',
+            'default_parameters': 'default_parameters'
         }
 
         self._id = id
@@ -61,6 +66,7 @@ class ExternalData(Model):
         self._group = group
         self._sample_ids = sample_ids
         self._sample_metadata = sample_metadata
+        self._default_parameters = default_parameters
 
     @classmethod
     def from_dict(cls, dikt) -> 'ExternalData':
@@ -241,3 +247,26 @@ class ExternalData(Model):
         """
 
         self._sample_metadata = sample_metadata
+
+    @property
+    def default_parameters(self) -> List[ExternalDataDefaultParameters]:
+        """Gets the default_parameters of this ExternalData.
+
+        For some datasets, default values for certain parameters may be available.  # noqa: E501
+
+        :return: The default_parameters of this ExternalData.
+        :rtype: List[ExternalDataDefaultParameters]
+        """
+        return self._default_parameters
+
+    @default_parameters.setter
+    def default_parameters(self, default_parameters: List[ExternalDataDefaultParameters]):
+        """Sets the default_parameters of this ExternalData.
+
+        For some datasets, default values for certain parameters may be available.  # noqa: E501
+
+        :param default_parameters: The default_parameters of this ExternalData.
+        :type default_parameters: List[ExternalDataDefaultParameters]
+        """
+
+        self._default_parameters = default_parameters

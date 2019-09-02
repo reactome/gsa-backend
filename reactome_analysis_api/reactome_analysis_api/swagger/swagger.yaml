@@ -693,9 +693,20 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/ExternalData_sample_metadata"
+      default_parameters:
+        type: "array"
+        description: "For some datasets, default values for certain parameters may\
+          \ be available."
+        items:
+          $ref: "#/definitions/ExternalData_default_parameters"
     description: "Description of an externally loaded datasets (including example\
       \ datasets)."
     example:
+      default_parameters:
+      - name: "permutations"
+        value: "10"
+      - name: "permutations"
+        value: "10"
       sample_metadata:
       - values:
         - "71"
@@ -911,3 +922,20 @@ definitions:
       - "71"
       - "71"
       name: "age"
+  ExternalData_default_parameters:
+    required:
+    - "name"
+    - "value"
+    properties:
+      name:
+        type: "string"
+        example: "permutations"
+        description: "Name of the parameter. This is either the parameter name as\
+          \ returned by the /methods function or one of the following strings to specify\
+          \ a field in the request object: comparison_group_1,  comparison_group_2."
+      value:
+        type: "string"
+        example: "10"
+    example:
+      name: "permutations"
+      value: "10"

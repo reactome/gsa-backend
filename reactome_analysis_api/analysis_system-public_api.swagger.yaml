@@ -666,3 +666,24 @@ definitions:
                 example: "71"
               description: "Values for the specified properties. This array will follow the same sort order as the 'sample_ids' array."
           description: "For some datasets sample metadata may be available. This is reported here."
+      default_parameters:
+        type: array
+        description: For some datasets, default values for certain parameters may be available.
+        items:
+          type: object
+          required:
+            - name
+            - value
+          properties:
+            name:
+              type: string
+              description: >-
+                Name of the parameter. This is either the parameter name as returned by the /methods function or
+                one of the following strings to specify a field in the request object: analysis_group, 
+                comparison_group_1, comparison_group_2, covariates. The 'analysis_group' property refers to
+                one of the properties in the sample_metadata. Similar, the covariates property will point to
+                a comma delimited list of properties in the sample metadata.
+              example: permutations
+            value:
+              type: string
+              example: "10"

@@ -14,6 +14,7 @@ from reactome_analysis_api.models.dataset import Dataset
 from reactome_analysis_api.models.design import Design
 from reactome_analysis_api.models.design_comparison import DesignComparison
 from reactome_analysis_api.models.external_data import ExternalData
+from reactome_analysis_api.models.external_data_default_parameters import ExternalDataDefaultParameters
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 from reactome_analysis_api.models.method import Method
 from reactome_analysis_api.models.method_parameters import MethodParameters

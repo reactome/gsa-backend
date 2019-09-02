@@ -48,5 +48,23 @@
         "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC", "TIBC"
       ]
     }
+  ],
+  "default_parameters": [
+    {
+      "name": "analysis_group",
+      "value": "condition"
+    },
+    {
+      "name": "comparison_group_1",
+      "value": "MOCK"
+    },
+    {
+      "name": "comparison_group_2",
+      "value": "MCM"
+    },
+    {
+      "name": "covariates",
+      "value": "patient.id,cell.type"
+    }
   ]
 }
