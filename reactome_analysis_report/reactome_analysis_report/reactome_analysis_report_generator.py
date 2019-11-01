@@ -73,7 +73,7 @@ class ReactomeAnalysisReportGenerator:
                 self._storage = reactome_storage.ReactomeStorage()
             except Exception as e:
                 LOGGER.error("Failed to connect to storage service: " + str(e))
-                raise("Failed to connect to storage service", e)
+                raise Exception("Failed to connect to storage service", e)
 
         return self._storage
 
