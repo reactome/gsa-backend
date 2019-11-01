@@ -11,6 +11,7 @@ from reactome_analysis_utils.models import dataset_request
 from reactome_analysis_api.models.analysis_status import AnalysisStatus
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.example_fetcher import ExampleDatasetFetcher
+from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
 
 
 LOGGER = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class ReactomeAnalysisDatasetFetcher:
 
         # try to load the dataset
         try:
-            (data, summary) = dataset_fetcher.load_dataset(request.dataset_id)
+            (data, summary) = dataset_fetcher.load_dataset(request.dataset_id, self._get_mq())
 
             if data is None:
                 raise Exception("Failed to retrieve data.")
@@ -195,5 +196,8 @@ class ReactomeAnalysisDatasetFetcher:
         """
         if len(identifier) > 8 and identifier[0:8] == "EXAMPLE_":
             return ExampleDatasetFetcher()
+
+        if len(identifier) > 2 and identifier[0:1] == "E-":
+            return ExpressionAtlasFetcher()
 
         return None

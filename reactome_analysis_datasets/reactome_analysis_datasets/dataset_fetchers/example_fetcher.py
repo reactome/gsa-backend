@@ -12,10 +12,11 @@ from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import
 
 
 class ExampleDatasetFetcher(DatasetFetcher):
-    def load_dataset(self, identifier: str) -> (str, ExternalData):
+    def load_dataset(self, identifier: str, reactome_mq) -> (str, ExternalData):
         """
         Loads the defined example dataset
         :params identifier: The dataset identifier
+        :param reactome_mq: Not used
         :returns: (data, summary)
         """
         # prevent the injection of "mean" characters
