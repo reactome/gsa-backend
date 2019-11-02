@@ -120,6 +120,9 @@ cp ../reactome_analysis_report/texlive.profile ${CUR_DIR}/
 
 cp -r ../reactome_analysis_datasets/example_datasets ${CUR_DIR}/
 
+cp ../reactome_analysis_datasets/install_libraries.R ${CUR_DIR}/install_dataset_libraries.R
+check_error $? "Failed to copy install_libraries.R"
+
 # Rebuild the images
 if [ -n "${REBUILD_API}" -a "${REBUILD_API}" != "n" ]; then
 	sudo docker build --no-cache -t ${DOCKER_USER}/reactome-analysis_public-api:latest -f Dockerfile.public_api .

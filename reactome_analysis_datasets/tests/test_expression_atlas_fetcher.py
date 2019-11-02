@@ -86,10 +86,10 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
 
     def test_complete_loading_process(self):
         fetcher = ExpressionAtlasFetcher()
-        (data, summary_str) = fetcher.load_dataset("E-PROT-5", MockMQ())
+        (data, summary) = fetcher.load_dataset("E-PROT-5", MockMQ())
 
         self.assertIsNotNone(data)
-        self.assertIsNotNone(summary_str)
+        self.assertIsNotNone(summary)
 
-        summary = json.loads(summary_str)
-        self.assertEqual("proteomics_int", summary["type"])
+        self.assertEqual("proteomics_int", summary.type)
+

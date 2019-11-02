@@ -2,6 +2,12 @@ FROM jgriss/reactome-analysis_worker:THE_WORKER_VERSION
 
 ENV EXAMPLE_DIRECTORY /data/example_datasets
 
+# Copy the script required to install the R packages
+COPY install_dataset_libraries.R /tmp/
+
+# Install the R libraries
+RUN R --vanilla < /tmp/install_dataset_libraries.R
+
 # Copy our python packages
 COPY reactome_analysis_datasets-*.whl /tmp/
 

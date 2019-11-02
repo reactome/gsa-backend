@@ -90,7 +90,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
     def _create_summary(self, identifier: str, data_type: str, metadata: str) -> str:
         """
-        Create a JSON encoded summary object based on
+        Create a ExternalData object based on
         the passed metadata
         :param identifier: The ExpressionAtlas identifier.
         :param data_type: The data type of the experiment
@@ -99,7 +99,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         # initialize the summary object
         summary = {"type": data_type, "id": identifier, 
-                   "description": "ExpressionAtlas dataset {}".format(identifier)}
+                   "title": "ExpressionAtlas dataset {}".format(identifier),
+                   "description": "External dataset loaded from ExpressionAtlas"}
 
         # add the sample specific data
         metadata_array = reactome_analysis_worker.util.string_to_array(metadata)
@@ -124,7 +125,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
                 {"name": "discrete_norm_function", "value": "TMM"}
             ]
 
-        return json.dumps(summary)
+        return ExternalData.from_dict(summary)
 
     def load_generic_data(self, download_files: list, reactome_mq: reactome_mq.ReactomeMQ):
         """

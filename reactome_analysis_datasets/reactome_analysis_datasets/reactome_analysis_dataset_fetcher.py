@@ -155,9 +155,9 @@ class ReactomeAnalysisDatasetFetcher:
         # get the loading class for the identifier type
         dataset_fetcher = self._get_dataset_fetcher_for_identifier(request.dataset_id)
 
-        if not dataset_request:
+        if not dataset_fetcher:
             self._set_status(request_id=request.loading_id, status="failed",
-                            description="Failed to resolve identifier '{}'.".format(request.dataset_id))
+                            description="Unknown identifier passed '{}'.".format(request.dataset_id))
             self._acknowledge_message(ch, method)
             return
 
@@ -197,7 +197,7 @@ class ReactomeAnalysisDatasetFetcher:
         if len(identifier) > 8 and identifier[0:8] == "EXAMPLE_":
             return ExampleDatasetFetcher()
 
-        if len(identifier) > 2 and identifier[0:1] == "E-":
+        if len(identifier) > 2 and identifier[0:2] == "E-":
             return ExpressionAtlasFetcher()
 
         return None
