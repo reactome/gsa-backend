@@ -18,6 +18,7 @@ import rpy2.rinterface as ri
 import rpy2.robjects as ro
 import rpy2.robjects.packages
 import logging
+import os
 
 LOGGER = logging.getLogger(__name__)
 
@@ -328,6 +329,9 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         # Return the required matrices
         loading_process.join(0.5)
+
+        # delete the file
+        os.remove(stored_r_file.name)
 
         try:
             loaded_data = file_loading_queue.get(block=True, timeout=0.5)
