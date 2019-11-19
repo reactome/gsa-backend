@@ -96,7 +96,7 @@ create_design <- function(sample.data, group_1) {
 #' `\n` (the characters, not newline) as line delimiter
 #'
 #' @param data The data.frame to convert
-#' @param keep_rownames If set, the rownames will be stored as this column name
+#' @param rowname_column If set, the rownames will be stored as this column name
 #' @return A string representing the passed data.frame
 data_frame_as_string <- function(data, rowname_column = NULL) {
     text.connection <- textConnection(NULL, open="w")

@@ -462,7 +462,7 @@ class RLoadingProcess(multiprocessing.Process):
                     data_type <- "rnaseq_counts"
                     metadata <- colData(experimentSummary[[1]])
 
-                    expression_values <- assays(experimentSummary[[1]])$counts
+                    expression_values <- data.frame(assays(experimentSummary[[1]])$counts)
                 } else if (is(experimentSummary[[1]], "ExpressionSet")) {
                     # load the required library
                     library(Biobase)
@@ -479,12 +479,20 @@ class RLoadingProcess(multiprocessing.Process):
                 # add a "sample.id" column for the metadata
                 metadata$sample.id <- rownames(metadata)
                 metadata <- metadata[, c(ncol(metadata), 1:(ncol(metadata)-1))]
+
+                # add a "gene" column for the expression values
+                expression_values$gene <- rownames(expression_values)
+                expression_values <- expression_values[, c(ncol(expression_values), 1:(ncol(expression_values)-1))]
             """)
 
             # convert the R objects to python objects
             LOGGER.debug("Converting R objects to python")
             data_type = str(ri.globalenv["data_type"][0])
+
+            LOGGER.debug("Converting metadata data.frame to string")
             metadata_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["metadata"])[0])
+
+            LOGGER.debug("Converting expression data.frame to string")
             expression_value_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["expression_values"])[0])
 
             # save the result and mark the on_complete event
