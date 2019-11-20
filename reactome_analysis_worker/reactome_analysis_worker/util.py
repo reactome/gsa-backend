@@ -76,7 +76,7 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
     reactome_url = get_reactome_url(reactome_server)
     url = "https://{}/AnalysisService/mapping/projection/?interactors=true".format(reactome_url)
     request = http.request("POST", url, body="\n".join(set(identifiers)), headers={"content-type": "text/plain"},
-                           timeout=5)
+                           timeout=30)
 
     if request.status != 200:
         msg = "Failed to retrieve mappings: Invalid identifiers submitted ({})".format(str(request.status))
