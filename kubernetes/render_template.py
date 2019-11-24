@@ -79,6 +79,9 @@ def main():
     if not "debug" in conf:
         conf["debug"] = False
 
+    if not "mail_error_address" in conf:
+        conf["mail_error_address"] = ""
+
     t = env.get_template(os.path.basename(template_file))
     t.stream(conf).dump(output_file)
 

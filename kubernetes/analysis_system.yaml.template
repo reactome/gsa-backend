@@ -346,6 +346,7 @@ data:
   REDIS_PORT: "{{ redis.port }}"
   REDIS_DATABASE: "0"
   RABBIT_MAX_QUEUE_LENGTH: "10"
+  MAIL_ERROR_ADDRESS: "{{ mail_error_address }}"
 ---
 # Config Map for the e-mail settings
 apiVersion: v1

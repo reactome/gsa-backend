@@ -270,8 +270,12 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         file_url = "https://www.ebi.ac.uk/gxa/" + file_url
         request = http.request("GET", file_url)
 
+        if request.status == 404:
+            LOGGER.info("Unknown ExpressionAtlas file: {}".format(str(file_url)))
+            raise DatasetFetcherException("Unknown ExpressionAtlas dataset identifier")
+
         if request.status != 200:
-            LOGGER.error("Failed to download file from ExpressionAtlas ({})".format(str(request.status)))
+            LOGGER.error("Failed to download file from ExpressionAtlas ({}): {}".format(str(request.status), file_url))
             raise DatasetFetcherException("Failed to download file from ExpressionAtlas")
 
         return request.data

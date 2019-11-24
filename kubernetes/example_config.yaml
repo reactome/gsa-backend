@@ -1,6 +1,8 @@
 debug: True
 # Replace with your minikube installation f.e.
 base_url: "http://192.168.99.100:30966"
+# Errors are sent to this e-mail if specified
+mail_error_address: "notify@me.com"
 # Report e-mails are only sent if a configuration is supplied
 mail:
   smtp_server: ""

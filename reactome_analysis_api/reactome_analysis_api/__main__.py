@@ -4,12 +4,14 @@ import csv
 import json
 import logging
 import uuid
+import sys
 
 import connexion
 from flask import redirect, request, abort, make_response
 from prometheus_client import make_wsgi_app
 from reactome_analysis_api import encoder
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
+from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
 from werkzeug.wsgi import DispatcherMiddleware
 
 app = connexion.App(__name__, specification_dir='./swagger/')
@@ -23,7 +25,7 @@ app_dispatch = DispatcherMiddleware(app, {
 app.add_api('swagger.yaml', arguments={'title': 'REACTOME Analysis Service'})
 
 # log all debug messages to a file
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, handlers=get_default_logging_handlers())
 
 # only log connexion and pika errors
 logging.getLogger("connexion").setLevel(logging.ERROR)

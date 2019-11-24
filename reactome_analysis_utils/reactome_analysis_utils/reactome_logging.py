@@ -11,7 +11,25 @@ import logging.handlers
 import os, sys
 
 
+REACTOME_LOGGING_FORMAT = "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
 LOGGER = logging.getLogger(__name__)
+
+
+def get_default_logging_handlers() -> list:
+    """
+    Returns a list of default logging handlers
+    for all ReactomeGSA systems.
+    :returns: A list of logging handlers
+    """
+    # create a default stream handler
+    stream_handler = logging.StreamHandler(stream=sys.stderr)
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(logging.Formatter(fmt=REACTOME_LOGGING_FORMAT))
+
+    # add the E-Mail hanlder
+    mail_handler = ReactomeSMTPHandler(capacity=100)
+
+    return[stream_handler, mail_handler]
 
 
 class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
@@ -19,7 +37,7 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
     SMTPHandler that sends one single e-mail containing all entries
     in the buffer.
     """
-    def __init__(self, capacity=50, flushLevel=logging.ERROR):
+    def __init__(self, capacity=50, flushLevel=logging.ERROR, minLevel=logging.INFO):
         logging.handlers.MemoryHandler.__init__(self, capacity, flushLevel)
 
         # indicates whether all mail settings were found
@@ -40,16 +58,27 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
             LOGGER.debug("Missing e-mail credentials to create e-mail logger.")
             return
 
+        # make sure a destination address was set
+        self.smtp_to = os.getenv("MAIL_ERROR_ADDRESS", "")
+
+        if not len(self.smtp_to) > 0 or "@" not in self.smtp_to:
+            LOGGER.debug("Missing recipient e-mail address to create e-mail logger.")
+            return
+
         # create the handler
         self.smtp_server =  os.environ["SMTP_SERVER"]
         self.smtp_port = os.environ["SMTP_PORT"]
         self.smtp_from = os.environ["FROM_ADDRESS"]
-        self.smtp_to = "jgriss@ebi.ac.uk"
         self.smtp_user = user
         self.smtp_password = password
 
-        # set a sensibel formatter
-        self.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"))
+        self.has_mail_support = True
+
+        # set a sensible formatter
+        self.setFormatter(logging.Formatter(REACTOME_LOGGING_FORMAT))
+
+        # only add messages of a minimum level
+        self.setLevel(minLevel)
 
     def flush(self):
         """
@@ -57,32 +86,33 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
         """
         if len(self.buffer) > 0:
             try:
-                # create the nicely formatted string
-                messages = list()
+                if self.has_mail_support:
+                    # create the nicely formatted string
+                    messages = list()
 
-                for log_msg in self.buffer:
-                    messages.append(self.format(log_msg))
+                    for log_msg in self.buffer:
+                        messages.append(self.format(log_msg))
 
-                # create the e-mail message
-                from email.message import EmailMessage
+                    # create the e-mail message
+                    from email.message import EmailMessage
 
-                msg = EmailMessage()
-                msg['Subject'] = "ReactomeGSA - Error"
-                msg['From'] = self.smtp_from
-                msg['To'] = self.smtp_to
+                    msg = EmailMessage()
+                    msg['Subject'] = "ReactomeGSA - Error"
+                    msg['From'] = self.smtp_from
+                    msg['To'] = self.smtp_to
 
-                msg.set_content("\n".join(messages))
+                    msg.set_content("\n".join(messages))
 
-                # send the mail
-                import smtplib
+                    # send the mail
+                    import smtplib
 
-                with smtplib.SMTP(host=self.smtp_server, port=self.smtp_port) as s:
-                    s.ehlo()
-                    s.starttls()
-                    s.ehlo()
-                    s.login(user=self.smtp_user, password=self.smtp_password)
-                    s.ehlo()
-                    s.send_message(msg)
+                    with smtplib.SMTP(host=self.smtp_server, port=self.smtp_port) as s:
+                        s.ehlo()
+                        s.starttls()
+                        s.ehlo()
+                        s.login(user=self.smtp_user, password=self.smtp_password)
+                        s.ehlo()
+                        s.send_message(msg)
             except Exception as e:
                 LOGGER.debug("Failed to send log mail: " + str(e))
 

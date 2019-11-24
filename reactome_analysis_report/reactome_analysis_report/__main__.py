@@ -8,6 +8,8 @@ import os
 from prometheus_client import start_http_server
 
 from reactome_analysis_report import reactome_analysis_report_generator
+from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
+
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
@@ -19,7 +21,7 @@ start_http_server(port=int(os.getenv("PROMETHEUS_PORT", 9000)))
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
+    logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT, handlers=get_default_logging_handlers())
 
     # set config for other packages
     pika_logger = logging.getLogger("pika")
