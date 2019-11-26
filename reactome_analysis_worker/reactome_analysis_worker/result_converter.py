@@ -65,7 +65,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
           .format(reactome_url,  str(use_interactors))
     request = http.request("POST", url, body=body_text,
                            headers={"content-type": "text/plain"},
-                           timeout=5)
+                           timeout=30)
 
     if request.status != 200:
         msg = "Failed get REACTOME Analysis token: {}".format(str(request.status))
