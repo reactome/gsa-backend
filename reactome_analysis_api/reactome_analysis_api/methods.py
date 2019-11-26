@@ -45,7 +45,7 @@ global_parameters = [
                          display_name="Reactome server",
                          type="string",
                          scope="common",
-                         default="production",
+                         default="dev",
                          description="This parameter allows the usage of other reactome servers. Available options are "
                                      "'production', 'dev', 'release'")
     ]
