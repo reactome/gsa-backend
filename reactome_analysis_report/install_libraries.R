@@ -20,5 +20,5 @@ if (!require(devtools)) {
 # install the ReactomeGSA package
 devtools::install_github("reactome/ReactomeGSA")
 
-# install the ReactomeGSA report package
+# install the ReactomeGSA report package - version 1.0.3
 devtools::install_github("reactome/ReactomeGSA.report")

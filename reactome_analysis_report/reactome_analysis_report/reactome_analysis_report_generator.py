@@ -1,8 +1,6 @@
 """
 Class that is listening to report generation requests and
 creates the actual report file
-
-TODO: Read mail config from somewhere
 """
 
 import json
@@ -22,6 +20,10 @@ from reactome_analysis_utils import reactome_mq, reactome_storage
 from reactome_analysis_utils.models import report_request
 from rpy2.rinterface import RRuntimeError
 
+
+# create the logger
+LOGGER = logging.getLogger(__name__)
+
 # initialize R
 ri.initr()
 
@@ -29,9 +31,7 @@ ri.initr()
 ri.set_writeconsole_warnerror(None)
 ri.set_writeconsole_regular(None)
 
-LOGGER = logging.getLogger(__name__)
-
-
+# set the counters
 RUNNING_REPORTS = prometheus_client.Gauge("reactome_report_running",
                                           "Number of reports currently being created.")
 COMPLETED_REPORTS = prometheus_client.Counter("reactome_report_completed",

@@ -6,3 +6,4 @@
 Dockerfile.report_version
 Dockerfile.datasets_version
 example_datasets
+publish_images.sh
