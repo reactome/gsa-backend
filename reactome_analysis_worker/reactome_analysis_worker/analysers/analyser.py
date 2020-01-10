@@ -26,6 +26,7 @@ class ReactomeAnalyser:
 
     def __init__(self):
         self.status_callback = None
+        self.heartbeat_callback = None
         self.reactome_result_types = list()
 
     def set_status_callback(self, callback):
@@ -35,12 +36,30 @@ class ReactomeAnalyser:
         """
         self.status_callback = callback
 
+    def set_heartbeat_callback(self, callback):
+        """
+        A message that is called to simply indicate that the
+        analysis is running
+        """
+        self.heartbeat_callback = callback
+
+
+    def _heartbeat(self):
+        """
+        Heartbeat function to show that the analysis is still running.
+        """
+        if self.heartbeat_callback:
+            self.heartbeat_callback()
+
     def _update_status(self, message: str, complete: float):
         """
         Uses the defined callback to update the status of the current process.
         :param message: The message to set
         :param complete: Percent completion (0 - 1)
-        """
+        """        
+        # also triggers a heartbeat
+        self._heartbeat()
+
         if self.status_callback:
             self.status_callback(message, complete)
 

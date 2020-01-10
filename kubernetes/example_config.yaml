@@ -40,6 +40,10 @@ reactome_worker:
   min_replicas: 1
   max_replicas: 1
   target_cpu_usage: 75
+  # Maximum timeout in seconds the analysis may be running
+  # without returning any update of its status (ie. log
+  # message, etc)
+  max_timeout: 60
 reactome_report:
   image: jgriss/reactome-analysis_report:latest
   min_mem: "250Mi"

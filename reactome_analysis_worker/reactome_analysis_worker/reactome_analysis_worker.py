@@ -2,6 +2,9 @@
 """
 Supported environmental variables:
   * REACTOME_VERSION: Version number of the current REACTOME release
+  * MAX_WORKER_TIMEOUT: Number of seconds after which the analysis process is killed
+                        in case no activity can be determined (ie. the last log message
+                        does not change). Default 60 seconds.
 """
 
 import json
@@ -9,6 +12,7 @@ import logging
 import multiprocessing
 import os
 import queue
+import time
 
 import numpy
 import prometheus_client
@@ -32,6 +36,8 @@ LOGGER = logging.getLogger(__name__)
 
 RUNNING_ANALYSES = prometheus_client.Gauge("reactome_worker_running_analyses",
                                            "Number of analyses currently running.")
+TIMED_OUT_ANALYSIS = prometheus_client.Counter("reactome_worker_timed_out_analyses",
+                                               "Number of analysis that were killed because of a timeout.")
 COMPLETED_ANALYSES = prometheus_client.Counter("reactome_worker_completed_analyses",
                                                "Number of successfully completed analyses.")
 
@@ -49,6 +55,7 @@ class ReactomeAnalysisWorker:
         self._storage = None
         self._performed_analyses = 0
         self.debug = bool(os.getenv("REACTOME_WORKER_DEBUG", False))
+        self.max_timeout = int(os.getenv("MAX_WORKER_TIMEOUT", 60))
 
     def _get_mq(self):
         """
@@ -267,14 +274,18 @@ class ReactomeAnalysisWorker:
             is_analysis_complete = multiprocessing.Event()
             result_queue = multiprocessing.Queue()
             status_queue = multiprocessing.Queue()
+            heartbeat_queue = multiprocessing.Queue()
             analysis_process = AnalysisProcess(analyser=reactome_analyser, request=request, gene_set_mappings=mappings,
                                                gene_set=gene_set,
                                                identifier_mappings=identifier_mappings,
                                                on_complete=is_analysis_complete, result_queue=result_queue,
-                                               status_queue=status_queue)
+                                               status_queue=status_queue, heartbeat_queue=heartbeat_queue)
             LOGGER.debug("Launching process to perform the analysis...")
 
             analysis_process.start()
+            
+            # keep track of the last log heartbeat to see if the process timed out
+            last_heartbeat = int(time.time())
 
             # fetch the blueprint (in parallel) for the REACTOME result conversion
             reactome_blueprint = None
@@ -298,6 +309,25 @@ class ReactomeAnalysisWorker:
                     analysis_process.join(0.1)
                     return
 
+                # update the last received heartbeat
+                if heartbeat_queue.qsize() > 0:
+                    try:
+                        while heartbeat_queue.qsize() > 0:
+                            last_heartbeat = heartbeat_queue.get(block=True, timeout=0.5)
+                    except Exception:
+                        # ignore any timeouts since these should negatively effect the heartbeat
+                        # anyway
+                        pass
+
+                # make sure the process sent a heartbeat in the required minimum time
+                current_timeout = int(time.time()) - last_heartbeat
+                if current_timeout > self.max_timeout:
+                    LOGGER.error("Analysis timed out (" + str(current_timeout) + " seconds)")
+                    # add a "nice" Exception to the gsa_result queue
+                    result_queue.put(Exception("Error: Analysis timed out. Please retry the analysis at a later time."))
+                    break
+
+                # receive and process any status updates
                 if status_queue.qsize() > 0:
                     try:
                         # only use the last update
@@ -551,7 +581,7 @@ class ReactomeAnalysisWorker:
 class AnalysisProcess(multiprocessing.Process):
     def __init__(self, analyser: ReactomeAnalyser, request: AnalysisInput, gene_set_mappings: dict, gene_set: GeneSet,
                  identifier_mappings: dict, on_complete: multiprocessing.Event, result_queue: multiprocessing.Queue,
-                 status_queue: multiprocessing.Queue = None):
+                 status_queue: multiprocessing.Queue = None, heartbeat_queue: multiprocessing.Queue = None):
         """
         Creates a new AnalysisThread object to perform a gene set analysis
         :param analyser: The analyser to use
@@ -561,6 +591,8 @@ class AnalysisProcess(multiprocessing.Process):
         :param identifier_mappings: The identifier mappings for each dataset
         :param on_complete: This event will be triggered once the analysis is complete
         :param result_queue: The result queue to use to return the result
+        :param status_queue: A queue that will receive all (user readable) status updates of the project as Status objects
+        :param heartbeat_queue: A queue holding the "heartbeats" as the output of int(time.time()).
         """
         super().__init__()
 
@@ -572,17 +604,23 @@ class AnalysisProcess(multiprocessing.Process):
         self.on_complete = on_complete
         self.result_queue = result_queue
         self.status_queue = status_queue
+        self.heartbeat_queue = heartbeat_queue
 
     def update_status(self, message: str, complete: float):
         if self.status_queue:
             self.status_queue.put(AnalysisStatus(id=self.request.analysis_id, status="running",
                                                  description=message, completed=complete))
 
+    def update_heartbeat(self, ):
+        if self.heartbeat_queue:
+            self.heartbeat_queue.put(int(time.time()))
+
     def run(self) -> None:
         try:
             # add the status callback
             LOGGER.debug("Setting status callback for analyser")
             self.analyser.set_status_callback(self.update_status)
+            self.analyser.set_heartbeat_callback(self.update_heartbeat)
 
             # analyse the request
             LOGGER.debug("Starting analysis....")

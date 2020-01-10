@@ -508,6 +508,8 @@ spec:
             value: "/etc/mail/user"
           - name: EMAIL_PASSWORD_FILE
             value: "/etc/mail/password"
+          - name: MAX_WORKER_TIMEOUT
+            value: "{{ reactome_worker.max_timeout }}"
 	  {%- if reactome_worker.proxy %}
           - name: PROXY
             value: "{{ reactome_worker.proxy }}"

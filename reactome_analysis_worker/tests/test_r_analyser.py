@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import unittest
+import time
 from tempfile import gettempdir
 
 from reactome_analysis_api.input_deserializer import create_analysis_input_object
@@ -160,3 +161,40 @@ class TestReactomeRAnalyzer(unittest.TestCase):
                 mitf_found = True
 
         self.assertTrue(mitf_found, "Failed to find MITF in FC data")
+
+    def update_heartbeat(self):
+      self.last_heartbeat = int(time.time())
+
+    def test_heartbeat(self):
+      json_obj = json.loads(self.test_json)
+      json_obj["parameters"].append({"name": "max_missing_values", "value": "1"})
+
+      # remove the patient since this coefficient cannot be estimated
+      json_obj["datasets"][0]["design"].pop("patient")
+
+      request = create_analysis_input_object(json_obj)
+      request.datasets[0].df = util.string_to_array(request.datasets[0].data)
+
+      # get the mappings
+      mappings = util.map_identifiers({"MITF", "CD19", "MS4A1"})
+
+      # filter the dataset
+      request.datasets[0].df = ReactomeAnalysisWorker._filter_dataset(request.datasets[0].df, mappings,
+                                                                      request.datasets[0].design, 1)
+
+      gene_set = self._get_gene_set()
+      gene_id_colname = request.datasets[0].df.dtype.names[0]
+      gene_set_mapping = GeneSetMapping.create_mapping(gene_set, identifier_mapping=mappings,
+                                                        identifiers=request.datasets[0].df[:][gene_id_colname].tolist())
+
+      analyser = ReactomeRAnalyser()
+      analyser.set_heartbeat_callback(self.update_heartbeat)
+      start_time = int(time.time()) - 1
+
+      result = analyser.analyse_request(request=request,
+                                        gene_set_mappings={request.datasets[0].name: gene_set_mapping},
+                                        identifier_mappings=mappings,
+                                        gene_set=gene_set)
+
+      # make sure the heartbeat was updated
+      self.assertGreater(self.last_heartbeat, start_time)

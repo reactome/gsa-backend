@@ -3,6 +3,7 @@ R-based reactome analyser
 """
 
 import logging
+import gc
 from collections.abc import Iterable
 
 import rpy2.rinterface as ri
@@ -23,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 def load_r_code_file(filename: str) -> ro.packages.SignatureTranslatedAnonymousPackage:
     """
     Load the code from the specified R code resource file and convert into
-    an annomymously loaded package.
+    an anonymously loaded package.
 
     :param filename: The filename to load. This file must recide in r_code
     :return: A SignatureTranslatedAnonymousPackage representing the package
@@ -55,6 +56,9 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         super().__init__()
         self.reactome_result_types = [ReactomeResultTypes.gsa]
         self.r_messages = list()
+
+        # Note: This changed in rp2 version 3.x
+        # see https://rpy2.github.io/doc/latest/html/callbacks.html?highlight=warn
         ri.set_writeconsole_warnerror(self._catch_message)
         ri.set_writeconsole_regular(self._catch_message)
 
@@ -63,23 +67,15 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         Function used to append messages received from R to the buffer
         :param message: The received message
         """
+        # triggers a "heartbeat"
+        self._heartbeat()
+
         message = message.strip()
         if len(message) == 0:
             return
 
         LOGGER.debug("R Message: " + message)
         self.r_messages.append(message)
-
-    def _last_message(self) -> str:
-        """
-        Simply returns the last message recieved from R or None
-        if no messges were received
-        :return: Last message as a str
-        """
-        if len(self.r_messages) == 0:
-            return None
-
-        return self.r_messages[-1]
 
     """
     Performs pathway analysis using different R methods
