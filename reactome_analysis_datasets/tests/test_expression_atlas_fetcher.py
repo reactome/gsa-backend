@@ -2,7 +2,9 @@ import unittest
 import time
 import logging
 import json
+import os
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher, ExpressionAtlasTypes
+from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcherException
 
 
 class MockMQ:
@@ -93,3 +95,9 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
 
         self.assertEqual("proteomics_int", summary.type)
 
+    def test_timeout(self):
+        # set the timeout to only 1 sec - to trigger a failure
+        os.environ["LOADING_MAX_TIMEOUT"] = "1"
+
+        fetcher = ExpressionAtlasFetcher()
+        self.assertRaises(DatasetFetcherException, fetcher.load_dataset, "E-MTAB-970", MockMQ())

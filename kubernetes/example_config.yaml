@@ -58,3 +58,6 @@ reactome_datasets:
   min_cpu: "0.1"
   max_cpu: "0.3"
   replicas: 1
+  # Maximum time in seconds during which any step in the loading
+  # process may show no sign of activity.
+  max_loading_timeout: "60"

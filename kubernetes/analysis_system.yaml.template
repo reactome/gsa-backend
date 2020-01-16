@@ -721,6 +721,8 @@ spec:
             value: "/etc/mail/user"
           - name: EMAIL_PASSWORD_FILE
             value: "/etc/mail/password"
+          - name: LOADING_MAX_TIMEOUT
+            value: "{{ reactome_datasets.max_loading_timeout }}"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume

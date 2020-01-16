@@ -1,6 +1,13 @@
 """
 A DatasetFetcher to retrieve experiments from EBI's
 ExpressionAtlas
+
+This tool reads the following env parameters:
+    - LOADING_MAX_TIMEOUT: The maximum timeout in seconds for the loading process. This timeout
+                           is only used for tasks that do not have a timeout functions themselves,
+                           generally only referring to the R-based loading of code. Here, some
+                           datasets can cause a memory exhaustion leading to the death of the
+                           R process.
 """
 
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
@@ -19,15 +26,13 @@ import rpy2.robjects as ro
 import rpy2.robjects.packages
 import logging
 import os
+import time
+import signal
 
 LOGGER = logging.getLogger(__name__)
 
 # initialize R
 ri.initr()
-
-# disable R messages
-#ri.set_writeconsole_warnerror(None)
-#ri.set_writeconsole_regular(None)
 
 
 class ExpressionAtlasTypes(enum.Enum):
@@ -59,6 +64,11 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
     # Direct download links:
     # All available files: https://www.ebi.ac.uk/gxa/json/experiments/E-ATMX-20/resources/DATA
+    def __init__(self):
+        """
+        The init function is currently only used to initialise the maximum loading timeout
+        """
+        self.max_timeout = int(os.getenv("LOADING_MAX_TIMEOUT", 60))
 
     def load_dataset(self, identifier: str, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
         """
@@ -315,18 +325,41 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         # Use the RLoadingProcess to load the file
         file_loaded_event = multiprocessing.Event()
         file_loading_queue = multiprocessing.Queue()
+        heartbeat_queue = multiprocessing.Queue()
 
-        loading_process = RLoadingProcess(r_file_path=stored_r_file.name, on_complete=file_loaded_event, result_queue=file_loading_queue)
+        loading_process = RLoadingProcess(r_file_path=stored_r_file.name, on_complete=file_loaded_event, result_queue=file_loading_queue,
+                                          heartbeat_queue=heartbeat_queue)
         loading_process.start()
 
+        # keep track of how long the process is running
+        last_heartbeat = int(time.time())
+
         # wait until the process is complete and get the data
-        while loading_process.is_alive and not file_loaded_event.is_set():
+        while loading_process.is_alive() and not file_loaded_event.is_set():
             # test whether the fetching was stopped
             if reactome_mq.get_is_shutdown():
                 LOGGER.debug("Shutdown triggered, terminating fetching process")
                 loading_process.terminate()
                 loading_process.join(0.1)
                 return
+
+            # get the last heartbeat
+            while heartbeat_queue.qsize() > 0:
+                try:
+                    last_heartbeat = heartbeat_queue.get(block=True, timeout=0.2)
+                except Exception:
+                    # ignore any issues since this generally occurs because of a blocking issue
+                    pass
+
+            # make sure the process did not time out
+            duration_last_heartbeat = int(time.time()) - last_heartbeat
+
+            if duration_last_heartbeat > self.max_timeout:
+                LOGGER.error("ExpressionAtlas dataset loading (R) timed out (" + str(duration_last_heartbeat) + ")")
+                loading_process.terminate()
+                loading_process.join(0.1)
+
+                raise DatasetFetcherException("Conversion of R object timed out.")
 
             # sleep for 1 sec
             reactome_mq.sleep(1)
@@ -425,17 +458,47 @@ class RLoadingProcess(multiprocessing.Process):
     Class representing a process to load
     the R file and return the required fields
     """
-    def __init__(self, r_file_path: str, on_complete: multiprocessing.Event, result_queue: multiprocessing.Queue):
+    def __init__(self, r_file_path: str, on_complete: multiprocessing.Event, result_queue: multiprocessing.Queue, 
+                 heartbeat_queue: multiprocessing.Queue):
         super().__init__()
 
         self.r_file_path = r_file_path
         self.on_complete = on_complete
         self.result_queue = result_queue
+        self.heartbeat_queue = heartbeat_queue
+
+        # make sure the process knows when to "die"
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+        self.exit = False
+
+        # set callback for R messages
+        ri.set_writeconsole_warnerror(self.on_r_message)
+        ri.set_writeconsole_regular(self.on_r_message)
 
         # load the r_code
         LOGGER.debug("Loading required R preprocessing functions")
         r_code = resource_string("reactome_analysis_worker.resources.r_code", "preprocessing_functions.R").decode()
         self.preprocessing_functions = ro.packages.SignatureTranslatedAnonymousPackage(r_code, "reactome_preprocessing")
+
+    def exit_gracefully(self, signum, frame):
+        """
+        Simply set the exit flag
+        """
+        self.exit = True
+
+    def on_r_message(self, message):
+        """
+        Callback to process R messages. Currently, this is only
+        used to trigger a heartbeat.
+        """
+        self.heartbeat()
+
+    def heartbeat(self):
+        """
+        Adds a new heartbeat to the respective queue.
+        """
+        if self.heartbeat_queue:
+            self.heartbeat_queue.put(int(time.time()))
 
     def run(self) -> None:
         try:
@@ -488,16 +551,30 @@ class RLoadingProcess(multiprocessing.Process):
                 expression_values$gene <- rownames(expression_values)
                 expression_values <- expression_values[, c(ncol(expression_values), 1:(ncol(expression_values)-1))]
             """)
+            # always check whether to exit
+            if self.exit:
+                return
 
             # convert the R objects to python objects
             LOGGER.debug("Converting R objects to python")
             data_type = str(ri.globalenv["data_type"][0])
+            self.heartbeat()
 
             LOGGER.debug("Converting metadata data.frame to string")
+            # pylint: disable=no-member
             metadata_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["metadata"])[0])
+            self.heartbeat()
+
+            if self.exit:
+                return
 
             LOGGER.debug("Converting expression data.frame to string")
+            # pylint: disable=no-member
             expression_value_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["expression_values"])[0])
+            self.heartbeat()
+
+            if self.exit: 
+                return
 
             # save the result and mark the on_complete event
             LOGGER.debug("Returning results through the queue")
