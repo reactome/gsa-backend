@@ -1,14 +1,18 @@
 import json
 import unittest
+import logging
 
 from reactome_analysis_api.models.analysis_result import AnalysisResult, AnalysisResultResults
 
+from reactome_analysis_worker import geneset_builder
 from reactome_analysis_worker import result_converter
 from reactome_analysis_worker import util
 
 
 class ResultConverterTest(unittest.TestCase):
     def setUp(self) -> None:
+        logging.basicConfig(level = logging.DEBUG)
+
         self.gsva_result = AnalysisResult(results=[
             AnalysisResultResults(name="proteomics",
                                   pathways="""Pathway\tName\tSample_1\tSample_2\tSample_3
@@ -39,14 +43,29 @@ CD38\t1\t2\t3
     def test_reactome_gsa(self):
         identifier = ["MITF", "MS4A1", "CD19"]
 
-        result = result_converter.perform_reactome_gsa(identifiers=identifier)
+        result = result_converter.perform_reactome_gsa(identifiers=identifier, include_disease=False)
 
         self.assertIsNotNone(result)
         self.assertIsNotNone(result["summary"])
         self.assertTrue(result["summary"]["projection"])
         self.assertFalse(result["summary"]["interactors"])
 
-        self.assertEqual(23, len(result["pathways"]))
+        self.assertEqual(141, len(result["pathways"]))
+
+        # make sure there are no disease pathways included
+        url = "https://dev.reactome.org/download/current/HumanDiseasePathways.txt"
+        disease_pathways = geneset_builder.load_reactome_disease_pathways(url)
+
+        disease_dict = dict([(pathway, 1) for pathway in disease_pathways])
+
+        # FIXME: This still returns disease pathways
+        for fetched_pathway in result["pathways"]:
+            self.assertFalse(fetched_pathway["stId"] in disease_dict, "Disease pathway '{}' loaded".format(fetched_pathway["stId"]))
+
+        # get the result with disease pathways
+        result_with_disease = result_converter.perform_reactome_gsa(identifiers=identifier, include_disease=True)
+
+        self.assertEqual(141, len(result_with_disease["pathways"]))
 
     def test_get_pathway_changes(self):
         pathway_fc_string_1 = "Pathway\tDirection\tFDR\nP1\tUp\t0.02\nP2\tDown\t0.01\nP3\tUp\t0.07\nP4\tDown\t0.09\n"

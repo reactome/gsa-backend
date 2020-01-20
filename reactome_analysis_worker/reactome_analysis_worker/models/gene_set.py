@@ -109,6 +109,22 @@ class GeneSet:
         self.n_interactors = dict([(gene_set_id, self.gene_set_size[gene_set_id] - self.n_curated[gene_set_id])
                                    for gene_set_id in self.gene_sets])
 
+    def remove_pathways(self, pathways: list):
+        """
+        Remove the pathways from the stored gene_sets.
+
+        :param pathways: A list containing the pathway ids to remove.
+        """
+        # only filter the gene_set object
+        for pathway_id in pathways:
+            self.gene_sets.pop(pathway_id, None)
+            self.gene_set_names.pop(pathway_id, None)
+            self.gene_set_size.pop(pathway_id, None)
+            self.n_curated.pop(pathway_id, None)
+            self.n_interactors.pop(pathway_id, None)
+            if len(self.interactors) > 0:
+                self.interactors.pop(pathway_id, None)
+
     def copy(self):
         """
         Returns a copy of this object
@@ -117,6 +133,7 @@ class GeneSet:
         copy = GeneSet(dict())
 
         copy.gene_sets = deepcopy(self.gene_sets)
+        copy.gene_set_names = deepcopy(self.gene_set_names)
         copy.gene_set_size = deepcopy(self.gene_set_size)
         copy.interactors = deepcopy(self.interactors)
         copy.n_curated = deepcopy(self.n_curated)

@@ -242,11 +242,13 @@ class ReactomeAnalysisWorker:
 
         # load the matching gene set
         use_interactors = request.parameter_dict.get("use_interactors", "False").lower() == "true"
+        include_disease = request.parameter_dict.get("include_disease_pathways", "False").lower() == "true"
 
         # species is always set at human since we use Reactome's mapping feature "to human"
         gene_set = GeneSet.create_from_file(generate_pathway_filename(resource="reactome",
                                                                       species="Homo sapiens",
-                                                                      contains_interactors=use_interactors))
+                                                                      contains_interactors=use_interactors,
+                                                                      contains_disease=include_disease))
 
         # filter the datasets
         for dataset in request.datasets:
@@ -296,7 +298,8 @@ class ReactomeAnalysisWorker:
                     LOGGER.debug("Fetching blueprint for Reactome result conversion")
                     reactome_blueprint = result_converter.perform_reactome_gsa(identifiers=identifiers_after_filter,
                                                                                use_interactors=use_interactors,
-                                                                               reactome_server=reactome_server)
+                                                                               reactome_server=reactome_server,
+                                                                               include_disease=include_disease)
             except Exception as e:
                 LOGGER.warning("Failed to retrieve Reactome blueprint: " + str(e))
 
@@ -408,7 +411,9 @@ class ReactomeAnalysisWorker:
                len(request.parameter_dict.get("email", "")) > 3:
                 message_mq = ReactomeMQ(queue_name=REPORT_QUEUE)
                 report_request_obj = report_request.ReportRequest(analysis_id=request.analysis_id,
-                                                                  user_mail=request.parameter_dict.get("email", None))
+                                                                  user_mail=request.parameter_dict.get("email", None),
+                                                                  include_interactors=use_interactors,
+                                                                  include_disease=include_disease)
                 message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
 
             # count the complete analysis

@@ -36,7 +36,8 @@ class ReactomeResultTypes(enum.Enum):
     gsva = "gsva"
 
 
-def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = False, reactome_server: str = "production") -> dict:
+def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = False, reactome_server: str = "production",
+                         include_disease: bool = True) -> dict:
     """
     Use the REACTOME GSA service to perform a complete overrepresentation analysis
     of all identifiers. This result is then used as a "blueprint" to enhance
@@ -44,6 +45,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
     :param identifiers: The identifiers to use for the ORA
     :param use_interactors: Indicates whether interactors should be included in the analysis.
     :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
+    :param include_disease: Indicates whether to include disease pathways.
     :return: A dict object representing the JSON encoded result
     """
     # use a proxy if set
@@ -60,9 +62,12 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
 
     body_text = "#Multi-sample_analysis\n" + "\n".join(set(identifiers))
 
-    url = "https://{}/AnalysisService/identifiers/projection?interactors={}" \
-          "&pageSize=0&page=1&sortBy=ENTITIES_PVALUE&order=ASC&resource=TOTAL&pValue=1&includeDisease=true" \
-          .format(reactome_url,  str(use_interactors))
+    url = "https://{reactome_url}/AnalysisService/identifiers/projection?interactors={interactors}" \
+          "&pageSize=0&page=1&sortBy=ENTITIES_PVALUE&order=ASC&resource=TOTAL&pValue=1&includeDisease={disease}" \
+          .format(reactome_url=reactome_url,  interactors=str(use_interactors).lower(), disease=str(include_disease).lower())
+
+    LOGGER.debug("Performing Reactome GSA analysis with url = " + url)
+
     request = http.request("POST", url, body=body_text,
                            headers={"content-type": "text/plain"},
                            timeout=30)

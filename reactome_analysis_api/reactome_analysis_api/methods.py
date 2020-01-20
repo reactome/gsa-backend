@@ -11,6 +11,13 @@ global_parameters = [
                          scope="analysis",
                          description="Indicates whether interactors from IntAct should be used to extent REACTOME's "
                                      "pathways in the analysis."),
+        MethodParameters(name="include_disease_pathways",
+                         display_name="Include disease pathways",
+                         type="bool",
+                         default="True",
+                         scope="analysis",
+                         description="Disease pathways in Reactome may lead to a skewed analysis result. Note: Excluding disease pathways "
+                                     "currently prevents the visualization of results in the Reactome pathway browser."),
         MethodParameters(name="max_missing_values",
                          display_name="Max. missing values",
                          type="float",

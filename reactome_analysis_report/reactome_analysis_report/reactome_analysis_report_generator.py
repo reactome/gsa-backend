@@ -171,7 +171,7 @@ class ReactomeAnalysisReportGenerator:
         on_complete_event = multiprocessing.Event()
         report_result_queue = multiprocessing.Queue()
 
-        report_process = ReportGenerationProcess(analysis_result=analysis_result, analysis_id=request.analysis_id,
+        report_process = ReportGenerationProcess(analysis_result=analysis_result, report_request=request,
                                                  on_complete=on_complete_event, result_queue=report_result_queue)
 
         LOGGER.debug("Starting report generation process...")
@@ -435,19 +435,19 @@ class ReportGenerationProcess(multiprocessing.Process):
     Class used to create the (R-based) report
     in a separate process.
     """
-    def __init__(self, analysis_result: str, analysis_id: str, on_complete: multiprocessing.Event,
+    def __init__(self, analysis_result: str, report_request: report_request.ReportRequest, on_complete: multiprocessing.Event,
                  result_queue: multiprocessing.Queue):
         """
         Initializes a ReportGenerationProcess
         :param analysis_result: The analysis result as a JSON-encoded string
-        :param analysis_id: The anaylsis id
+        :param report_request: The report request object
         :param on_complete: Even triggered once the analysis is complete.
         :param result_queue: Queue that will receive the filenames of the result files.
         """
         super().__init__()
 
         self.analysis_result = analysis_result
-        self.analysis_id = analysis_id
+        self.report_request = report_request
         self.on_complete = on_complete
         self.result_queue = result_queue
 
@@ -455,6 +455,10 @@ class ReportGenerationProcess(multiprocessing.Process):
         try:
             # inject the analysis_result into the R session
             ri.globalenv["analysis_result_json"] = ri.StrSexpVector([self.analysis_result.decode()])
+
+            # inject the metadata
+            ri.globalenv["include_interactors"] = ri.BoolSexpVector([self.report_request.include_interactors])
+            ri.globalenv["include_disease"] = ri.BoolSexpVector([self.report_request.include_disease])
 
             # create the analysis result object
             LOGGER.debug("Creating result R object...")
@@ -469,7 +473,7 @@ class ReportGenerationProcess(multiprocessing.Process):
             # create the Excel file
             LOGGER.debug("Creating Excel file ...")
 
-            excel_filename = "/tmp/result_" + self.analysis_id + ".xlsx"
+            excel_filename = "/tmp/result_" + self.report_request.analysis_id + ".xlsx"
             self.create_excel_file(excel_filename)
 
             self.result_queue.put(excel_filename)
@@ -477,7 +481,7 @@ class ReportGenerationProcess(multiprocessing.Process):
             # create the PDF report
             LOGGER.debug("Creating PDF report...")
 
-            pdf_filename = "/tmp/result_" + self.analysis_id + ".pdf"
+            pdf_filename = "/tmp/result_" + self.report_request.analysis_id + ".pdf"
             self.create_pdf_report(pdf_filename)
 
             self.result_queue.put(pdf_filename)
@@ -539,7 +543,7 @@ class ReportGenerationProcess(multiprocessing.Process):
                 options(tinytex.verbose = TRUE)
     
                 # create the report
-                create_pdf_report(reactome_obj, pdf_result_file)
+                create_pdf_report(reactome_obj, pdf_result_file, include_disease = include_disease, include_interactors = include_interactors)
             """)
         except RRuntimeError as e:
             LOGGER.error("RRuntimeError: " + str(e))

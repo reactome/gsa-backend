@@ -3,7 +3,7 @@ import os
 import unittest
 from tempfile import gettempdir
 
-from reactome_analysis_worker.geneset_builder import fetch_reactome_geneset, load_reactome_interactors
+from reactome_analysis_worker.geneset_builder import fetch_reactome_geneset, load_reactome_interactors, load_reactome_disease_pathways
 from reactome_analysis_worker.models.gene_set import GeneSet
 
 
@@ -69,3 +69,21 @@ class TestCreateReactomeGenesets(unittest.TestCase):
 
         self.assertEqual(len(gene_set.gene_sets), len(loaded_set.gene_sets))
         self.assertEqual(len(gene_set.gene_set_names), len(loaded_set.gene_set_names))
+
+    def test_load_disease(self):
+        url = "https://dev.reactome.org/download/current/HumanDiseasePathways.txt"
+
+        disease_pathways = load_reactome_disease_pathways(url)
+
+        self.assertTrue(isinstance(disease_pathways, list))
+        self.assertEqual(516, len(disease_pathways))
+        self.assertEqual("R-HSA-1222387", disease_pathways[0])
+        self.assertEqual("R-HSA-9665251", disease_pathways[-1])
+
+    def test_remove_pathway(self):
+        source = os.path.join(os.path.dirname(__file__), "testfiles")
+        gene_set = fetch_reactome_geneset(source=source, species="Homo sapiens")
+
+        org_count = len(gene_set.gene_sets)
+        gene_set.remove_pathways(["R-HSA-2029481"])
+        self.assertEqual(org_count - 1, len(gene_set.gene_sets))
