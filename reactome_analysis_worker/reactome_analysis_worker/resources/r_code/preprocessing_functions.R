@@ -99,14 +99,22 @@ create_design <- function(sample.data, group_1) {
 #' @param rowname_column If set, the rownames will be stored as this column name
 #' @return A string representing the passed data.frame
 data_frame_as_string <- function(data, rowname_column = NULL) {
-    text.connection <- textConnection(NULL, open="w")
     if (!is.null(rowname_column)) {
         data[, rowname_column] <- rownames(data)
         # use as first column
-        data <- data[, c(rowname_column, colnames(data)[1:ncol(data)-1])]
+        other_columns <- colnames(data)[colnames(data) != rowname_column]
+
+        data <- data[, c(rowname_column, other_columns)]
     }
 
-    write.table(data, text.connection, sep = "\t", quote = F, row.names = F, col.names = T)
+    # write everything to a text.connection to retrieve the string
+    text.connection <- textConnection(NULL, open="w")
+
+    # data can be safely converted to a matrix - this does not change any numbers
+    # since we do not use any quotes etc. but greatly speeds up the `write.table` command
+    write.table(as.matrix(data), text.connection, sep = "\t", quote = F, row.names = F, col.names = T)
+    
+    # retrieve the string from the text.connection
     text.result <- textConnectionValue(text.connection)
     close(text.connection)
 
