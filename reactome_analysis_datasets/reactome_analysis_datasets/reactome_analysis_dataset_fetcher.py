@@ -131,6 +131,15 @@ class ReactomeAnalysisDatasetFetcher:
 
             return
 
+        # get the loading class for the identifier type
+        dataset_fetcher = self._get_dataset_fetcher_for_identifier(request.resource_id)
+
+        if not dataset_fetcher:
+            self._set_status(request_id=request.loading_id, status="failed",
+                            description="Unknown resource identifier passed '{}'.".format(request.resource_id))
+            self._acknowledge_message(ch, method)
+            return
+
         # connect to the storage system
         try:
             storage = self._get_storage()
@@ -141,29 +150,33 @@ class ReactomeAnalysisDatasetFetcher:
             self._acknowledge_message(ch, method)
             return
 
+        # get the dataset id
+        dataset_id = dataset_fetcher.get_dataset_id(request.parameters)
+
+        LOGGER.debug("Passed parameters:")
+        for p in request.parameters:
+            LOGGER.debug("Parameter: name = {}, value = {}".format(p.name, p.value))
+
+        if not dataset_id:
+            self._set_status(request_id=request.loading_id, status="failed",
+                             description="Missing required parameter containing the dataset identifier.")
+            self._acknowledge_message(ch, method)
+            return
+
         # test if the dataset already exists
-        if storage.request_token_exists(request.dataset_id) and storage.request_data_summary_exists(request.dataset_id):
+        if storage.request_token_exists(dataset_id) and storage.request_data_summary_exists(dataset_id):
             self._set_status(request_id=request.loading_id, status="complete", completion=1,
-                            description="Dataset {} available.".format(request.dataset_id))
+                            description="Dataset {} available.".format(dataset_id))
             self._acknowledge_message(ch, method)
             return
 
         # update the status that it's being loaded
         self._set_status(request_id=request.loading_id, status="running", completion=0.1,
-                         description="Dataset {} is being loaded".format(request.dataset_id))
-
-        # get the loading class for the identifier type
-        dataset_fetcher = self._get_dataset_fetcher_for_identifier(request.dataset_id)
-
-        if not dataset_fetcher:
-            self._set_status(request_id=request.loading_id, status="failed",
-                            description="Unknown identifier passed '{}'.".format(request.dataset_id))
-            self._acknowledge_message(ch, method)
-            return
+                         description="Dataset {} is being loaded".format(dataset_id))
 
         # try to load the dataset
         try:
-            (data, summary) = dataset_fetcher.load_dataset(request.dataset_id, self._get_mq())
+            (data, summary) = dataset_fetcher.load_dataset(request.parameters, self._get_mq())
 
             if data is None:
                 raise Exception("Failed to retrieve data.")
@@ -171,14 +184,14 @@ class ReactomeAnalysisDatasetFetcher:
                 raise Exception("Failed to retrieve dataset summary.")
 
             # save the data
-            storage.set_request_data(token=request.dataset_id, data=data, expire=60*60*6)
+            storage.set_request_data(token=dataset_id, data=data, expire=60*60*6)
 
             # save the summary
-            storage.set_request_data_summary(token=request.dataset_id, data=json.dumps(summary.to_dict()))
+            storage.set_request_data_summary(token=dataset_id, data=json.dumps(summary.to_dict()))
 
             # update the status
             self._set_status(request_id=request.loading_id, status="complete", completion=1,
-                            description="Dataset {} available.".format(request.dataset_id))
+                            description="Dataset {} available.".format(dataset_id))
 
             # acknowledge the message
             self._acknowledge_message(ch, method)
@@ -187,17 +200,17 @@ class ReactomeAnalysisDatasetFetcher:
                             description="Failed to load dataset: {}".format(str(e)))
             self._acknowledge_message(ch, method)
 
-    def _get_dataset_fetcher_for_identifier(self, identifier: str) -> DatasetFetcher:
+    def _get_dataset_fetcher_for_identifier(self, resource_id: str) -> DatasetFetcher:
         """
-        Returns the matching DatasetFetcher for the passed identifier type or None
+        Returns the matching DatasetFetcher for the passed resource id or None
         in case the identifier does not match any known format.
-        :param identifier: The identifier to get the DatasetFetcher for.
+        :param resource_id: The identifier to get the DatasetFetcher for.
         :return: The matching DatasetFetcher or None if it does not match any known format.
         """
-        if len(identifier) > 8 and identifier[0:8] == "EXAMPLE_":
+        if resource_id ==  "example_datasets":
             return ExampleDatasetFetcher()
 
-        if len(identifier) > 2 and identifier[0:2] == "E-":
+        if resource_id == "ebi_gxa":
             return ExpressionAtlasFetcher()
 
         return None

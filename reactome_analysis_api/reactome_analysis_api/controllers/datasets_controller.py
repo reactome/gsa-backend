@@ -12,7 +12,8 @@ from reactome_analysis_api.models.external_data import ExternalData  # noqa: E50
 from reactome_analysis_api import util
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException, DATASET_QUEUE
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
-from reactome_analysis_utils.models.dataset_request import DatasetRequest
+from reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
+from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
 
 
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +39,25 @@ def get_examples():  # noqa: E501
     ]
 
 
-def get_status(loadingId):  # noqa: E501
+def get_data_sources():  # noqa: E501
+    """Lists the available external data sources
+
+     # noqa: E501
+
+
+    :rtype: ExternalDatasource
+    """
+    return [
+        ExternalDatasource(id = "example_datasets", name = "Example datasets", parameters=[
+            ExternalDatasourceParameters(name="dataset_id", type="string", description="Identifier of the dataset", required=True)
+        ]),
+        ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", parameters=[
+            ExternalDatasourceParameters(name="dataset_id", type="string", description="Identifier of the dataset", required=True)
+        ])
+    ]
+
+
+def get_data_loading_status(loadingId):  # noqa: E501
     """Retrieves the status for the dataset loading process.
 
      # noqa: E501
@@ -92,13 +111,15 @@ def get_summary(datasetId):  # noqa: E501
         abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
 
 
-def load_data(datasetId):  # noqa: E501
+def load_data(resourceId, parameters):  # noqa: E501
     """Start the retrieval of an external or example dataset.
 
      # noqa: E501
 
-    :param datasetId: The identified of the dataset to load.
-    :type datasetId: str
+    :param resourceId: The identifier of the data source to load from
+    :type resourceId: str
+
+    :param parameters: The parameters for the selected resource.
 
     :rtype: str
     """
@@ -113,8 +134,15 @@ def load_data(datasetId):  # noqa: E501
         status = AnalysisStatus(id=loading_id, status="running", completed=0, description="Queued")
         storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
+        # convert the parameters
+        request_parameters = list()
+
+
+        for dict_param in parameters:
+            request_parameters.append(DatasetRequestParameter(name=dict_param["name"], value=dict_param["value"]))
+
         # create the request
-        request = DatasetRequest(loading_id=loading_id, dataset_id=datasetId)
+        request = DatasetRequest(loading_id=loading_id, resource_id=resourceId, parameters=request_parameters)
 
         try:
             queue = ReactomeMQ(queue_name=DATASET_QUEUE)
