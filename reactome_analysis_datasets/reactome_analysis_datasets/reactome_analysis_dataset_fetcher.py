@@ -12,6 +12,7 @@ from reactome_analysis_api.models.analysis_status import AnalysisStatus
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.example_fetcher import ExampleDatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
+from reactome_analysis_datasets.dataset_fetchers.sc_expression_atlas_fetcher import ScExpressionAtlasFetcher
 
 
 LOGGER = logging.getLogger(__name__)
@@ -212,5 +213,8 @@ class ReactomeAnalysisDatasetFetcher:
 
         if resource_id == "ebi_gxa":
             return ExpressionAtlasFetcher()
+
+        if resource_id == "ebi_sc_gxa":
+            return ScExpressionAtlasFetcher()
 
         return None

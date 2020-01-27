@@ -53,6 +53,10 @@ def get_data_sources():  # noqa: E501
         ]),
         ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", parameters=[
             ExternalDatasourceParameters(name="dataset_id", type="string", description="Identifier of the dataset", required=True)
+        ]),
+        ExternalDatasource(id = "ebi_sc_gxa", name = "Single Cell Expression Atlas", parameters=[
+            ExternalDatasourceParameters(name="dataset_id", type="string", description="Identifier of the dataset", required=True),
+            ExternalDatasourceParameters(name="k", type="int", description="Parameter k used to create the cell clusters", required=True),
         ])
     ]
 

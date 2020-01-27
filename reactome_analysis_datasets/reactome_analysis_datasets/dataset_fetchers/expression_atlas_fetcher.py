@@ -113,14 +113,14 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         return (loaded_data["expression_values"], summary)
 
-    def _create_summary(self, identifier: str, data_type: str, metadata: str) -> str:
+    def _create_summary(self, identifier: str, data_type: str, metadata: str) -> ExternalData:
         """
         Create a ExternalData object based on
         the passed metadata
         :param identifier: The ExpressionAtlas identifier.
         :param data_type: The data type of the experiment
         :param metadata: The tab-delimited metadata table.
-        :return: The JSON encoded summary object
+        :return: An ExternalData object
         """
         # initialize the summary object
         summary = {"type": data_type, "id": identifier, 

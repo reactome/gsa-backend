@@ -1,0 +1,41 @@
+MAGE-TAB Version	1.1				
+Public Release Date	2015-06-03				
+Investigation Title	Single-cell RNA sequencing of lung adenocarcinoma patient-derived cells				
+Experiment Description	To address how intratumoral heterogeneity affects anti-cancer drug responses, we profiled transcriptomes of single cancer cells originating from lung adenocarcinoma patient-derived xenograft (PDX) tumors.  We performed single-cell RNA sequencing (scRNA-Seq) together with bulk sequencing by applying Smart-Seq protocol (Ramsköld et al., Nat Biotechnol 2012). Enrichment of cancer cells in PDX from primary tumor (LC-PT-45: bulk RNA-Seq, n=1) was identified by histopathological examination and genomic signatures. Tumor cell-enriched PDX cells (LC-PT-45: scRNA-Seq, n=34; bulk RNA-Seq, n=9) were analyzed, and additional batch (LC-Pt-45-Re: scRNA-Seq, n=43; bulk RNA-Seq, n=7) was obtained to check comparable results. H358 human lung cancer cells (scRNA-Seq, n=50; bulk RNA-Seq, n=1) were used as cell line controls. Another lung cancer PDX case (LC-MBT-15: scRNA-Seq, n=49; bulk RNA-Seq, n=7) was prepared to validate our analytical strategy applied in the LC-PT-45 case.				
+					
+Experimental Factor Name	single cell identifier	disease	growth condition	organism part	metastatic site
+Experimental Factor Type	single cell identifier	disease	growth condition	organism part	metastatic site
+					
+Person Last Name	Kim	Lee	Lee	Joo	Park
+Person First Name	Kyu-Tae	Hye	Hae-Ock	Kyeung	Woong-Yang
+Person Mid Initials		W		M	
+Person Email	geo@ncbi.nlm.nih.gov				
+Person Affiliation	Samsung Medical Center				
+Person Address	Samsung Genome Institute, Samsung Medical Center, Irwon-Ro 81, Seoul, South Korea				
+Person Roles	submitter				
+					
+Protocol Name	P-GSE69405-1	P-GSE69405-2	P-GSE69405-4	P-GSE69405-3	P-GSE69405-5
+Protocol Type	sample treatment protocol	growth protocol	normalization data transformation protocol	nucleic acid library construction protocol	sample collection protocol
+Protocol Description	For drug screening, PDX cells in the serum free sphere culture condition were seeded in 384-well plates (500 cells/well). Two hours after plating, cells were treated with a drug library (Selleck, Houston, TX) in 3 folds and 10 points serial dilution (n=3 for each condition). After 6 days incubation at 37°C in a 5% CO2 humidified incubator, cell viability was analyzed using an ATP monitoring system based on firefly luciferase (ATPliteTM 1step, PerkinElmer, Waltham, CA). Test concentrations for each drug have been derived empirically to produce a clinically relevant spectrum of drug activity. Dose response curves and corresponding half maximal (50%) inhibitory concentration values (IC50) were calculated using the S+ Chip Analyzer (Samsung Electro-Mechanics, Suwon, Korea).	Animal experiments were conducted in accordance with the Institute for Laboratory Animal Research Guide for the Care and Use of Laboratory Animals and within the protocols approved by the appropriate IRB at the Samsung Medical Center. Xenograft tumor specimens were dissociated into single cells. Dissociated cells were cultured in neurobasal media-A supplemented with N2 (×1/2), B27 (×1/2) (GIBCO, Carlsbad, CA), bFGF/EGF (25ng/ml each), neuregulin 1 (hNRG1, 10ng/ml), and long-insulin growth factor 1 (IGF1, 100ng/ml) (R&D Systems, Minneapolis, MN). As spheres appeared in suspension culture conditions, they were dissociated with accutase (PAA Laboratories GmbH, Cölbe, Germany) and expanded by reseeding. 	RNA-Seq reads were aligned to the human genome reference (hg19) together with splice junction information of each sample using the 2-pass mode of STAR_2.4.0d. Transcripts Per Million (TPM) was quantified by implementing RSEM v1.2.18 in default mode with Genecode v.19 annotation. Genome_build: hg19 Supplementary_files_format_and_content: Each row of the tab-delimited text file includes ENSEMBL gene ID, corresponding gene name and gene type for samples.	In order to isolate single-cells and amplify initial RNA content enough to transcriptome sequencing, we adopted the C1TM Single-Cell Auto Prep System (Fluidigm, CA, USA) with the SMARTer kit (Clontech, CA, USA). Cells were captured on the C1 chip (17-25 μm) and determined as a live single cell by fluorescence microscopic observation. Quantity and quality of amplified cDNAs from individual single cells were checked by Qubit® 2.0 Fluorometer (Life Technologies, CA, USA) and 2100 Bioanalyzer (Agilent Inc., CA, USA). RNAs from bulk cell samples were also amplified using a SMARTer kit with 10 ng of starting material. For WES, gDNAs were prepared using QIAamp® DNA Mini kit (QIAGEN, CA, USA). Exome sequencing was carried using the SureSelect XT Human All Exon V5 kit (Agilent Inc., CA, USA), according to the manufacturer’s standard protocol. Libraries were prepared using the Nextera XT DNA Sample Prep Kit (Illumina, CA, USA) following the manufacturer’s instruction, assayed the quantity and quality, pooled, and then sequenced on the HiSeq 2500 (Illumina) using the 100bp paired-end mode of the TruSeq Rapid PE Cluster kit and TruSeq Rapid SBS kit (Illumina) at the Samsung Genome Institute (Seoul, Korea). Sequencing of the exome library was carried out on the HiSeq 2500 (Illumina, CA, USA) using the 100bp paired-end mode of the TruSeq Rapid PE Cluster kit and TruSeq Rapid SBS kit (Illumina) at the Samsung Genome Institute (Seoul, Korea).	This study was carried out in accordance with the principles of the Declaration of Helsinki, and approved by The Samsung Medical Center (Seoul, Korea) Institutional Review Board (no. 2010-04-004). Participants in this study gave written informed consent for research and publication of the results. Surgical specimens were acquired from a 60-year-old male patient who underwent surgical resection of a 37-mm irregular primary lung lesion in the right middle lobe (LC-PT-45), and from a 57-year-old female patient who underwent surgical resection of a metachronous brain metastasis (LC-MBT-15). The LC-PT-45 tumor was taken in a treatment-naïve status whereas the LC-MBT-15 tumor was taken after standard chemotherapy and erlotinib treatments. Pathologic examination of the primary tumors revealed a poorly differentiated lung adenocarcinoma based on the World Health Organization criteria [49]. The PDX cells were isolated and cultured in vitro as described previously [24, 30, 50]. Briefly, surgically removed tumor tissues were directly injected into the subrenal space of 6–8-week-old humanized immunocompromised female NOG (NOD/Shi- SCID/IL-2Rγ-null) mice (Orient Bio, Seongnam, Korea). Xenograft tumors were taken from the mice for PDX cell culture and validated by short tandem repeat DNA fingerprinting as having been derived from the original tumor. We used PDX cells at fewer than three in vitro passages for single-cell RNA-seq and drug screening. Animal care and handling was performed according to the National Institute of Health Guide for the Care and Use of Laboratory Animals (NIH publication no.80-23, revised 1978).
+					
+Term Source Name	ArrayExpress				
+Term Source File	http://www.ebi.ac.uk/arrayexpress/				
+					
+Comment[SecondaryAccession]	GSE69405	SRP059035			
+Comment[ExpressionAtlasAccession]	E-CURD-11				
+Comment[GEOReleaseDate]	2015-06-03				
+Comment[ArrayExpressSubmissionDate]	2015-05-31				
+Comment[GEOLastUpdateDate]	2019-05-15				
+Comment[AEExperimentType]	RNA-seq of coding RNA from single cells				
+Comment[SequenceDataURI]	http://www.ebi.ac.uk/ena/data/view/SRR2049339-SRR2049546				
+SDRF file	E-CURD-11.sdrf.txt				
+					
+Publication Title	Single-cell mRNA sequencing identifies subclonal heterogeneity in anti-cancer drug responses of lung adenocarcinoma cells.				
+Publication Author List	Kim KT, Lee HW, Lee HO, Kim SC, Seo YJ, Chung W, Eum HH, Nam DH, Kim J, Joo KM, Park WY				
+PubMed ID	26084335				
+Publication DOI	10.1186/s13059-015-0692-3				
+					
+Comment[EAExpectedClusters]					
+Comment[EAExperimentType]	differential				
+Comment[EAAdditionalAttributes]	age	sex	individual		
+Comment[EACurator]	Nancy George				
