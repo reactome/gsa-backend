@@ -30,7 +30,7 @@ class TestCreateReactomeGenesets(unittest.TestCase):
         gene_set = fetch_reactome_geneset(source=source, species="Homo sapiens")
 
         self.assertTrue("R-HSA-1980143" in gene_set.gene_sets)
-        self.assertEqual(147, len(gene_set.gene_sets["R-HSA-1980143"]))
+        self.assertEqual(150, len(gene_set.gene_sets["R-HSA-1980143"]))
 
     def test_load_interactors(self):
         filename = os.path.join(os.path.dirname(__file__), "testfiles", "IntAct_Static_100.txt")
