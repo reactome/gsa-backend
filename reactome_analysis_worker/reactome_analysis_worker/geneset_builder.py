@@ -28,6 +28,7 @@ import codecs
 import logging
 import os
 import sys
+import pickle
 from tempfile import gettempdir
 
 import urllib3
@@ -35,6 +36,9 @@ import urllib3
 from reactome_analysis_worker.models.gene_set import GeneSet
 
 LOGGER = logging.getLogger(__name__)
+
+
+DISEASE_PATHWAY_FILENAME = "disease_pathways_list.pkl"
 
 
 def fetch_reactome_geneset(source: str, species: str) -> GeneSet:
@@ -214,6 +218,30 @@ def generate_pathway_filename(resource: str = "reactome", species: str = "Homo s
     return os.path.join(os.path.abspath(storage_location), filename)
 
 
+def get_disease_pathway_filename() -> str:
+    """ Returns the path to the disease pathway file
+    :return: The filename as a string
+    """
+    return os.path.join(os.getenv("REACTOME_STORAGE_PATH", gettempdir()), DISEASE_PATHWAY_FILENAME)
+
+
+def load_disease_pathways() -> list:
+    """
+    Loads the disease pathways from the local file
+    :return: A list of disease pathway ids
+    """
+    disease_file = get_disease_pathway_filename()
+
+    if not os.path.isfile(disease_file):
+        raise FileNotFoundError("Missing disease pathway file")
+
+    # load the list
+    with open(disease_file, "rb") as reader:
+        pathways = pickle.load(reader)
+
+    return pathways
+
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
 
@@ -232,6 +260,11 @@ def main():
     # load the disease pathway ids
     LOGGER.info("Loading disease pathways from " + disease_pathway_file)
     disease_pathways = load_reactome_disease_pathways(disease_pathway_file)
+
+    # save the disease pathways
+    LOGGER.debug("Saving disease pathways as " + get_disease_pathway_filename())
+    with open(get_disease_pathway_filename(), "wb") as writer:
+        pickle.dump(disease_pathways, writer)
 
     # get the gene sets
     for species in ["Homo sapiens"]:

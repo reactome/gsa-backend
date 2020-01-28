@@ -123,16 +123,16 @@ class TestReactomeRAnalyzer(unittest.TestCase):
             found_pathways += 1
 
             if pathway["Pathway"] == "R-HSA-1280218":
-                self.assertEqual("0.5", pathway["Sample_1"])
-                self.assertEqual("0.5", pathway["Sample2"])
-                self.assertEqual("0.5", pathway["Sample_3"])
+                self.assertEqual("0.0", pathway["Sample_1"].strip())
+                self.assertEqual("0.02880908", pathway["Sample2"].strip())
+                self.assertEqual("0.02880908", pathway["Sample_3"].strip())
 
             if pathway["Pathway"] == "R-HSA-392499":
-                self.assertEqual("-0.5", pathway["Sample_1"])
-                self.assertEqual("-0.5", pathway["Sample2"])
-                self.assertEqual("-0.5", pathway["Sample_3"])
+                self.assertEqual(-0.5, float(pathway["Sample_1"]))
+                self.assertEqual(-0.5, float(pathway["Sample2"]))
+                self.assertEqual(-0.5, float(pathway["Sample_3"]))
 
-        self.assertEqual(23, found_pathways)
+        self.assertEqual(143, found_pathways)
 
     def test_ssgsea(self):
         json_obj = json.loads(self.test_json)
@@ -173,23 +173,24 @@ class TestReactomeRAnalyzer(unittest.TestCase):
         found_p2 = False
 
         for pathway in reader:
-            found_pathways += 1
+          found_pathways += 1
 
-            if pathway["Pathway"] == "R-HSA-1280218":
-                self.assertEqual("0.5", pathway["Sample.1"])
-                self.assertEqual("0.5", pathway["Sample.2"])
-                self.assertEqual("0.5", pathway["Sample.3"])
-                found_p1 = True
+          if pathway["Pathway"] == "R-HSA-1280218":
+            found_p1 = True
+            self.assertEqual("0.0", pathway["Sample.1"].strip())
+            self.assertEqual("0.02880908", pathway["Sample.2"].strip())
+            self.assertEqual("0.02880908", pathway["Sample.3"].strip())
 
-            if pathway["Pathway"] == "R-HSA-392499":
-                self.assertEqual("-0.5", pathway["Sample.1"])
-                self.assertEqual("-0.5", pathway["Sample.2"])
-                self.assertEqual("-0.5", pathway["Sample.3"])
-                found_p2 = True
+          if pathway["Pathway"] == "R-HSA-392499":
+            found_p2 = True
+            self.assertEqual(-0.5, float(pathway["Sample.1"]))
+            self.assertEqual(-0.5, float(pathway["Sample.2"]))
+            self.assertEqual(-0.5, float(pathway["Sample.3"]))
+
+        self.assertEqual(143, found_pathways)
 
         self.assertTrue(found_p1)
         self.assertTrue(found_p2)
-        self.assertEqual(23, found_pathways)
 
     def test_pathway_string(self):
         json_obj = json.loads(self.test_json)

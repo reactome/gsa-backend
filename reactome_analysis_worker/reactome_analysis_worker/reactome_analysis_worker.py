@@ -28,7 +28,7 @@ from reactome_analysis_utils.reactome_storage import ReactomeStorage
 from reactome_analysis_worker import result_converter
 from reactome_analysis_worker import util
 from reactome_analysis_worker.analysers import *
-from reactome_analysis_worker.geneset_builder import GeneSet, generate_pathway_filename
+from reactome_analysis_worker.geneset_builder import GeneSet, generate_pathway_filename, load_disease_pathways
 from reactome_analysis_worker.models.gene_set_mapping import GeneSetMapping
 
 LOGGER = logging.getLogger(__name__)
@@ -51,11 +51,22 @@ class ReactomeAnalysisWorker:
         """
         Initializes basic member variables
         """
+        self.disease_pathways = None
         self._mq = None
         self._storage = None
         self._performed_analyses = 0
         self.debug = bool(os.getenv("REACTOME_WORKER_DEBUG", False))
         self.max_timeout = int(os.getenv("MAX_WORKER_TIMEOUT", 60))
+
+    def _get_disease_pathways(self) -> list:
+        """
+        Returns the list of disease pathways - either from memory or from file.
+        :returns: A list of disease pathway identifiers
+        """
+        if not self.disease_pathways:
+            self.disease_pathways = load_disease_pathways()
+
+        return self.disease_pathways
 
     def _get_mq(self):
         """
@@ -189,51 +200,16 @@ class ReactomeAnalysisWorker:
             self._acknowledge_message(ch, method)
             return
 
-        # get all identifiers
-        all_identifiers = self._extract_identifiers(request.datasets)
-
-        # make sure more than one gene was submitted
-        if len(all_identifiers) <= 1:
-            LOGGER.debug("Analysis request {} contains an insufficient number of genes ({})".format(
-                request.analysis_id, str(len(all_identifiers))))
-            self._set_status(request.analysis_id, status="failed", description="Analysis requires >1 genes.",
-                             completed=1)
-            self._acknowledge_message(ch, method)
-            return
-
         # get the reactome server to use
         reactome_server = request.parameter_dict.get("reactome_server", "www.reactome.org")
         LOGGER.info("Reactome server: {}".format(reactome_server))
 
-        # get the identifier mappings
-        self._set_status(request.analysis_id, status="running", description="Mapping identifiers...", completed=0.1)
-        
         try:
-            identifier_mappings = util.map_identifiers(all_identifiers, return_all=True, reactome_server=reactome_server)
-        except util.MappingException as e:
-            LOGGER.debug("Identifier mapping failed", exc_info=1)
-            self._set_status(request.analysis_id, status="failed",
-                             description="Invalid gene/protein identifiers submitted", completed=1)
-            self._acknowledge_message(ch, method)
-            return
+            identifier_mappings = self._map_identifiers(request, reactome_server=reactome_server)
         except Exception as e:
-            LOGGER.error("Failed to connect to mapping service: " + str(e))
-            LOGGER.debug("Mapping failed", exc_info=1)
             self._set_status(request.analysis_id, status="failed",
-                             description="Failed to contact identifier mapping service. Please try again later.", completed=1)
+                             description=str(e), completed=1)
             self._acknowledge_message(ch, method)
-            return
-
-        LOGGER.debug("Mapped {} of {} submitted identifiers".format(
-            str(len(identifier_mappings)), str(len(all_identifiers))))
-
-        # make sure that identifiers were mapped
-        if len(identifier_mappings) < 1:
-            # mark the analysis as failed
-            self._set_status(request.analysis_id, status="failed",
-                             description="Failed to map any submitted identifiers", completed=1)
-            self._acknowledge_message(ch, method)
-            return
 
         # make sure the experimental design matches the number of samples
         if not self._validate_experimental_design(request.datasets, request.analysis_id):
@@ -389,11 +365,17 @@ class ReactomeAnalysisWorker:
                 for reactome_type in reactome_analyser.reactome_result_types:
                     LOGGER.debug("Submitting result for " + reactome_type.name)
                     try:
+                        pathways_to_exclude = list()
+
+                        if not include_disease:
+                            pathways_to_exclude = self._get_disease_pathways()
+
                         reactome_link = result_converter.submit_result_to_reactome(result=analysis_result,
                                                                                    result_type=reactome_type,
                                                                                    reactome_blueprint=reactome_blueprint,
                                                                                    min_p=0.05,
-                                                                                   reactome_server=reactome_server)
+                                                                                   reactome_server=reactome_server,
+                                                                                   excluded_pathways=pathways_to_exclude)
                         analysis_result.reactome_links.append(reactome_link)
                     except Exception as e:
                         # simply ignore this error
@@ -424,6 +406,44 @@ class ReactomeAnalysisWorker:
             self._acknowledge_message(ch, method)
             if self.debug:
                 raise e
+
+    def _map_identifiers(self, request: AnalysisInput, reactome_server: str) -> dict:
+        """
+        Map all submitted identifiers using Reactom's mapping service.
+        :param request: The analysis request
+        :param reactome_server: The reactome server to use
+        :returns: A dict with the original identifier as key and the mappings as value (list)
+        """
+        # get all identifiers
+        all_identifiers = self._extract_identifiers(request.datasets)
+
+        # make sure more than one gene was submitted
+        if len(all_identifiers) <= 1:
+            LOGGER.debug("Analysis request {} contains an insufficient number of genes ({})".format(
+                request.analysis_id, str(len(all_identifiers))))
+            raise Exception("Analysis requires >1 genes.")
+
+        # get the identifier mappings
+        self._set_status(request.analysis_id, status="running", description="Mapping identifiers...", completed=0.1)
+        
+        try:
+            identifier_mappings = util.map_identifiers(all_identifiers, return_all=True, reactome_server=reactome_server)
+        except util.MappingException as e:
+            LOGGER.debug("Identifier mapping failed", exc_info=1)
+            raise Exception("Invalid gene/protein identifiers submitted")
+        except Exception as e:
+            LOGGER.error("Failed to connect to mapping service: " + str(e))
+            LOGGER.debug("Mapping failed", exc_info=1)
+            raise Exception("Failed to contact identifier mapping service. Please try again later.")
+
+        LOGGER.debug("Mapped {} of {} submitted identifiers".format(
+            str(len(identifier_mappings)), str(len(all_identifiers))))
+
+        # make sure that identifiers were mapped
+        if len(identifier_mappings) < 1:
+            raise Exception("Failed to map any submitted identifiers")
+
+        return identifier_mappings
 
     def shutdown(self):
         """

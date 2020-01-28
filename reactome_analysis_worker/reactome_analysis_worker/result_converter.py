@@ -103,7 +103,8 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
 
 
 def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResultTypes, reactome_blueprint: dict,
-                              min_p: float = 0.05, reactome_server: str = "production") -> AnalysisResultReactomeLinks:
+                              min_p: float = 0.05, reactome_server: str = "production", 
+                              excluded_pathways: list = list()) -> AnalysisResultReactomeLinks:
     """
     Submits the passed AnalysisResult object to Reactome and retrieves the matching token for the stored result.
 
@@ -115,17 +116,19 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
     :param min_p: The minimum p-value to consider a pathway as significantly regulated. This is only used in the "gsa"
                   approach.
     :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
+    :param excluded_pathways: An optional list of excluded pathways. If set, pathways present in this list will be marked
+                              as excluded and will not trigger an exception if no expression data is available.
     :return: An `AnalysisResultReactomeLinks` object representing the link
     """
     # convert the result
     if result_type == ReactomeResultTypes.gsa:
         converted_result = _convert_gsa_result(result=result, reactome_blueprint=reactome_blueprint, min_p=min_p,
-                                               use_p=False)
+                                               use_p=False, excluded_pathways=excluded_pathways)
     elif result_type == ReactomeResultTypes.gsa_p_values:
         converted_result = _convert_gsa_result(result=result, reactome_blueprint=reactome_blueprint, min_p=min_p,
-                                               use_p=True)
+                                               use_p=True, excluded_pathways=excluded_pathways)
     elif result_type == ReactomeResultTypes.gsva:
-        converted_result = _convert_gsva_result(result=result, reactome_blueprint=reactome_blueprint)
+        converted_result = _convert_gsva_result(result=result, reactome_blueprint=reactome_blueprint, excluded_pathways=excluded_pathways)
     else:
         raise Exception("Invalid result_type '{}' passed to submit_result_to_reactome. Valid values are gsa, gsa_p, "
                         "or gsva")
@@ -335,7 +338,7 @@ def _get_identifier_zscores(result: AnalysisResult) -> dict:
     return z_scores_per_identifier
 
 
-def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict) -> dict:
+def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, excluded_pathways: list = list()) -> dict:
     """
     Adds the data of the passed AnalysisResult to the passed reactome_blueprint.
 
@@ -343,6 +346,8 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict) -> di
 
     :param result: The AnalysisResult to draw the data from
     :param reactome_blueprint: The result retrieved from the REACTOME ORA analysis
+    :param excluded_pathways: An optional list of excluded pathways. If set, pathways present in this list will be marked
+                              as excluded and will not trigger an exception if no expression data is available.
     :return: The adapted reactome result as a dict.
     """
     reactome_blueprint = copy.deepcopy(reactome_blueprint)
@@ -376,6 +381,9 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict) -> di
     reactome_blueprint["expressionSummary"]["min"] = min_expr
     reactome_blueprint["expressionSummary"]["max"] = max_expr
 
+    # prepare a list of "missing values"
+    missing_exp = [0 for c in column_names]
+
     # populate the pathway data
     for i in range(0, len(reactome_blueprint["pathways"])):
         pathway_id = reactome_blueprint["pathways"][i]["stId"]
@@ -393,11 +401,14 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict) -> di
 
         # update the pathway-level expression values
         for resource_index in range(0, len(reactome_blueprint["pathways"][i]["data"]["statistics"])):
-            if pathway_id not in gsva_expr_per_pathway:
+            # set to 0 if the pathway was excluded
+            if pathway_id not in gsva_expr_per_pathway and pathway_id in excluded_pathways:
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
+            elif pathway_id not in gsva_expr_per_pathway:
                 raise ConversionException("Missing pathway GSVA information for '" + pathway_id + "'")
-
-            reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = \
-                gsva_expr_per_pathway[pathway_id]
+            else:
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = \
+                    gsva_expr_per_pathway[pathway_id]
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
@@ -412,13 +423,16 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict) -> di
     return reactome_blueprint
 
 
-def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p: float = 0.05, use_p: bool = False) -> dict:
+def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p: float = 0.05, use_p: bool = False,
+                        excluded_pathways: list = list()) -> dict:
     """
     Adds the data of the passed AnalysisResult to the passed reactome_blueprint.
     :param result: The AnalysisResult to draw the data from
     :param reactome_blueprint: The result retrieved from the REACTOME ORA analysis
     :param min_p: The minimum p-value in order to consider a pathway as significantly regulated.
     :param use_p: If set, p-values instead of fold-changes / pathway direction are used as "expression values"
+    :param excluded_pathways: An optional list of excluded pathways. If set, pathways present in this list will be marked
+                              as excluded and will not trigger an exception if no expression data is available.
     :return: The adapted reactome result as a dict.
     """
     reactome_blueprint = copy.deepcopy(reactome_blueprint)
@@ -466,6 +480,9 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
     reactome_blueprint["expressionSummary"]["min"] = 0 if use_p else -2
     reactome_blueprint["expressionSummary"]["max"] = 1 if use_p else 2
 
+    # initialize lists for missing values
+    missing_expr = [0 for r in result.results]
+
     # populate the pathway data
     for i in range(0, len(reactome_blueprint["pathways"])):
         pathway_id = reactome_blueprint["pathways"][i]["stId"]
@@ -482,17 +499,23 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
 
         # update the statistics
         for resource_index in range(0, len(reactome_blueprint["pathways"][i]["data"]["statistics"])):
-            if pathway_id not in pathway_expr:
-                raise ConversionException("Missing pathway regulation information for '" + pathway_id + "'")
-            if pathway_id not in pathway_p:
-                raise ConversionException("Missing p-value for pathway '" + pathway_id + "'")
+            # set the pathway p-value to 1 if the pathway was excluded
+            if pathway_id in excluded_pathways:
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = 1
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = 1
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_expr
+            else:
+                if pathway_id not in pathway_expr:
+                    raise ConversionException("Missing pathway regulation information for '" + pathway_id + "'")
+                if pathway_id not in pathway_p:
+                    raise ConversionException("Missing p-value for pathway '" + pathway_id + "'")
 
-            reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = \
-                pathway_p[pathway_id]["p"]
-            reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = \
-                pathway_p[pathway_id]["fdr"]
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = \
+                    pathway_p[pathway_id]["p"]
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = \
+                    pathway_p[pathway_id]["fdr"]
 
-            reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = pathway_expr[pathway_id]
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = pathway_expr[pathway_id]
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
