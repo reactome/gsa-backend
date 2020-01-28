@@ -73,7 +73,7 @@ data:
     rename-command CONFIG ""
 
     # use redis like a cache - once the memory limit is reached, results / keys are deleted
-    maxmemory 900mb
+    maxmemory {{ redis.max_redis_mem }}
     maxmemory-policy allkeys-lru
 
     # backup the data every 60 sec if at least 1 key changed
