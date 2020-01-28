@@ -15,6 +15,11 @@ redis:
   image: redis:5.0.3
   min_mem: "100Mi"
   max_mem: "200Mi"
+  # The amount of memory after which
+  # redis will start to drop the oldest
+  # keys. This should be a bit lower
+  # than the memory set in min_mem
+  max_redis_mem: "100mb"
   min_cpu: "100m"
   max_cpu: "200m"
 rabbitmq:
