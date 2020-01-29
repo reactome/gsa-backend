@@ -472,8 +472,8 @@ class RLoadingProcess(multiprocessing.Process):
         self.exit = False
 
         # set callback for R messages
-        ri.set_writeconsole_warnerror(self.on_r_message)
-        ri.set_writeconsole_regular(self.on_r_message)
+        rpy2.rinterface_lib.callbacks.consolewrite_print = self.on_r_message
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = self.on_r_message
 
         # load the r_code
         LOGGER.debug("Loading required R preprocessing functions")

@@ -13,12 +13,12 @@ from email.message import EmailMessage
 
 import prometheus_client
 import rpy2.rinterface as ri
+import rpy2.rinterface_lib
 import rpy2.robjects as ro
 from reactome_analysis_api.models.report_status import ReportStatus
 from reactome_analysis_api.models.report_status_reports import ReportStatusReports
 from reactome_analysis_utils import reactome_mq, reactome_storage
 from reactome_analysis_utils.models import report_request
-from rpy2.rinterface import RRuntimeError
 
 
 # create the logger
@@ -28,8 +28,11 @@ LOGGER = logging.getLogger(__name__)
 ri.initr()
 
 # disable R messages
-ri.set_writeconsole_warnerror(None)
-ri.set_writeconsole_regular(None)
+def ignore_message(message: str) -> None:
+    pass
+
+rpy2.rinterface_lib.callbacks.consolewrite_print = ignore_message
+rpy2.rinterface_lib.callbacks.consolewrite_warnerror = ignore_message
 
 # set the counters
 RUNNING_REPORTS = prometheus_client.Gauge("reactome_report_running",
@@ -545,5 +548,5 @@ class ReportGenerationProcess(multiprocessing.Process):
                 # create the report
                 create_pdf_report(reactome_obj, pdf_result_file, include_disease = include_disease, include_interactors = include_interactors)
             """)
-        except RRuntimeError as e:
+        except Exception as e:
             LOGGER.error("RRuntimeError: " + str(e))

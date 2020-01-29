@@ -1,4 +1,4 @@
-FROM r-base:3.5.2
+FROM r-base:3.6.2
 
 
 RUN apt-get update && \
@@ -20,6 +20,7 @@ COPY reactome_analysis_worker-*.whl /tmp/
 
 # install the python packages and create the /data directory
 RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
+    pip3 --cache-dir /tmp/pip_cache install wheel && \
     pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_utils-*.whl && \
     pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_api-*.whl && \
     pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_worker-*.whl && \

@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-requirements = ["reactome-analysis-utils", "rpy2 > 2.9.0, < 3.0.0", "statsmodels", "scipy", "prometheus_client"]
+requirements = ["reactome-analysis-utils", "rpy2 > 3.2.0", "statsmodels", "scipy", "prometheus_client"]
 
 setup_requirements = [ ]
 
