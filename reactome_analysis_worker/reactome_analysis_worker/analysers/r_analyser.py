@@ -7,6 +7,7 @@ import gc
 from collections.abc import Iterable
 
 import rpy2.rinterface as ri
+import rpy2.rinterface_lib
 import rpy2.robjects as ro
 from pkg_resources import resource_string, resource_listdir
 from reactome_analysis_api.models.analysis_result_results import AnalysisResultResults
@@ -59,8 +60,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
         # Note: This changed in rp2 version 3.x
         # see https://rpy2.github.io/doc/latest/html/callbacks.html?highlight=warn
-        ri.set_writeconsole_warnerror(self._catch_message)
-        ri.set_writeconsole_regular(self._catch_message)
+        rpy2.rinterface_lib.callbacks.consolewrite_print = self._catch_message
+        rpy2.rinterface_lib.callbacks.consolewrite_warnerror = self._catch_message
 
     def _catch_message(self, message):
         """
@@ -128,6 +129,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                                 complete=previous_progress + (0.7 / len(request.datasets)))
 
             # add average fold-changes to the analysis result
+            # pylint: disable=no-member
             result = ReactomeRAnalyser.preprocess.add_pathway_foldchanges(result, fold_changes, gene_index,
                                                                           expression_data)
 
@@ -153,6 +155,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
         # create the model matrix
         LOGGER.debug("Creating design matrix...")
+        # pylint: disable=no-member
         design = ReactomeRAnalyser.preprocess.create_design(sample_data, group_1=dataset.design.comparison.group1)
 
         return expression_data, sample_data, design
@@ -178,7 +181,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         # load the required limma package
         try:
             analysis_package.load_libraries()
-        except ri.RRuntimeError as e:
+        except Exception as e:
             LOGGER.critical("Failed to load required package: " + str(e))
             raise AnalysisException("Failed to load required R package")
 
@@ -188,13 +191,14 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                                                   ri.StrSexpVector([data_type]),
                                                   ri.StrSexpVector(["analysis_group" + comparison_group_1]),
                                                   ri.StrSexpVector(["analysis_group" + comparison_group_2]))
-        except ri.RRuntimeError as e:
+        except Exception as e:
             LOGGER.debug("Failed to perform analysis: " + str(e))
 
             # return a more verbose message
             raise AnalysisException(". ".join(self.r_messages))
 
         # add the pathway names
+        # pylint: disable=no-member
         gsa_result = ReactomeRAnalyser.preprocess.add_pathway_names(gsa_result, pathway_names)
 
         return gsa_result
@@ -219,7 +223,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         # load the required limma package
         try:
             analysis_package.load_libraries()
-        except ri.RRuntimeError as e:
+        except Exception as e:
             LOGGER.critical("Failed to load required package: " + str(e))
             raise AnalysisException("Failed to load required R package")
 
