@@ -385,7 +385,7 @@ metadata:
   {% endif %}
 spec:
   progressDeadlineSeconds: 600
-  replicas: {{ reactome_api.replicas }}
+  replicas: {{ reactome_api.min_replicas }}
   selector:
     matchLabels:
       app: reactome-analysis-api
@@ -458,6 +458,23 @@ spec:
             path: user
           - key: password
             path: password
+---
+# REACTOME api autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-api
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-api
+  minReplicas: {{ reactome_api.min_replicas }}
+  maxReplicas: {{ reactome_api.max_replicas }}
+  targetCPUUtilizationPercentage: {{ reactome_api.target_cpu_usage }} 
 ---
 # REACTOME worker deployment
 apiVersion: extensions/v1beta1
@@ -587,7 +604,7 @@ metadata:
   {% endif %}
 spec:
   progressDeadlineSeconds: 600
-  replicas: {{ reactome_report.replicas }}
+  replicas: {{ reactome_report.min_replicas }}
   selector:
     matchLabels:
       app: reactome-analysis-report
@@ -672,6 +689,23 @@ spec:
         value: "pre-emptible"
         effect: "NoSchedule"
 ---
+# REACTOME report autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-report
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-report
+  minReplicas: {{ reactome_report.min_replicas }}
+  maxReplicas: {{ reactome_report.max_replicas }}
+  targetCPUUtilizationPercentage: {{ reactome_report.target_cpu_usage }} 
+---
 # REACTOME datasets deployment
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -682,7 +716,7 @@ metadata:
   {% endif %}
 spec:
   progressDeadlineSeconds: 600
-  replicas: {{ reactome_datasets.replicas }}
+  replicas: {{ reactome_datasets.min_replicas }}
   selector:
     matchLabels:
       app: reactome-analysis-datasets
@@ -768,3 +802,20 @@ spec:
         operator: "Equal"
         value: "pre-emptible"
         effect: "NoSchedule"
+---
+# REACTOME datasets autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-datasets
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-datasets
+  minReplicas: {{ reactome_datasets.min_replicas }}
+  maxReplicas: {{ reactome_datasets.max_replicas }}
+  targetCPUUtilizationPercentage: {{ reactome_datasets.target_cpu_usage }} 
