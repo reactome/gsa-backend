@@ -26,14 +26,16 @@ import os
 import sys
 
 
-def random_password(length=30, debug=False):
+def random_password(length=30, debug=False, alphanumeric=False):
     """
     Generate a random string first
     """
     if debug:
         password = "test"
     else:
-        letters = string.ascii_lowercase + string.ascii_uppercase + string.digits + "/&*+i§![]=-"
+        letters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+        if not alphanumeric:
+            letters +=  "/&*+i§![]=-"
         password = ''.join(random.choice(letters) for i in range(length))
 
     base64_password = base64.encodebytes(password.encode()).decode()

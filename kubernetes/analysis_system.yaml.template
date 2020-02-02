@@ -250,7 +250,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 400Mib
         - name: RABBITMQ_ERLANG_COOKIE
-          value: {{ random_password(length=50) }}
+          value: {{ random_password(length=50, alphanumeric=True) }}
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
             secretKeyRef:
