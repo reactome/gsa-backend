@@ -435,6 +435,10 @@ spec:
           limits:
             cpu: {{ reactome_api.max_cpu }}
             memory: {{ reactome_api.max_mem }}
+        readinessProbe:
+          httpGet:
+            path: /0.1/ui/
+            port: 8080
       volumes:
       - name: redis-secret-volume
         secret:
