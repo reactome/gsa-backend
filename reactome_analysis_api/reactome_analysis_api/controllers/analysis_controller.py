@@ -81,6 +81,9 @@ def start_analysis(body):  # noqa: E501
 
         decompressed_string = zlib.decompress(connexion.request.data)
         analysis_dict = json.loads(decompressed_string)
+        
+        # free the memory again
+        del decompressed_string
     else:
         LOGGER.debug("Invalid analysis request submitted. Request body does not describe a JSON object.")
         abort(406, "Invalid analysis request submitted. Request body does not describe a JSON object.")
