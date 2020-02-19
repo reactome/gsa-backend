@@ -12,7 +12,7 @@ from prometheus_client import make_wsgi_app
 from reactome_analysis_api import encoder
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 app = connexion.App(__name__, specification_dir='./swagger/')
 app.app.json_encoder = encoder.JSONEncoder
