@@ -368,6 +368,7 @@ class ReactomeAnalysisWorker:
                         pathways_to_exclude = list()
 
                         if not include_disease:
+                            LOGGER.debug("Excluding {count} disease pathways".format(count=str(len(self._get_disease_pathways()))))
                             pathways_to_exclude = self._get_disease_pathways()
 
                         reactome_link = result_converter.submit_result_to_reactome(result=analysis_result,
