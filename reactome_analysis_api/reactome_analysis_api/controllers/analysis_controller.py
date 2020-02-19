@@ -1,6 +1,8 @@
 import logging
 import socket
 import uuid
+import zlib
+import json
 
 import connexion
 import prometheus_client
@@ -70,12 +72,20 @@ def start_analysis(body):  # noqa: E501
 
     :rtype: str
     """
-    if not connexion.request.is_json:
+    # get the JSON-encoded dict from the request object
+    if connexion.request.is_json:
+        analysis_dict = connexion.request.get_json()
+    # de-compress if it's a gzipped string
+    elif connexion.request.content_type == "application/gzip":
+        LOGGER.debug("Received gzipped analysis request. Decompressing...")
+
+        decompressed_string = zlib.decompress(connexion.request.data)
+        analysis_dict = json.loads(decompressed_string)
+    else:
         LOGGER.debug("Invalid analysis request submitted. Request body does not describe a JSON object.")
         abort(406, "Invalid analysis request submitted. Request body does not describe a JSON object.")
         return
-
-    analysis_dict = connexion.request.get_json()
+    
     try:
         analysis_request = input_deserializer.create_analysis_input_object(analysis_dict)
     except Exception as e:

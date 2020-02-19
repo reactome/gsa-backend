@@ -68,6 +68,7 @@ paths:
       operationId: startAnalysis
       consumes:
         - application/json
+        - application/gzip
       produces:
         - text/plain; charset=utf-8
       parameters:
