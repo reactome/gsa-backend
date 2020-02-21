@@ -233,6 +233,32 @@ class ReactomeStorage:
         except Exception as e:
             raise ReactomeStorageException(e)
 
+    def analysis_request_data_exists(self, token: str) -> bool:
+        """
+        Check whether the JSON-encoded analysis request object exists
+        in storage.
+        :param token: The token to check
+        :return: Boolean indicating whether the token exists
+        """
+        try:
+            return self.r.exists(self._get_analysis_request_key(token))
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
+    def get_analysis_request_data(self, token: str) -> str:
+        """
+        Retrieve the JSON-encoded analysis request object.
+        :param token: The token identifying the analysis request.
+        :return: The data
+        """
+        try:
+            request_key: self._get_analysis_request_key(token)
+            data = self.r.get(request_key)
+
+            return data
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
     @staticmethod
     def _get_redis():
         """
@@ -366,3 +392,13 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "request_data:{}:summary".format(token)
+
+    @staticmethod
+    def _get_analysis_request_key(token: str) -> str:
+        """
+        Creates the redis key for the AanalysisRequest object (stored as JSON)
+
+        :param token: The token identifying the analysis request
+        :return: The matching redis key
+        """
+        return "analysis_request:{}:data"
