@@ -259,6 +259,23 @@ class ReactomeStorage:
         except Exception as e:
             raise ReactomeStorageException(e)
 
+    def set_analysis_request_data(self, token: str, data:str, expire: int = 1800):
+        """
+        Store the JSON-encoded analysis request object.
+        :param token: The token identifying the analysis request.
+        :param data: The JSON-encoded string to store.
+        :param expire: If not none, the key will be expired in `expire` seconds. Default = 30 Minutes = 1800 seconds.
+        """
+        try:
+            request_key: self._get_analysis_request_key(token)
+            
+            self.r.set(name=request_key, value=data)
+
+            if expire is not None and expire > 0:
+                self.r.expire(request_key, expire)
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
     @staticmethod
     def _get_redis():
         """
