@@ -252,7 +252,7 @@ class ReactomeStorage:
         :return: The data
         """
         try:
-            request_key: self._get_analysis_request_key(token)
+            request_key = self._get_analysis_request_key(token)
             data = self.r.get(request_key)
 
             return data
@@ -267,7 +267,7 @@ class ReactomeStorage:
         :param expire: If not none, the key will be expired in `expire` seconds. Default = 30 Minutes = 1800 seconds.
         """
         try:
-            request_key: self._get_analysis_request_key(token)
+            request_key = self._get_analysis_request_key(token)
             
             self.r.set(name=request_key, value=data)
 
