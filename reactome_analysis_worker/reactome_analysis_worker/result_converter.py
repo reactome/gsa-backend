@@ -402,7 +402,7 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
         # update the pathway-level expression values
         for resource_index in range(0, len(reactome_blueprint["pathways"][i]["data"]["statistics"])):
             # set to 0 if the pathway was excluded
-            if pathway_id not in gsva_expr_per_pathway and pathway_id in excluded_pathways:
+            if _ignore_pathway(reactome_blueprint["pathways"][i], excluded_pathways=excluded_pathways):
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
             elif pathway_id not in gsva_expr_per_pathway:
                 raise ConversionException("Missing pathway GSVA information for '" + pathway_id + "'")
@@ -500,7 +500,7 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
         # update the statistics
         for resource_index in range(0, len(reactome_blueprint["pathways"][i]["data"]["statistics"])):
             # set the pathway p-value to 1 if the pathway was excluded
-            if pathway_id in excluded_pathways:
+            if _ignore_pathway(reactome_blueprint["pathways"][i], excluded_pathways=excluded_pathways):
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = 1
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = 1
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_expr
@@ -528,6 +528,34 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
         reactome_blueprint["notFound"][i]["exp"] = identifier_expr[identifier]
 
     return reactome_blueprint
+
+
+def _ignore_pathway(pathway: dict, excluded_pathways: list = []) -> bool:
+    """
+    Tests whether the pathway should be ignored in the result. In this case,
+    the statistics will be set to a default non-significant. The conversion
+    will not fail if this pathway is not present in the internal result
+    object.
+    :param pathway: The pathway object as a dict as present in the Reactome blueprint
+    :param excluded_pathways: List of pathways to exclude.
+    :return: (bool) Indicates whether the pathway should be excluded.
+    """
+    # test if it's in the excluded pathways
+    if pathway["stId"] in excluded_pathways:
+        return True
+
+    # test if it only contains chemicals
+    all_chebi = True
+
+    for i in range(0, len(pathway["data"]["statistics"])):
+        if pathway["data"]["statistics"][i]["resource"] != "TOTAL" and \
+            pathway["data"]["statistics"][i]["resource"] != "CHEBI":
+           all_chebi = False
+
+    if len(pathway["data"]["entities"]) == 0 and all_chebi:
+        return True
+
+    return False
 
 
 def _get_pathway_p_values(pathway_fcs: list) -> dict:
