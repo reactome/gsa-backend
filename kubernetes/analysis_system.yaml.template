@@ -52,7 +52,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1000M
+      storage: {{ redis.storage }}
 status:
   accessModes:
   - ReadWriteOnce

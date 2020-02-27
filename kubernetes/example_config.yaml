@@ -20,6 +20,7 @@ redis:
   # keys. This should be a bit lower
   # than the memory set in min_mem
   max_redis_mem: "100mb"
+  storage: "150Mi"
   min_cpu: "100m"
   max_cpu: "200m"
   # If a redis cluster should be used, this must be set to "True"

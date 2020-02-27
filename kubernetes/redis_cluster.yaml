@@ -153,4 +153,4 @@ spec:
       {%- endif %}
       resources:
         requests:
-          storage: 500Mi
+          storage: {{ redis.storage }}
