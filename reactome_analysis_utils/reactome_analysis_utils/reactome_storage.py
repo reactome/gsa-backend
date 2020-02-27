@@ -16,6 +16,7 @@ import logging
 import os
 
 import redis
+import rediscluster
 
 LOGGER = logging.getLogger(__name__)
 
@@ -294,6 +295,7 @@ class ReactomeStorage:
         redis_host = os.getenv("REDIS_HOST", "redis")
         redis_port = int(os.getenv("REDIS_PORT", 6379))
         redis_database = int(os.getenv("REDIS_DATABASE", 0))
+        use_redis_cluster = os.getenv("USE_REDIS_CLUSTER", "False") == "True"
 
         # load the password from file if set
         redis_password_file = os.getenv("REDIS_PASSWORD_FILE", None)
@@ -314,9 +316,17 @@ class ReactomeStorage:
 
         LOGGER.debug("Connecting to Redis at " + redis_host + ":" + str(redis_port))
 
-        redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
-                                       retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
-                                       socket_connect_timeout=3)
+        # TODO: select redis cluster or the default redis depending on some (new) config variable
+        startup_nodes = [{"host": redis_host, "port": redis_port}]
+
+        if use_redis_cluster:
+            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, password=redis_password,
+                                                         retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
+                                                         socket_connect_timeout=3)
+        else:
+            redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
+                                           retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
+                                           socket_connect_timeout=3)
 
         return redis_connection
 

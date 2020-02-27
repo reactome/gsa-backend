@@ -345,6 +345,7 @@ data:
   REDIS_HOST: "redis"
   REDIS_PORT: "{{ redis.port }}"
   REDIS_DATABASE: "0"
+  USE_REDIS_CLUSTER: "{{ redis.use_cluster }}"
   RABBIT_MAX_QUEUE_LENGTH: "10"
   MAIL_ERROR_ADDRESS: "{{ mail_error_address }}"
 ---

@@ -1,0 +1,156 @@
+# ---------------------------------------
+#      ReactomeGSA redis cluster
+# ---------------------------------------
+#
+# This file contains the configuration
+# details to deploy a redis cluster instead
+# of the single redis instance. This increases
+# the robustness of the whole system but requires
+# additional configuration steps.
+#
+# Note:
+# Before applying this configuration the redis
+# deployment must be deleted using:
+#
+# > kubectl scale deployment redis --replicas 0
+# > kubectl delete deployment redis
+# > kubectl delete PersistentVolumeClaim redis-pv-claim
+# > kubectl delete service redis
+#
+# Usage:
+# 1) Delete original redis deployment (see above)
+# 2) Apply this file (after running it through render_template.py)
+# 3) Create the redis cluster using the following command (change -a to your redis password):
+# > kubectl exec -it redis-cluster-0 -- redis-cli --cluster create -a test --cluster-replicas 1 $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 ')
+# 4) Re-deploy all ReactomeGSA pods with the updated config setting redis.use_cluster = "True" in the config.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+    tier: backend
+spec:
+  {% if debug %}
+  type: NodePort
+  {% else %}
+  type: ClusterIP
+  {% endif %}
+  ports:
+  - port: {{ redis.port }}
+    targetPort: {{ redis.port }}
+    name: client
+  - port: 16379
+    targetPort: 16379
+    name: gossip
+  selector:
+    app: redis-cluster
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster
+data:
+  update-node.sh: |
+    #!/bin/sh
+    REDIS_NODES="/data/nodes.conf"
+    sed -i -e "/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/${POD_IP}/" ${REDIS_NODES}
+    exec "$@"
+  redis.conf: |+
+    # disable the config command
+    # rename-command CONFIG ""
+
+    # use redis like a cache - once the memory limit is reached, results / keys are deleted
+    maxmemory {{ redis.max_redis_mem }}
+    maxmemory-policy allkeys-lru
+
+    # backup the data every 60 sec if at least 1 key changed
+    save 60 1
+    
+    # cluster config
+    cluster-enabled yes
+    cluster-require-full-coverage no
+    cluster-node-timeout 15000
+    cluster-config-file /data/nodes.conf
+    cluster-migration-barrier 1
+    appendonly yes
+    protected-mode no
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+spec:
+  serviceName: redis
+  replicas: 6
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      containers:
+      - name: redis
+        image: {{ redis.image }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: {{ redis.port }}
+          name: client
+        - containerPort: 16379
+          name: gossip
+        command:
+          - /bin/bash
+          - -c
+          - |
+            REDIS_PASSWORD=`cat /etc/redis/secret/redis.password`
+            ARGS=("--requirepass" "${REDIS_PASSWORD}")
+            ARGS+=("--port" "{{ redis.port }}")
+            ARGS+=("--include" "/conf/redis.conf")
+            /conf/update-node.sh redis-server "${ARGS[@]}"
+        resources:
+          requests:
+            cpu: {{ redis.min_cpu }}
+            memory: {{ redis.min_mem }}
+          limits:
+            cpu: {{ redis.max_cpu }}
+            memory: {{ redis.max_mem }}
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: conf
+          mountPath: /conf
+          readOnly: false
+        - name: data
+          mountPath: /data
+          readOnly: false
+        - mountPath: /etc/redis/secret
+          name: redis-password-file
+          readOnly: true
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-cluster
+          defaultMode: 0755
+      - name: redis-password-file
+        secret:
+          secretName: redis-secret
+          items:
+          - key: password
+            path: redis.password
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {%- if storage_class %}
+      storageClassName: {{ storage_class }}
+      {%- endif %}
+      resources:
+        requests:
+          storage: 500Mi
