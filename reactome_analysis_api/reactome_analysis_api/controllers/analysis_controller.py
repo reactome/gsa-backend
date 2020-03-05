@@ -81,6 +81,10 @@ def start_analysis(body):  # noqa: E501
         LOGGER.debug("Received gzipped analysis request. Decompressing...")
 
         decompressed_string = zlib.decompress(connexion.request.data)
+
+        # free the binary data
+        connexion.request.data = None
+
         analysis_dict = json.loads(decompressed_string)
         
         # free the memory again
@@ -89,6 +93,9 @@ def start_analysis(body):  # noqa: E501
         LOGGER.debug("Invalid analysis request submitted. Request body does not describe a JSON object.")
         abort(406, "Invalid analysis request submitted. Request body does not describe a JSON object.")
         return
+
+    # remove the connexion request object
+    connexion.request = None
     
     try:
         analysis_request = input_deserializer.create_analysis_input_object(analysis_dict)
