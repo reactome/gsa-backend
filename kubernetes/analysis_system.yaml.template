@@ -31,7 +31,7 @@ metadata:
   namespace: {{ namespace }}
   {% endif %}
 data:
-  password: {{ random_password(debug=debug) }}
+  password: {{ random_password(debug=debug, alphanumeric=True) }}
 type: Opaque
 ---
 #  redis-persistent-volume-claim
