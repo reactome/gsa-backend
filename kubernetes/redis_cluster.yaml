@@ -107,6 +107,7 @@ spec:
           - |
             REDIS_PASSWORD=`cat /etc/redis/secret/redis.password`
             ARGS=("--requirepass" "${REDIS_PASSWORD}")
+            ARGS+=("--masterauth" "${REDIS_PASSWORD}")
             ARGS+=("--port" "{{ redis.port }}")
             ARGS+=("--include" "/conf/redis.conf")
             /conf/update-node.sh redis-server "${ARGS[@]}"
