@@ -198,7 +198,7 @@ class ReactomeAnalysisWorker:
             return
 
         # update the status and mark it as received
-        self._set_status(request.analysis_id, status="running", description="Request received", completed=0.05)
+        self._set_status(request.analysis_id, status="running", description="Converting datasets...", completed=0.05)
 
         # convert the dataset matrices
         if not self._convert_datasets(request):
@@ -469,7 +469,32 @@ class ReactomeAnalysisWorker:
         # convert matrix for every dataset into an array
         for dataset in request.datasets:
             try:
-                dataset.df = util.string_to_array(dataset.data)
+                self._set_status(analysis_id=request.analysis_id, status="running", 
+                                 description="Converting dataset {}...".format(dataset.name), completed=0.05)
+                LOGGER.debug("Converting dataset {}...".format(dataset.name))
+
+                result_queue = multiprocessing.Queue()
+                process = multiprocessing.Process(target=convert_string_data, args=(dataset.data, result_queue) )
+                process.start()
+
+                # wait until the process is done
+                while process.is_alive() and result_queue.qsize() == 0:
+                    self._get_mq().sleep(1)
+
+                LOGGER.debug("Retrieving converted data...")
+
+                process.join(timeout=0.1)
+
+                # retrieve the result
+                if result_queue.qsize() < 1:
+                    raise util.ConversionException("Failed to retrieve converted data.")
+
+                result = result_queue.get()
+
+                if isinstance(result, Exception):
+                    raise result
+
+                dataset.df = result
             # Mark the analysis as failed if the conversion caused an error.
             except util.ConversionException as e:
                 LOGGER.error("Failed to convert dataset '{}' from analysis '{}': {}".format(
@@ -607,6 +632,21 @@ class ReactomeAnalysisWorker:
             df = df[above_expression]
 
         return df
+
+
+def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> None:
+    """
+    Launch this function in a new process to convert a string encoded data object
+    to a Number array.
+    :param str_data: The data matrix as a tab-delimited string
+    :param result_queue: A queue object where the result will be stored or an exception
+    """
+    try:
+        result_data = util.string_to_array(str_data)
+        result_queue.put(result_data)
+    # Mark the analysis as failed if the conversion caused an error.
+    except util.ConversionException as e:
+        result_queue.put(e)
 
 
 class AnalysisProcess(multiprocessing.Process):
