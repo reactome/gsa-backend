@@ -15,11 +15,13 @@ class ExternalDatasourceParameters(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, name: str=None, type: str=None, description: str=None, required: bool=None):  # noqa: E501
+    def __init__(self, name: str=None, display_name: str=None, type: str=None, description: str=None, required: bool=None):  # noqa: E501
         """ExternalDatasourceParameters - a model defined in Swagger
 
         :param name: The name of this ExternalDatasourceParameters.  # noqa: E501
         :type name: str
+        :param display_name: The display_name of this ExternalDatasourceParameters.  # noqa: E501
+        :type display_name: str
         :param type: The type of this ExternalDatasourceParameters.  # noqa: E501
         :type type: str
         :param description: The description of this ExternalDatasourceParameters.  # noqa: E501
@@ -29,6 +31,7 @@ class ExternalDatasourceParameters(Model):
         """
         self.swagger_types = {
             'name': str,
+            'display_name': str,
             'type': str,
             'description': str,
             'required': bool
@@ -36,12 +39,14 @@ class ExternalDatasourceParameters(Model):
 
         self.attribute_map = {
             'name': 'name',
+            'display_name': 'display_name',
             'type': 'type',
             'description': 'description',
             'required': 'required'
         }
 
         self._name = name
+        self._display_name = display_name
         self._type = type
         self._description = description
         self._required = required
@@ -81,6 +86,29 @@ class ExternalDatasourceParameters(Model):
             raise ValueError("Invalid value for `name`, must not be `None`")  # noqa: E501
 
         self._name = name
+
+    @property
+    def display_name(self) -> str:
+        """Gets the display_name of this ExternalDatasourceParameters.
+
+        A user-friendly display name for the parameter.  # noqa: E501
+
+        :return: The display_name of this ExternalDatasourceParameters.
+        :rtype: str
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, display_name: str):
+        """Sets the display_name of this ExternalDatasourceParameters.
+
+        A user-friendly display name for the parameter.  # noqa: E501
+
+        :param display_name: The display_name of this ExternalDatasourceParameters.
+        :type display_name: str
+        """
+
+        self._display_name = display_name
 
     @property
     def type(self) -> str:

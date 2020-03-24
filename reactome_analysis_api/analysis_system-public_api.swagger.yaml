@@ -739,6 +739,10 @@ definitions:
               type: string
               description: "Parameter name"
               example: "id"
+            display_name:
+              type: string
+              description: A user-friendly display name for the parameter.
+              example: "Dataset Id"
             type:
               type: string
               enum:

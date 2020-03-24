@@ -777,10 +777,12 @@ definitions:
       parameters:
       - name: "id"
         description: "The unique identifier for the dataset."
+        display_name: "Dataset Id"
         type: "string"
         required: true
       - name: "id"
         description: "The unique identifier for the dataset."
+        display_name: "Dataset Id"
         type: "string"
         required: true
   Method_parameters:
@@ -1011,6 +1013,10 @@ definitions:
         type: "string"
         example: "id"
         description: "Parameter name"
+      display_name:
+        type: "string"
+        example: "Dataset Id"
+        description: "A user-friendly display name for the parameter."
       type:
         type: "string"
         example: "string"
@@ -1027,5 +1033,6 @@ definitions:
     example:
       name: "id"
       description: "The unique identifier for the dataset."
+      display_name: "Dataset Id"
       type: "string"
       required: true
