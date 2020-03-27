@@ -70,13 +70,27 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         self.max_timeout = int(os.getenv("LOADING_MAX_TIMEOUT", 60))
 
-    def load_dataset(self, identifier: str, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
+    def get_dataset_id(self, parameters: list) -> str:
+        """
+        Returns the dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
+        :returns: The dataset identifier
+        """
+        return self._get_parameter(name="dataset_id", parameters=parameters)
+
+    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
         """
         Load the specified ExpressionAtlas experiment
-        :param identifier: The ExpressionAtlas identifier
+        :param parameters: A list of DatasetRequestParameter objects
         :param reactome_mq: The MQ used to process messages.
         :returns: (data, summary)
         """
+        # get the id parameter
+        identifier = self._get_parameter(name="dataset_id", parameters=parameters)
+
+        if not identifier:
+            raise DatasetFetcherException("Missing required parameter 'dataset_id' to load the dataset from ExpressionAtlas.")
+
         # make sure the identifier matches the pattern
         if not identifier[0:2] == "E-":
             raise DatasetFetcherException("{} is not a valid ExpressionAtlas identifier".format(identifier))
@@ -99,14 +113,14 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         return (loaded_data["expression_values"], summary)
 
-    def _create_summary(self, identifier: str, data_type: str, metadata: str) -> str:
+    def _create_summary(self, identifier: str, data_type: str, metadata: str) -> ExternalData:
         """
         Create a ExternalData object based on
         the passed metadata
         :param identifier: The ExpressionAtlas identifier.
         :param data_type: The data type of the experiment
         :param metadata: The tab-delimited metadata table.
-        :return: The JSON encoded summary object
+        :return: An ExternalData object
         """
         # initialize the summary object
         summary = {"type": data_type, "id": identifier, 

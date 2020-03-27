@@ -8,17 +8,23 @@ follow the pattern [dataset_id].data (text file) and [dataset_id].summary
 
 import os
 import json
-from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData
+from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
 
 class ExampleDatasetFetcher(DatasetFetcher):
-    def load_dataset(self, identifier: str, reactome_mq) -> (str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq) -> (str, ExternalData):
         """
         Loads the defined example dataset
-        :params identifier: The dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
         :param reactome_mq: Not used
         :returns: (data, summary)
         """
+        # get the id parameter
+        identifier = self._get_parameter("dataset_id", parameters)
+
+        if not identifier:
+            raise DatasetFetcherException("Missing required parameter 'dataset_id' to load the example dataset.")
+
         # prevent the injection of "mean" characters
         identifier = identifier.replace("/", "_")
         identifier = identifier.replace(".", "_")
@@ -30,28 +36,36 @@ class ExampleDatasetFetcher(DatasetFetcher):
         summary_file = os.path.join(data_dir, "{}.summary".format(identifier))
 
         if not os.path.isfile(data_file) or not os.path.isfile(summary_file):
-            raise Exception("Unknown example data identifier {}".format(identifier))
+            raise DatasetFetcherException("Unknown example data identifier {}".format(identifier))
 
         # load the data
         try:
             example_data = self.load_textfile(data_file)
         except Exception:
-            raise Exception("Failed to load data for {}".format(identifier))
+            raise DatasetFetcherException("Failed to load data for {}".format(identifier))
 
         try:
             summary_data = self.load_textfile(summary_file)
         except Exception:
-            raise Exception("Failed to load summary data for {}".format(identifier))
+            raise DatasetFetcherException("Failed to load summary data for {}".format(identifier))
 
         # convert the summary into an object
         try:
             summary_dict = json.loads(summary_data)
             summary_obj = ExternalData.from_dict(summary_dict)
         except Exception:
-            raise Exception("Failed to load a valid summary for {}".format(identifier))
+            raise DatasetFetcherException("Failed to load a valid summary for {}".format(identifier))
 
         # return the data
         return (example_data, summary_obj)
+
+    def get_dataset_id(self, parameters: list) -> str:
+        """
+        Returns the dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
+        :returns: The dataset identifier
+        """
+        return self._get_parameter("dataset_id", parameters)
 
     @staticmethod
     def load_textfile(filename: str) -> str:

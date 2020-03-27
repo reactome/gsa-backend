@@ -51,7 +51,7 @@ class ExternalDataDefaultParameters(Model):
     def name(self) -> str:
         """Gets the name of this ExternalDataDefaultParameters.
 
-        Name of the parameter. This is either the parameter name as returned by the /methods function or one of the following strings to specify a field in the request object: comparison_group_1,  comparison_group_2.  # noqa: E501
+        Name of the parameter. This is either the parameter name as returned by the /methods function or one of the following strings to specify a field in the request object: analysis_group,  comparison_group_1, comparison_group_2, covariates. The 'analysis_group' property refers to one of the properties in the sample_metadata. Similar, the covariates property will point to a comma delimited list of properties in the sample metadata.  # noqa: E501
 
         :return: The name of this ExternalDataDefaultParameters.
         :rtype: str
@@ -62,7 +62,7 @@ class ExternalDataDefaultParameters(Model):
     def name(self, name: str):
         """Sets the name of this ExternalDataDefaultParameters.
 
-        Name of the parameter. This is either the parameter name as returned by the /methods function or one of the following strings to specify a field in the request object: comparison_group_1,  comparison_group_2.  # noqa: E501
+        Name of the parameter. This is either the parameter name as returned by the /methods function or one of the following strings to specify a field in the request object: analysis_group,  comparison_group_1, comparison_group_2, covariates. The 'analysis_group' property refers to one of the properties in the sample_metadata. Similar, the covariates property will point to a comma delimited list of properties in the sample metadata.  # noqa: E501
 
         :param name: The name of this ExternalDataDefaultParameters.
         :type name: str

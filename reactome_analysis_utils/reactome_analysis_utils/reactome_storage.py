@@ -16,6 +16,7 @@ import logging
 import os
 
 import redis
+import rediscluster
 
 LOGGER = logging.getLogger(__name__)
 
@@ -233,6 +234,49 @@ class ReactomeStorage:
         except Exception as e:
             raise ReactomeStorageException(e)
 
+    def analysis_request_data_exists(self, token: str) -> bool:
+        """
+        Check whether the JSON-encoded analysis request object exists
+        in storage.
+        :param token: The token to check
+        :return: Boolean indicating whether the token exists
+        """
+        try:
+            return self.r.exists(self._get_analysis_request_key(token))
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
+    def get_analysis_request_data(self, token: str) -> str:
+        """
+        Retrieve the JSON-encoded analysis request object.
+        :param token: The token identifying the analysis request.
+        :return: The data
+        """
+        try:
+            request_key = self._get_analysis_request_key(token)
+            data = self.r.get(request_key)
+
+            return data
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
+    def set_analysis_request_data(self, token: str, data:str, expire: int = 1800):
+        """
+        Store the JSON-encoded analysis request object.
+        :param token: The token identifying the analysis request.
+        :param data: The JSON-encoded string to store.
+        :param expire: If not none, the key will be expired in `expire` seconds. Default = 30 Minutes = 1800 seconds.
+        """
+        try:
+            request_key = self._get_analysis_request_key(token)
+            
+            self.r.set(name=request_key, value=data)
+
+            if expire is not None and expire > 0:
+                self.r.expire(request_key, expire)
+        except Exception as e:
+            raise ReactomeStorageException(e)
+
     @staticmethod
     def _get_redis():
         """
@@ -251,6 +295,7 @@ class ReactomeStorage:
         redis_host = os.getenv("REDIS_HOST", "redis")
         redis_port = int(os.getenv("REDIS_PORT", 6379))
         redis_database = int(os.getenv("REDIS_DATABASE", 0))
+        use_redis_cluster = os.getenv("USE_REDIS_CLUSTER", "False") == "True"
 
         # load the password from file if set
         redis_password_file = os.getenv("REDIS_PASSWORD_FILE", None)
@@ -271,9 +316,17 @@ class ReactomeStorage:
 
         LOGGER.debug("Connecting to Redis at " + redis_host + ":" + str(redis_port))
 
-        redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
-                                       retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
-                                       socket_connect_timeout=3)
+        # TODO: select redis cluster or the default redis depending on some (new) config variable
+        startup_nodes = [{"host": redis_host, "port": redis_port}]
+
+        if use_redis_cluster:
+            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, password=redis_password,
+                                                         retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
+                                                         socket_connect_timeout=3)
+        else:
+            redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
+                                           retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
+                                           socket_connect_timeout=3)
 
         return redis_connection
 
@@ -366,3 +419,13 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "request_data:{}:summary".format(token)
+
+    @staticmethod
+    def _get_analysis_request_key(token: str) -> str:
+        """
+        Creates the redis key for the AanalysisRequest object (stored as JSON)
+
+        :param token: The token identifying the analysis request
+        :return: The matching redis key
+        """
+        return "analysis_request:{}:data"

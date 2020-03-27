@@ -20,8 +20,11 @@ redis:
   # keys. This should be a bit lower
   # than the memory set in min_mem
   max_redis_mem: "100mb"
+  storage: "150Mi"
   min_cpu: "100m"
   max_cpu: "200m"
+  # If a redis cluster should be used, this must be set to "True"
+  use_cluster: "False"
 rabbitmq:
   image: rabbitmq:3.7-management-alpine
   min_mem: "300Mi"
@@ -34,7 +37,9 @@ reactome_api:
   max_mem: "500Mi"
   min_cpu: "100m"
   max_cpu: "250m"
-  replicas: 1
+  min_replicas: 1
+  max_replicas: 3
+  target_cpu_usage: 75
   node_type: "NodePort"
 reactome_worker:
   image: jgriss/reactome-analysis_worker:latest
@@ -55,14 +60,18 @@ reactome_report:
   max_mem: "1000Mi"
   min_cpu: "0.3"
   max_cpu: "1"
-  replicas: 1
+  min_replicas: 1
+  max_replicas: 1
+  target_cpu_usage: 75
 reactome_datasets:
   image: jgriss/reactome-analysis_datasets:latest
   min_mem: "100Mi"
   max_mem: "200Mi"
   min_cpu: "0.1"
   max_cpu: "0.3"
-  replicas: 1
+  min_replicas: 1
+  max_replicas: 1
+  target_cpu_usage: 75
   # Maximum time in seconds during which any step in the loading
   # process may show no sign of activity.
   max_loading_timeout: "60"

@@ -5,6 +5,7 @@ import json
 import os
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher, ExpressionAtlasTypes
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcherException
+from reactome_analysis_utils.models.dataset_request import DatasetRequestParameter
 
 
 class MockMQ:
@@ -88,7 +89,7 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
 
     def test_complete_loading_process(self):
         fetcher = ExpressionAtlasFetcher()
-        (data, summary) = fetcher.load_dataset("E-PROT-5", MockMQ())
+        (data, summary) = fetcher.load_dataset([DatasetRequestParameter("dataset_id", "E-PROT-5")], MockMQ())
 
         self.assertIsNotNone(data)
         self.assertIsNotNone(summary)
@@ -100,4 +101,14 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
         os.environ["LOADING_MAX_TIMEOUT"] = "1"
 
         fetcher = ExpressionAtlasFetcher()
-        self.assertRaises(DatasetFetcherException, fetcher.load_dataset, "E-MTAB-970", MockMQ())
+        self.assertRaises(DatasetFetcherException, fetcher.load_dataset, [DatasetRequestParameter("dataset_id", "E-MTAB-970")], MockMQ())
+
+    def test_get_identifier(self):
+        parameters = [DatasetRequestParameter("dataset_id", "E-MTAB-970")]
+
+        fetcher = ExpressionAtlasFetcher()
+
+        id_param = fetcher.get_dataset_id(parameters)
+
+        self.assertIsNotNone(id_param)
+        self.assertEqual("E-MTAB-970", id_param)

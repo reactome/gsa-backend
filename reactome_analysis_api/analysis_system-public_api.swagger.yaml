@@ -68,6 +68,7 @@ paths:
       operationId: startAnalysis
       consumes:
         - application/json
+        - application/gzip
       produces:
         - text/plain; charset=utf-8
       parameters:
@@ -173,18 +174,41 @@ paths:
           description: Successful operation returning the list of example datasets.
           schema:
             $ref: '#/definitions/ExternalData'
-  '/data/load/{datasetId}':
+  '/data/sources':
     get:
+      tags:
+        - Datasets
+      summary: Lists the available data sources to load external datasets from.
+      operationId: getDataSources
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: >-
+            Successful operation returns the list of supported external data sources. These are available in addition to the
+            integrated example datasets.
+          schema:
+            $ref: '#/definitions/ExternalDatasource'
+  '/data/load/{resourceId}':
+    post:
       tags:
         - Datasets
       summary: Start the retrieval of an external or example dataset.
       operationId: loadData
       parameters:
-        - in: path
-          name: datasetId
+        - name: resourceId
+          in: path
           required: true
           type: string
-          description: The identified of the dataset to load.
+          description: The identified of the external data source to use.
+        - name: parameters
+          in: body
+          description: >-
+            The parameters as defined for the specific resource as key value pairs.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Parameter'
       produces:
         - text/plain; charset=utf-8
       responses:
@@ -202,7 +226,7 @@ paths:
       tags:
         - Datasets
       summary: Retrieves the status for the dataset loading process.
-      operationId: getStatus
+      operationId: getDataLoadingStatus
       parameters:
         - in: path
           name: loadingId
@@ -687,3 +711,49 @@ definitions:
             value:
               type: string
               example: "10"
+  ExternalDatasource:
+    type: object
+    description: Describes a supported external data source including the required parameters.
+    required:
+      - id
+      - parameters
+    properties:
+      id:
+        type: string
+        description: A unique identifier for the data source.
+        example: EXP_ATLAS
+      name:
+        type: string
+        description: A human readable name for the data source
+        example: Expression Atlas
+      parameters:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - type
+            - required
+          properties:
+            name:
+              type: string
+              description: "Parameter name"
+              example: "id"
+            display_name:
+              type: string
+              description: A user-friendly display name for the parameter.
+              example: "Dataset Id"
+            type:
+              type: string
+              enum:
+                - int
+                - string
+                - float
+              example: string
+            description:
+              type: string
+              example: The unique identifier for the dataset.
+            required:
+              type: boolean
+              description: Indicates whether the parameter has to be supplied.
+

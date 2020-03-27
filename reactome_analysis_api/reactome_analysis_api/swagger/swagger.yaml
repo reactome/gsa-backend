@@ -69,6 +69,7 @@ paths:
       operationId: "start_analysis"
       consumes:
       - "application/json"
+      - "application/gzip"
       produces:
       - "text/plain; charset=utf-8"
       parameters:
@@ -182,8 +183,25 @@ paths:
           schema:
             $ref: "#/definitions/ExternalData"
       x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
-  /data/load/{datasetId}:
+  /data/sources:
     get:
+      tags:
+      - "Datasets"
+      summary: "Lists the available data sources to load external datasets from."
+      operationId: "get_data_sources"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successful operation returns the list of supported external\
+            \ data sources. These are available in addition to the integrated example\
+            \ datasets."
+          schema:
+            $ref: "#/definitions/ExternalDatasource"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/load/{resourceId}:
+    post:
       tags:
       - "Datasets"
       summary: "Start the retrieval of an external or example dataset."
@@ -191,11 +209,20 @@ paths:
       produces:
       - "text/plain; charset=utf-8"
       parameters:
-      - name: "datasetId"
+      - name: "resourceId"
         in: "path"
-        description: "The identified of the dataset to load."
+        description: "The identified of the external data source to use."
         required: true
         type: "string"
+      - in: "body"
+        name: "parameters"
+        description: "The parameters as defined for the specific resource as key value\
+          \ pairs."
+        required: false
+        schema:
+          type: "array"
+          items:
+            $ref: "#/definitions/Parameter"
       responses:
         200:
           description: "Successful start of the loading process. Returns the identifier\
@@ -212,7 +239,7 @@ paths:
       tags:
       - "Datasets"
       summary: "Retrieves the status for the dataset loading process."
-      operationId: "get_status"
+      operationId: "get_data_loading_status"
       produces:
       - "application/json"
       parameters:
@@ -724,6 +751,40 @@ definitions:
       - "Sample_1"
       - "Sample_1"
       group: "Griss Melanoma"
+  ExternalDatasource:
+    type: "object"
+    required:
+    - "id"
+    - "parameters"
+    properties:
+      id:
+        type: "string"
+        example: "EXP_ATLAS"
+        description: "A unique identifier for the data source."
+      name:
+        type: "string"
+        example: "Expression Atlas"
+        description: "A human readable name for the data source"
+      parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/ExternalDatasource_parameters"
+    description: "Describes a supported external data source including the required\
+      \ parameters."
+    example:
+      name: "Expression Atlas"
+      id: "EXP_ATLAS"
+      parameters:
+      - name: "id"
+        description: "The unique identifier for the dataset."
+        display_name: "Dataset Id"
+        type: "string"
+        required: true
+      - name: "id"
+        description: "The unique identifier for the dataset."
+        display_name: "Dataset Id"
+        type: "string"
+        required: true
   Method_parameters:
     required:
     - "name"
@@ -932,10 +993,46 @@ definitions:
         example: "permutations"
         description: "Name of the parameter. This is either the parameter name as\
           \ returned by the /methods function or one of the following strings to specify\
-          \ a field in the request object: comparison_group_1,  comparison_group_2."
+          \ a field in the request object: analysis_group,  comparison_group_1, comparison_group_2,\
+          \ covariates. The 'analysis_group' property refers to one of the properties\
+          \ in the sample_metadata. Similar, the covariates property will point to\
+          \ a comma delimited list of properties in the sample metadata."
       value:
         type: "string"
         example: "10"
     example:
       name: "permutations"
       value: "10"
+  ExternalDatasource_parameters:
+    required:
+    - "name"
+    - "required"
+    - "type"
+    properties:
+      name:
+        type: "string"
+        example: "id"
+        description: "Parameter name"
+      display_name:
+        type: "string"
+        example: "Dataset Id"
+        description: "A user-friendly display name for the parameter."
+      type:
+        type: "string"
+        example: "string"
+        enum:
+        - "int"
+        - "string"
+        - "float"
+      description:
+        type: "string"
+        example: "The unique identifier for the dataset."
+      required:
+        type: "boolean"
+        description: "Indicates whether the parameter has to be supplied."
+    example:
+      name: "id"
+      description: "The unique identifier for the dataset."
+      display_name: "Dataset Id"
+      type: "string"
+      required: true

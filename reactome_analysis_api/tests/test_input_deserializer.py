@@ -35,7 +35,7 @@ class InputDeserializerTest(unittest.TestCase):
                ]
               },
               "name": "First experiment",
-              "type": "rnaseq"
+              "type": "rnaseq_counts"
             }
           ],
           "methodName": "Camera",

@@ -1,6 +1,8 @@
 import logging
 import socket
 import uuid
+import zlib
+import json
 
 import connexion
 import prometheus_client
@@ -11,6 +13,7 @@ from reactome_analysis_api.models.analysis_status import AnalysisStatus
 from reactome_analysis_api.models.data_type import DataType
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
+from reactome_analysis_utils.models.analysis_request import AnalysisRequest
 
 LOGGER = logging.getLogger(__name__)
 STARTED_ANALYSIS_COUNTER = prometheus_client.Counter('reactome_api_started_analyses',
@@ -70,12 +73,23 @@ def start_analysis(body):  # noqa: E501
 
     :rtype: str
     """
-    if not connexion.request.is_json:
+    # get the JSON-encoded dict from the request object
+    if connexion.request.is_json:
+        analysis_dict = connexion.request.get_json(cache=False)
+    # de-compress if it's a gzipped string
+    elif connexion.request.content_type == "application/gzip":
+        LOGGER.debug("Received gzipped analysis request. Decompressing...")
+
+        decompressed_string = zlib.decompress(connexion.request.data)
+        analysis_dict = json.loads(decompressed_string)
+        
+        # free the memory again
+        del decompressed_string
+    else:
         LOGGER.debug("Invalid analysis request submitted. Request body does not describe a JSON object.")
         abort(406, "Invalid analysis request submitted. Request body does not describe a JSON object.")
         return
-
-    analysis_dict = connexion.request.get_json()
+    
     try:
         analysis_request = input_deserializer.create_analysis_input_object(analysis_dict)
     except Exception as e:
@@ -92,9 +106,12 @@ def start_analysis(body):  # noqa: E501
     # generate an analysis id
     analysis_id = str(uuid.uuid1())
 
-    # a very basic sanity check to make sure it's unique
     try:
         storage = ReactomeStorage()
+
+        # a very basic sanity check to make sure it's unique
+        while storage.analysis_exists(analysis_id):
+            analysis_id = str(uuid.uuid1())
 
         # Load request data from storage
         for n_dataset in range(0, len(analysis_dict["datasets"])):
@@ -113,21 +130,20 @@ def start_analysis(body):  # noqa: E501
                 # update the request object
                 analysis_dict["datasets"][n_dataset]["data"] = stored_data.decode("UTF-8")
 
-        while storage.analysis_exists(analysis_id):
-            analysis_id = str(uuid.uuid1())
-
         # Set the initial status
         encoder = JSONEncoder()
 
         status = AnalysisStatus(id=analysis_id, status="running", completed=0, description="Queued")
         storage.set_status(analysis_id, encoder.encode(status))
 
+        # Save the request data
+        analysis_dict["analysisId"] = analysis_id
+        storage.set_analysis_request_data(token=analysis_id, data=encoder.encode(analysis_dict))
+
         try:
-            # Submit the request to the queue - use the dict object to circumvent the current
-            # issue with "lost" additional properties
+            # Submit the request to the queue
             queue = ReactomeMQ()
-            analysis_dict["analysisId"] = analysis_id
-            queue.post_analysis(encoder.encode(analysis_dict), analysis_request.method_name)
+            queue.post_analysis(AnalysisRequest(request_id=analysis_id).to_json(), analysis_request.method_name)
             LOGGER.debug("Analysis " + analysis_id + " submitted to queue")
             queue.close()
 
