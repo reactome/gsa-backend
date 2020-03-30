@@ -252,7 +252,7 @@ paths:
         200:
           description: "Successful operation returning the current status of the task."
           schema:
-            $ref: "#/definitions/AnalysisStatus"
+            $ref: "#/definitions/DatasetLoadingStatus"
         404:
           description: "Unknown identifier passed."
       x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
@@ -261,7 +261,8 @@ paths:
       tags:
       - "Datasets"
       summary: "Retrieves a summary of the loaded data. This function is only available\
-        \ once. The data is fully loaded."
+        \ once the data is fully loaded. daasetId must be the identifier returned\
+        \ by the /data/status/{loadigId} endpoint."
       operationId: "get_summary"
       produces:
       - "application/json"
@@ -573,6 +574,45 @@ definitions:
         minimum: 0
         maximum: 1
     example:
+      description: "Converting identifiers"
+      id: "Analysis00371643"
+      completed: 0.080082819046101150206595775671303272247314453125
+      status: "running"
+  DatasetLoadingStatus:
+    type: "object"
+    required:
+    - "id"
+    - "status"
+    properties:
+      id:
+        type: "string"
+        example: "Analysis00371643"
+        description: "The identifier of the running task"
+      status:
+        type: "string"
+        description: "Current status of the analysis"
+        enum:
+        - "running"
+        - "complete"
+        - "failed"
+      description:
+        type: "string"
+        example: "Converting identifiers"
+        description: "Some methods may return a more verbose status of the process."
+      completed:
+        type: "number"
+        description: "Current progress of the task."
+        minimum: 0
+        maximum: 1
+      dataset_id:
+        type: "string"
+        example: "DATASET_1"
+        description: "If the loading process is complete, this field contains the\
+          \ identifier of the loaded dataset. This identifier can then be used to\
+          \ retrieve the loading summary and to refer to the loaded data in the analysis\
+          \ request."
+    example:
+      dataset_id: "DATASET_1"
       description: "Converting identifiers"
       id: "Analysis00371643"
       completed: 0.080082819046101150206595775671303272247314453125

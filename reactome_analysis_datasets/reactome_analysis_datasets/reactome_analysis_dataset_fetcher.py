@@ -8,7 +8,7 @@ import logging
 
 from reactome_analysis_utils import reactome_mq, reactome_storage
 from reactome_analysis_utils.models import dataset_request
-from reactome_analysis_api.models.analysis_status import AnalysisStatus
+from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.example_fetcher import ExampleDatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
@@ -94,18 +94,20 @@ class ReactomeAnalysisDatasetFetcher:
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def _set_status(self, request_id: str, status: str, completion: float = 0,
-                    description: str = None, reports: list = None):
+                    description: str = None, reports: list = None, final_id: str = None):
         """
         Set the status for the dataset loading request
         :param request_id: The request's id
         :param status: Current status ("running", "complete", or "failed")
         :param completion: Relative amount of completion
         :param description: Text describing the current status
+        :param final_id: The final dataset identifier set once loading is complete
         """
         self._get_storage().set_status(
             analysis_identifier=request_id, data_type="dataset",
-            status=json.dumps(AnalysisStatus(
-                id=request_id, status=status, completed=completion, description=description)
+            status=json.dumps(DatasetLoadingStatus(
+                id=request_id, status=status, completed=completion, description=description, 
+                dataset_id=final_id)
                               .to_dict()))
 
     def _on_new_request(self, ch, method, properties, body):
@@ -192,7 +194,7 @@ class ReactomeAnalysisDatasetFetcher:
 
             # update the status
             self._set_status(request_id=request.loading_id, status="complete", completion=1,
-                            description="Dataset {} available.".format(dataset_id))
+                            description="Dataset {} available.".format(dataset_id), final_id=dataset_id)
 
             # acknowledge the message
             self._acknowledge_message(ch, method)

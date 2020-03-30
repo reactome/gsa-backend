@@ -239,7 +239,7 @@ paths:
         '200':
           description: Successful operation returning the current status of the task.
           schema:
-            $ref: '#/definitions/AnalysisStatus'
+            $ref: '#/definitions/DatasetLoadingStatus'
         '404':
           description: Unknown identifier passed.
   '/data/summary/{datasetId}':
@@ -247,8 +247,9 @@ paths:
       tags:
         - Datasets
       summary: >-
-        Retrieves a summary of the loaded data. This function is only available once. The
-        data is fully loaded.
+        Retrieves a summary of the loaded data. This function is only available once the
+        data is fully loaded. daasetId must be the identifier returned by the /data/status/{loadigId}
+        endpoint.
       operationId: getSummary
       parameters:
         - in: path
@@ -503,6 +504,39 @@ definitions:
         minimum: 0
         maximum: 1
         description: Current progress of the task.
+  DatasetLoadingStatus:
+    type: object
+    required:
+      - id
+      - status
+    properties:
+      id:
+        type: string
+        description: The identifier of the running task
+        example: Analysis00371643
+      status:
+        type: string
+        enum:
+          - running
+          - complete
+          - failed
+        description: Current status of the analysis
+      description:
+        type: string
+        description: Some methods may return a more verbose status of the process.
+        example: Converting identifiers
+      completed:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Current progress of the task.
+      dataset_id:
+        type: string
+        example: DATASET_1
+        description: If the loading process is complete, this field contains the
+                     identifier of the loaded dataset. This identifier can then be
+                     used to retrieve the loading summary and to refer to the 
+                     loaded data in the analysis request.
   ReportStatus:
     type: object
     required:

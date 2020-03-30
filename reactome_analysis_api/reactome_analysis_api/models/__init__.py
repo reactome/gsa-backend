@@ -11,6 +11,7 @@ from reactome_analysis_api.models.analysis_result_results import AnalysisResultR
 from reactome_analysis_api.models.analysis_status import AnalysisStatus
 from reactome_analysis_api.models.data_type import DataType
 from reactome_analysis_api.models.dataset import Dataset
+from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus
 from reactome_analysis_api.models.design import Design
 from reactome_analysis_api.models.design_comparison import DesignComparison
 from reactome_analysis_api.models.external_data import ExternalData

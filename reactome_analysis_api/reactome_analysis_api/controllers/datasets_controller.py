@@ -7,7 +7,7 @@ import uuid
 import socket
 
 from reactome_analysis_api.encoder import JSONEncoder
-from reactome_analysis_api.models.analysis_status import AnalysisStatus  # noqa: E501
+from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus  # noqa: E501
 from reactome_analysis_api.models.external_data import ExternalData  # noqa: E501
 from reactome_analysis_api import util
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException, DATASET_QUEUE
@@ -73,7 +73,7 @@ def get_data_loading_status(loadingId):  # noqa: E501
     :param loadingId: The loading identifier returned by &#39;/data/load&#39;
     :type loadingId: str
 
-    :rtype: AnalysisStatus
+    :rtype: DatasetLoadingStatus
     """
     try:
         storage = ReactomeStorage()
@@ -139,7 +139,7 @@ def load_data(resourceId, parameters):  # noqa: E501
 
         # Set the initial status
         encoder = JSONEncoder()
-        status = AnalysisStatus(id=loading_id, status="running", completed=0, description="Queued")
+        status = DatasetLoadingStatus(id=loading_id, status="running", completed=0, description="Queued")
         storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
         # convert the parameters
@@ -164,7 +164,7 @@ def load_data(resourceId, parameters):  # noqa: E501
         except socket.gaierror as e:
             # update the status
             LOGGER.error("Failed to connect to queuing system: " + str(e))
-            status = AnalysisStatus(id=loading_id, status="failed", completed=0,
+            status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
                                     description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
@@ -172,7 +172,7 @@ def load_data(resourceId, parameters):  # noqa: E501
         except ReactomeMQException as e:
             LOGGER.error("Failed to post message to queuing system: " + str(e))
             # update the status
-            status = AnalysisStatus(id=loading_id, status="failed", completed=0,
+            status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
                                     description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
