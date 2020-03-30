@@ -101,4 +101,24 @@ class ScExpressionAtlasFetcherTest(unittest.TestCase):
 
         self.assertIsNotNone(summary)
         self.assertEqual(1, len(summary.default_parameters))
+
+    def test_load_exp_design(self):
+        dataset_id = "E-HCAD-13"
+
+        fetcher = ScExpressionAtlasFetcher()
+
+        exp_design = fetcher._load_experiment_design_factors(dataset_id)
+
+        self.assertIsNotNone(exp_design)
+        self.assertEqual(6263, len(exp_design))
+        self.assertTrue("age" in exp_design[list(exp_design.keys())[0]])
+
+    def test_failed_loading(self):
+        fetcher = ScExpressionAtlasFetcher()
+
+        failed_experiment = [
+            DatasetRequestParameter(name="dataset_id", value="E-HCAD-13"),
+            DatasetRequestParameter(name="k", value="12")]
+
+        fetcher.load_dataset(failed_experiment, MockMQ())
         

@@ -188,7 +188,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         expression_data = self._download_atlas_file(expression_file).decode()
 
         # process the metadata file
-        clean_metadata = self._filter_metadata(design_data)
+        clean_metadata = ExpressionAtlasFetcher._filter_metadata(design_data)
 
         # process the expression data
         clean_expression_data = self._filter_expression_data(expression_data)
@@ -229,7 +229,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         return "\n".join(filtered_lines)
 
 
-    def _filter_metadata(self, metadata_string: str) -> str:
+    @staticmethod
+    def _filter_metadata(metadata_string: str) -> str:
         """
         Processes an ExpressionAtlas experimental design file and
         removes all unwanted columns (such as ontology terms)

@@ -11,7 +11,9 @@ import os
 import zipfile
 import scipy.io
 import numpy
+import io
 from reactome_analysis_utils import reactome_mq
+from reactome_analysis_datasets.dataset_fetchers import expression_atlas_fetcher
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
 
@@ -63,12 +65,15 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
         matrix_file_dir = self._download_zip_file(file_url=file_url)
 
         # get the average expression per cluster
+        logger.debug("Calculating average expression per cluster...")
         (av_exp, rownames, colnames) = self._get_av_cluster_expression(matrix_file_dir=matrix_file_dir, cell_clusterings=cell_clusterings)
 
         # create the tab-delimited string to represent the expression table
+        logger.debug("Creating expression table...")
         expression_table = self._create_expression_table(expression=av_exp, rownames=rownames, colnames=colnames)
 
         # create a sensible summary object
+        logger.debug("Creating summary object...")
         summary = self._create_summary(dataset_id=identifier, k=k, sample_ids=colnames, cell_clusterings=cell_clusterings)
 
         # return the data
@@ -333,46 +338,103 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
                         summary["description"] = "From publication " + line[line.find("\t"):].strip()
 
         # add the sample metadata
+        cell_factors = None
+
         if sdrf_file:
             # extract all factors
             cell_factors = self._extract_factor_values_from_sdrf(sdrf_file=sdrf_file)
 
-            # merge them on the cluster level
-            cluster_factors = dict()
-            unique_factors = set()
+            # check if the file is valid
+            first_cell_id = cell_clusterings[sample_ids[0]][0]
 
-            for cluster_id in cell_clusterings:
-                this_cluster_factors = dict()
+            if first_cell_id not in cell_factors:
+                cell_factors = None
 
-                for cell_id in cell_clusterings[cluster_id]:
-                    for factor_name in cell_factors[cell_id]:
-                        cell_factor_value = cell_factors[cell_id][factor_name]
+        # load the factors from experiment design file instead
+        if not cell_factors:
+            cell_factors = self._load_experiment_design_factors(dataset_id)
 
-                        if factor_name not in this_cluster_factors:
-                            this_cluster_factors[factor_name] = set()
+        # merge cell factors on the cluster level
+        cluster_factors = dict()
+        unique_factors = set()
 
-                        this_cluster_factors[factor_name].add(cell_factor_value)
-                        unique_factors.add(factor_name)
+        for cluster_id in cell_clusterings:
+            this_cluster_factors = dict()
 
-                cluster_factors[cluster_id] = this_cluster_factors
+            for cell_id in cell_clusterings[cluster_id]:
+                # simply ignore missing annotations - not all SDRF files are formatted the same way
+                if cell_id not in cell_factors:
+                    continue
 
-            # add the factors on the cluster level
-            summary["sample_metadata"] = list()
+                for factor_name in cell_factors[cell_id]:
+                    cell_factor_value = cell_factors[cell_id][factor_name]
 
-            for factor_name in unique_factors:
-                factor_values = list()
+                    if factor_name not in this_cluster_factors:
+                        this_cluster_factors[factor_name] = set()
 
-                for cluster_id in sample_ids:
-                    cluster_values = list(cluster_factors[cluster_id].get(factor_name, set()))
+                    this_cluster_factors[factor_name].add(cell_factor_value)
+                    unique_factors.add(factor_name)
 
-                    # the property is the sorted list of all available properties
-                    cluster_values.sort()
-                    factor_values.append(",".join(cluster_values))
+            cluster_factors[cluster_id] = this_cluster_factors
 
-                summary["sample_metadata"].append({"name": factor_name, "values": factor_values})
+        # add the factors on the cluster level
+        summary["sample_metadata"] = list()
+
+        for factor_name in unique_factors:
+            factor_values = list()
+
+            for cluster_id in sample_ids:
+                cluster_values = list(cluster_factors[cluster_id].get(factor_name, set()))
+
+                # the property is the sorted list of all available properties
+                cluster_values.sort()
+                factor_values.append(",".join(cluster_values))
+
+            summary["sample_metadata"].append({"name": factor_name, "values": factor_values})
 
         # return the object
         return ExternalData.from_dict(summary)
+
+    def _load_experiment_design_factors(self, dataset_id: str) -> dict:
+        """
+        Downloads the experiment design file and returns all characteristics
+        in a dict with the cell id as key and a second dict as value that
+        contains all characteristics and values.
+        :param dataset_id: The dataset's identifier
+        :return: dict {cell_id => {param_name => param_value, ...}}
+        """
+        # Download the file
+        logger.debug("Loading experimental design for {}...".format(dataset_id))
+
+        exp_design_data = self._download_file(
+            "https://www.ebi.ac.uk/gxa/sc/experiment/{}/download?fileType=experiment-design&accessKey="
+            .format(dataset_id)).decode()
+
+        # Clean the data
+        clean_exp_design_data = expression_atlas_fetcher.ExpressionAtlasFetcher._filter_metadata(exp_design_data)
+
+        # Convert to a numpy array
+        exp_design = numpy.genfromtxt(io.StringIO(clean_exp_design_data), delimiter="\t", names = True, dtype = None)
+
+        # process the data for every cell
+        cell_factors = dict()
+
+        for row in exp_design:
+            # first column is the id
+            cell_id = row[0].decode().replace("\"", "").strip()
+            cell_factors[cell_id] = dict()
+
+            # process every column
+            for col_index in range(1, len(row)):
+                col_name = exp_design.dtype.names[col_index]
+                
+                # save the value
+                value = row[col_index].decode()
+                value = value.replace("\"", "").strip()
+
+                cell_factors[cell_id][col_name] = value
+
+        return cell_factors
 
     def _extract_factor_values_from_sdrf(self, sdrf_file: str) -> dict:
         """

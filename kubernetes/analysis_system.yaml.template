@@ -248,7 +248,7 @@ spec:
           protocol: TCP
         env:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
-          value: 200 MiB
+          value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
           value: {{ random_password(length=50, alphanumeric=True) }}
         - name: RABBITMQ_DEFAULT_USER
