@@ -16,30 +16,35 @@ class ExternalDatasource(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, name: str=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
+    def __init__(self, id: str=None, name: str=None, description: str=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
         """ExternalDatasource - a model defined in Swagger
 
         :param id: The id of this ExternalDatasource.  # noqa: E501
         :type id: str
         :param name: The name of this ExternalDatasource.  # noqa: E501
         :type name: str
+        :param description: The description of this ExternalDatasource.  # noqa: E501
+        :type description: str
         :param parameters: The parameters of this ExternalDatasource.  # noqa: E501
         :type parameters: List[ExternalDatasourceParameters]
         """
         self.swagger_types = {
             'id': str,
             'name': str,
+            'description': str,
             'parameters': List[ExternalDatasourceParameters]
         }
 
         self.attribute_map = {
             'id': 'id',
             'name': 'name',
+            'description': 'description',
             'parameters': 'parameters'
         }
 
         self._id = id
         self._name = name
+        self._description = description
         self._parameters = parameters
 
     @classmethod
@@ -100,6 +105,29 @@ class ExternalDatasource(Model):
         """
 
         self._name = name
+
+    @property
+    def description(self) -> str:
+        """Gets the description of this ExternalDatasource.
+
+        A more detailed description of the resource.  # noqa: E501
+
+        :return: The description of this ExternalDatasource.
+        :rtype: str
+        """
+        return self._description
+
+    @description.setter
+    def description(self, description: str):
+        """Sets the description of this ExternalDatasource.
+
+        A more detailed description of the resource.  # noqa: E501
+
+        :param description: The description of this ExternalDatasource.
+        :type description: str
+        """
+
+        self._description = description
 
     @property
     def parameters(self) -> List[ExternalDatasourceParameters]:

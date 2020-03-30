@@ -48,15 +48,21 @@ def get_data_sources():  # noqa: E501
     :rtype: ExternalDatasource
     """
     return [
-        ExternalDatasource(id = "example_datasets", name = "Example datasets", parameters=[
+        ExternalDatasource(id = "example_datasets", name = "Example datasets", 
+                           description="Example datasets to quickly test the application.",
+                           parameters=[
             ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id", 
                                          type="string", description="Identifier of the dataset", required=True)
         ]),
-        ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", parameters=[
+        ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", 
+                           description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
+                           parameters=[
             ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                          description="Identifier of the dataset", required=True)
         ]),
-        ExternalDatasource(id = "ebi_sc_gxa", name = "Single Cell Expression Atlas", parameters=[
+        ExternalDatasource(id = "ebi_sc_gxa", name = "Single Cell Expression Atlas", 
+                           description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
+                           parameters=[
             ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                          type="string", description="Identifier of the dataset", required=True),
             ExternalDatasourceParameters(name="k", type="int", display_name="K",

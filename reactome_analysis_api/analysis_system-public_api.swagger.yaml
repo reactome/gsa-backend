@@ -760,6 +760,10 @@ definitions:
         type: string
         description: A human readable name for the data source
         example: Expression Atlas
+      description:
+        type: string
+        description: A more detailed description of the resource.
+        example: The EBI ExpressionAtlas resource (http://www.ebi.ac.uk/gxa)
       parameters:
         type: array
         items:

@@ -805,6 +805,10 @@ definitions:
         type: "string"
         example: "Expression Atlas"
         description: "A human readable name for the data source"
+      description:
+        type: "string"
+        example: "The EBI ExpressionAtlas resource (http://www.ebi.ac.uk/gxa)"
+        description: "A more detailed description of the resource."
       parameters:
         type: "array"
         items:
@@ -813,6 +817,7 @@ definitions:
       \ parameters."
     example:
       name: "Expression Atlas"
+      description: "The EBI ExpressionAtlas resource (http://www.ebi.ac.uk/gxa)"
       id: "EXP_ATLAS"
       parameters:
       - name: "id"
