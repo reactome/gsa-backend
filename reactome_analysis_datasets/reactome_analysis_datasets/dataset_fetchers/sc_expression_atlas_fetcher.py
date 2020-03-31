@@ -322,7 +322,7 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
 
         # Create the dict to create the ExternalData object from
         summary = {"type": "rnaseq_counts", 
-                   "id": "{id}_k{k}".format(id=dataset_id, k=str(k)),
+                   "id": "{id}_{k}".format(id=dataset_id, k=str(k)),
                    "title": "Single Cell Expression Atlas dataset {id} clustered at k = {k}".format(id=dataset_id, k=str(k)),
                    "description": "Enternal dataset loaded from Single Cell Expression Atlas",
                    "sample_ids": sample_ids,
