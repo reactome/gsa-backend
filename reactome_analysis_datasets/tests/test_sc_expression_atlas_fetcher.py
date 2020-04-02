@@ -121,4 +121,13 @@ class ScExpressionAtlasFetcherTest(unittest.TestCase):
             DatasetRequestParameter(name="k", value="12")]
 
         fetcher.load_dataset(failed_experiment, MockMQ())
+
+    def test_load_expr_data(self):
+        fetcher = ScExpressionAtlasFetcher()
+
+        failed_experiment = [
+            DatasetRequestParameter(name="dataset_id", value="E-MTAB-7078"),
+            DatasetRequestParameter(name="k", value="3")]
+
+        fetcher.load_dataset(failed_experiment, MockMQ())
         

@@ -225,6 +225,10 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
             for line in reader:
                 rowname = line.strip()
 
+                # remove a duplicated entry in the matrix file
+                if "\t" in rowname:
+                    rowname = rowname[0:rowname.find("\t")]
+
                 if len(rowname) > 0:
                     rownames.append(rowname)
 
@@ -285,7 +289,7 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
             logger.error("Could not create expression table. Rownames, colnames and expression values do not match.")
             raise DatasetFetcherException("Failed to convert average cell counts")
 
-        # first line it he colnames
+        # first line with the colnames
         lines = ["\t" + "\t".join(colnames)]
 
         # add the rows
