@@ -237,7 +237,7 @@ class ReactomeAnalysisWorker:
                                               max_missing_values=float(request.parameter_dict.get("max_missing_values", 0.5)))
 
         # get the retained identifiers
-        identifiers_after_filter = self._extract_identifiers(datasets=request.datasets)
+        identifiers_after_filter = ReactomeAnalysisWorker._extract_identifiers(datasets=request.datasets)
 
         # perform the mapping for every dataset
         mappings = dict()
@@ -421,7 +421,7 @@ class ReactomeAnalysisWorker:
         :returns: A dict with the original identifier as key and the mappings as value (list)
         """
         # get all identifiers
-        all_identifiers = self._extract_identifiers(request.datasets)
+        all_identifiers = ReactomeAnalysisWorker._extract_identifiers(request.datasets)
 
         # make sure more than one gene was submitted
         if len(all_identifiers) <= 1:
@@ -509,7 +509,8 @@ class ReactomeAnalysisWorker:
 
         return True
 
-    def _extract_identifiers(self, datasets: list) -> set:
+    @staticmethod
+    def _extract_identifiers(datasets: list) -> set:
         """
         Extract all identifiers from a list of datasets.
         :param datasets: A list of datasets
@@ -580,7 +581,7 @@ class ReactomeAnalysisWorker:
         :param design: The design
         :return: The filtered numpy array
         """
-        # remove all unmapped genes by keepingstorage. the mapped ones
+        # remove all unmapped genes by keeping the mapped ones
         rows_to_keep = list()
         for i in range(df.size):
             gene = df[df.dtype.names[0]][i]

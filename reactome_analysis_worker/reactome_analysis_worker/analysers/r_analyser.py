@@ -97,6 +97,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             if dataset.design is None:
                 raise AnalysisException("Dataset '" + dataset.name + "' does not contain an experimental design.")
 
+            LOGGER.debug("Analysing dataset " + dataset.name)
+
             # get the gene index
             gene_index = self.dict_of_list_to_r(gene_set_mappings[dataset.name].gene_set_indices, value_type=int)
 
@@ -106,6 +108,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
             self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
                                 complete=previous_progress + (0.3 / len(request.datasets)))
+
+            LOGGER.debug("Starting GSA...")
 
             result = self._perform_gsa(method=request.method_name,
                                        parameters=getattr(dataset, "parameter_dict", dict()),
@@ -118,6 +122,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
                                 complete=previous_progress + (0.5 / len(request.datasets)))
 
+            LOGGER.debug("Estimating fold changes...")
+
             fold_changes = self._estimate_gene_fc(method=request.method_name,
                                                   parameters=getattr(dataset, "parameter_dict", dict()),
                                                   expression_data=expression_data, sample_data=sample_data,
@@ -128,10 +134,14 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
                                 complete=previous_progress + (0.7 / len(request.datasets)))
 
+            LOGGER.debug("Adding pathway fold changes...")
+
             # add average fold-changes to the analysis result
             # pylint: disable=no-member
             result = ReactomeRAnalyser.preprocess.add_pathway_foldchanges(result, fold_changes, gene_index,
                                                                           expression_data)
+
+            LOGGER.debug("Creating the analysis result...")
 
             analysis_result = AnalysisResultResults(name=dataset.name,
                                                     pathways=str(ReactomeRAnalyser.preprocess.data_frame_as_string(result)[0]),
@@ -140,6 +150,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             analysis_results.append(analysis_result)
 
             previous_progress += 0.7 / len(request.datasets)
+
+            LOGGER.debug("Dataset analysis complete")
 
         return analysis_results
 
@@ -302,6 +314,9 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         expression_values = list()
         for sample_name in colnames:
             expression_values += dataset.df[sample_name].tolist()
+
+        # replace "NA" with "0"
+        expression_values = [value if value != "NA" else 0 for value in expression_values]
 
         # create the R vector
         r_vector = ri.FloatSexpVector(expression_values)
