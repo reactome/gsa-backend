@@ -56,10 +56,10 @@ which interactively builds the image in linux based systems (tested on Ubuntu 19
 ## Deploying the ReactomeGSA Analysis System
 
 The ReactomeGSA Analysis System can easily be deployed on any kubernetes cluster. For tests, we recommend to use
-(minikube)[https://github.com/kubernetes/minikube]. (minikube)[https://github.com/kubernetes/minikube] allows
+[minikube](https://github.com/kubernetes/minikube). [minikube](https://github.com/kubernetes/minikube) allows
 you to run a kubernetes cluster with a single command on your own computer.
 
-Then, simply download the (kubernetes/analysis_system_example.yaml)[kubernetes/analysis_system_example.yaml] file
+Then, simply download the [kubernetes/analysis_system_example.yaml](kubernetes/analysis_system_example.yaml) file
 to your computer. Once minikube is installed and running, simply execute:
 
 ```bash
