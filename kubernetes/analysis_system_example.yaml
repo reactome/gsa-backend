@@ -44,7 +44,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1000M
+      storage: 150Mi
 status:
   accessModes:
   - ReadWriteOnce
@@ -63,7 +63,7 @@ data:
     rename-command CONFIG ""
 
     # use redis like a cache - once the memory limit is reached, results / keys are deleted
-    maxmemory 900mb
+    maxmemory 100mb
     maxmemory-policy allkeys-lru
 
     # backup the data every 60 sec if at least 1 key changed
@@ -230,9 +230,9 @@ spec:
           protocol: TCP
         env:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
-          value: 400Mib
+          value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: K1FqbmdJVU1Mck1tNVMvwqdtQkxXQ1FPcHc3TlNdPVhdTiZsN2tIYXQzc0ZLWVhUQjFS
+          value: dEJIekJPYzh6bFp4dW4xMlRDRE9Va25mSFppZ1RUTW5qRkdUbGYyY0pFNFJpc3l2YUk=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -320,7 +320,32 @@ data:
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
   REDIS_DATABASE: "0"
+  USE_REDIS_CLUSTER: "False"
   RABBIT_MAX_QUEUE_LENGTH: "10"
+  MAIL_ERROR_ADDRESS: "notify@me.com"
+---
+# Config Map for the e-mail settings
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reactome-email-config
+  
+data:
+  SMTP_SERVER: ""
+  SMTP_PORT: "587"
+  FROM_ADDRESS: ""
+  BASE_URL: "http://192.168.99.100:30966"
+---
+#  mail-secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mail-secret
+  
+data:
+  user: 
+  password: 
+type: Opaque
 ---
 # REACTOME API deployment
 apiVersion: extensions/v1beta1
@@ -350,6 +375,8 @@ spec:
         envFrom:
         - configMapRef:
             name: reactome-global-config
+        - configMapRef:
+            name: reactome-email-config
         env:
           - name: REDIS_PASSWORD_FILE
             value: "/etc/redis/redis.password"
@@ -357,12 +384,19 @@ spec:
             value: "/etc/rabbit/user"
           - name: RABBIT_PASSWORD_SECRETS_FILE
             value: "/etc/rabbit/password"
+          - name: EMAIL_USER_FILE
+            value: "/etc/mail/user"
+          - name: EMAIL_PASSWORD_FILE
+            value: "/etc/mail/password"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume
           readOnly: true
         - mountPath: /etc/rabbit/
           name: rabbit-secret-volume
+          readOnly: true
+        - mountPath: /etc/mail/
+          name: mail-secret-volume
           readOnly: true
         resources:
           requests:
@@ -371,6 +405,10 @@ spec:
           limits:
             cpu: 250m
             memory: 500Mi
+        readinessProbe:
+          httpGet:
+            path: /0.1/ui/
+            port: 8080
       volumes:
       - name: redis-secret-volume
         secret:
@@ -386,6 +424,29 @@ spec:
             path: user
           - key: password
             path: password
+      - name: mail-secret-volume
+        secret:
+          secretName: mail-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+---
+# REACTOME api autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-api
+  
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-api
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 75 
 ---
 # REACTOME worker deployment
 apiVersion: extensions/v1beta1
@@ -419,6 +480,8 @@ spec:
         envFrom:
         - configMapRef:
             name: reactome-global-config
+        - configMapRef:
+            name: reactome-email-config
         env:
           - name: PROMETHEUS_PORT
             value: "9090"
@@ -428,12 +491,21 @@ spec:
             value: "/etc/rabbit/user"
           - name: RABBIT_PASSWORD_SECRETS_FILE
             value: "/etc/rabbit/password"
+          - name: EMAIL_USER_FILE
+            value: "/etc/mail/user"
+          - name: EMAIL_PASSWORD_FILE
+            value: "/etc/mail/password"
+          - name: MAX_WORKER_TIMEOUT
+            value: "60"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume
           readOnly: true
         - mountPath: /etc/rabbit/
           name: rabbit-secret-volume
+          readOnly: true
+        - mountPath: /etc/mail/
+          name: mail-secret-volume
           readOnly: true
         resources:
           requests:
@@ -452,6 +524,14 @@ spec:
       - name: rabbit-secret-volume
         secret:
           secretName: rabbitmq-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
+      - name: mail-secret-volume
+        secret:
+          secretName: mail-secret
           items:
           - key: user
             path: user
@@ -477,29 +557,6 @@ spec:
   minReplicas: 1
   maxReplicas: 1
   targetCPUUtilizationPercentage: 75 
----
-# Config Map for the e-mail settings
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: reactome-email-config
-  
-data:
-  SMTP_SERVER: ""
-  SMTP_PORT: "587"
-  FROM_ADDRESS: ""
-  BASE_URL: "http://192.168.99.100:30966"
----
-#  mail-secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mail-secret
-  
-data:
-  user: 
-  password: 
-type: Opaque
 ---
 # REACTOME report deployment
 apiVersion: extensions/v1beta1
@@ -594,6 +651,21 @@ spec:
         value: "pre-emptible"
         effect: "NoSchedule"
 ---
+# REACTOME report autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-report
+  
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-report
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 75 
+---
 # REACTOME datasets deployment
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -626,6 +698,8 @@ spec:
         envFrom:
         - configMapRef:
             name: reactome-global-config  
+        - configMapRef:
+            name: reactome-email-config
         env:
           - name: PROMETHEUS_PORT
             value: "9090"
@@ -635,12 +709,21 @@ spec:
             value: "/etc/rabbit/user"
           - name: RABBIT_PASSWORD_SECRETS_FILE
             value: "/etc/rabbit/password"
+          - name: EMAIL_USER_FILE
+            value: "/etc/mail/user"
+          - name: EMAIL_PASSWORD_FILE
+            value: "/etc/mail/password"
+          - name: LOADING_MAX_TIMEOUT
+            value: "60"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume
           readOnly: true
         - mountPath: /etc/rabbit/
           name: rabbit-secret-volume
+          readOnly: true
+        - mountPath: /etc/mail/
+          name: mail-secret-volume
           readOnly: true
         resources:
           requests:
@@ -664,8 +747,31 @@ spec:
             path: user
           - key: password
             path: password
+      - name: mail-secret-volume
+        secret:
+          secretName: mail-secret
+          items:
+          - key: user
+            path: user
+          - key: password
+            path: password
       tolerations:
       - key: "stability"
         operator: "Equal"
         value: "pre-emptible"
         effect: "NoSchedule"
+---
+# REACTOME datasets autoscaler
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: reactome-analysis-datasets
+  
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: reactome-analysis-datasets
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 75 
