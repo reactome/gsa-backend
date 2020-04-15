@@ -17,7 +17,7 @@ RUN wget -O /tmp/install_tl.tar.gz "http://mirror.ctan.org/systems/texlive/tlnet
     ./install-tl --profile /tmp/texlive.profile && \
     rm -rf /tmp/texlive* /tmp/install-tl-* /tmp/install_tl*
 
-ENV PATH "$PATH:/usr/local/texlive/2019/bin/x86_64-linux"
+ENV PATH "$PATH:/usr/local/texlive/2020/bin/x86_64-linux"
 
 # Install required texlive packages
 RUN tlmgr install lm ec booktabs titling xtab xcolor titlesec fancybox xetex mathspec etoolbox fontspec xkeyval zapfding 
