@@ -77,7 +77,10 @@ The ReactomeGSA Analysis System kubernetes deployment can be customized using a 
 (`kubernetes/example_config.yaml`). To render the template, we provide a custom python script:
 
 ```bash
-python3 kubernetes/render_template.py --template kubernetes/analysis_system.yaml.template --config kubernetes/example_config.yaml --output /tmp/my_analysis_system.yaml
+python3 kubernetes/render_template.py \
+	--template kubernetes/analysis_system.yaml.template \
+	--config kubernetes/example_config.yaml \
+	--output /tmp/my_analysis_system.yaml
 ```
 
 ## Getting help & reporting issues
