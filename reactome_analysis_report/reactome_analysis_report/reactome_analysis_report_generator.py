@@ -322,7 +322,7 @@ class ReactomeAnalysisReportGenerator:
         You can additionally directly load the result into an R session using the following code:
 
             library(ReactomeGSA)
-            analysis_result <- get_reactome_analysis_status(analysis_id={analysis_id})
+            analysis_result <- get_reactome_analysis_status(analysis_id="{analysis_id}")
 
         Kind regards,
         The Reactome Team
@@ -369,7 +369,7 @@ class ReactomeAnalysisReportGenerator:
             </p>
             <pre>
                 library(ReactomeGSA)
-                analysis_result <- get_reactome_analysis_status(analysis_id={analysis_id})
+                analysis_result <- get_reactome_analysis_status(analysis_id="{analysis_id}")
             </pre>
             <p>
               Kind regards, <br />
