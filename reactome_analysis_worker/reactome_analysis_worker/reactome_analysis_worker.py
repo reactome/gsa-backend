@@ -159,12 +159,13 @@ class ReactomeAnalysisWorker:
         try:
             mq_request = analysis_request.from_json(body)
 
-            # make sure the analysis object exists
+            # load the data from storage
             if not self._get_storage().analysis_request_data_exists(mq_request.request_id):
                 raise Exception("Failed to receive request data from storage. Please resubmit your analysis request.")
 
-            # load the request from storage
-            request = self._get_storage().get_analysis_request_object(mq_request.request_id)
+            # load the JSON data from storage and decode it
+            body_dict = json.loads(self._get_storage().get_analysis_request_data(mq_request.request_id))
+            request = create_analysis_input_object(body_dict)
         except Exception as e:
             # This means that the application has a major problem - this should never happen
             LOGGER.critical("Failed to create analysis request object: " + str(e))

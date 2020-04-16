@@ -14,7 +14,6 @@ This script makes use of the following environmental variables (if present):
 
 import logging
 import os
-import pickle
 
 import redis
 import rediscluster
@@ -247,31 +246,31 @@ class ReactomeStorage:
         except Exception as e:
             raise ReactomeStorageException(e)
 
-    def get_analysis_request_object(self, token: str) -> str:
+    def get_analysis_request_data(self, token: str) -> str:
         """
-        Retrieve the analysis request object.
+        Retrieve the JSON-encoded analysis request object.
         :param token: The token identifying the analysis request.
-        :return: The AnalysisRequest object as retrieved through pickle
+        :return: The data
         """
         try:
             request_key = self._get_analysis_request_key(token)
             data = self.r.get(request_key)
 
-            return pickle.loads(data)
+            return data
         except Exception as e:
             raise ReactomeStorageException(e)
 
-    def set_analysis_request_object(self, token: str, analysis_request, expire: int = 1800):
+    def set_analysis_request_data(self, token: str, data:str, expire: int = 1800):
         """
-        Store the analysis request object.
+        Store the JSON-encoded analysis request object.
         :param token: The token identifying the analysis request.
-        :param analysis_request: The analysis request object. It will be stored using pickle.
+        :param data: The JSON-encoded string to store.
         :param expire: If not none, the key will be expired in `expire` seconds. Default = 30 Minutes = 1800 seconds.
         """
         try:
             request_key = self._get_analysis_request_key(token)
             
-            self.r.set(name=request_key, value=pickle.dumps(analysis_request))
+            self.r.set(name=request_key, value=data)
 
             if expire is not None and expire > 0:
                 self.r.expire(request_key, expire)
