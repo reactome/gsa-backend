@@ -257,7 +257,8 @@ class ReactomeAnalysisReportGenerator:
             LOGGER.debug("Sending report e-mail...")
             ReactomeAnalysisReportGenerator.send_email(user_address=request.user_mail,
                                                        available_reports=generated_results,
-                                                       available_visualizations=available_visualizations)
+                                                       available_visualizations=available_visualizations,
+                                                       result_id=request.analysis_id)
 
         self._acknowledge_message(ch, method)
 
@@ -272,14 +273,15 @@ class ReactomeAnalysisReportGenerator:
         LOGGER.debug("Report creation completed.")
 
     @staticmethod
-    def send_email(user_address, available_reports, available_visualizations: dict):
+    def send_email(user_address, available_reports, available_visualizations: dict, result_id: str):
         """
         Send an e-mail notifying the user about the new
         reports of the analysis.
         :param user_address: The user's e-mail address
         :param available_reports: A list of the extensions of the available reports
-        :param available_visualizations: List containing the names (key) and links (value) of available reacomte
-        visualizations
+        :param available_visualizations: List containing the names (key) and links (value) of available Reactome
+                                         visualizations
+        :param result_id: The identifier of the result.
         """
         # only send an e-mail if at least one report was created
         if len(available_reports) < 1:
@@ -317,6 +319,11 @@ class ReactomeAnalysisReportGenerator:
         
           {reports}
 
+        You can additionally directly load the result into an R session using the following code:
+
+            library(ReactomeGSA)
+            analysis_result <- get_reactome_analysis_status(analysis_id={analysis_id})
+
         Kind regards,
         The Reactome Team
 
@@ -333,7 +340,7 @@ class ReactomeAnalysisReportGenerator:
         or contain viruses. The sender, therefore, does not accept liability for 
         any errors or omissions in the contents of this message which arise as a 
         result of email transmission.
-        """.format(reports="\n".join(plain_report_lines)))
+        """.format(reports="\n".join(plain_report_lines), analysis_id=result_id))
 
         # Add the html version.  This converts the message into a multipart/alternative
         # container, with the original text message as the first part and the new html
@@ -358,6 +365,13 @@ class ReactomeAnalysisReportGenerator:
               {reports}
             </ul>
             <p>
+                You can also directly load these results into an R session:
+            </p>
+            <pre>
+                library(ReactomeGSA)
+                analysis_result <- get_reactome_analysis_status(analysis_id={analysis_id})
+            </pre>
+            <p>
               Kind regards, <br />
               The Reactome Team
             </p>
@@ -376,7 +390,7 @@ class ReactomeAnalysisReportGenerator:
             </p>
           </body>
         </html>
-        """.format(reports="\n".join(html_report_lines)), subtype='html')
+        """.format(reports="\n".join(html_report_lines), analysis_id=result_id), subtype='html')
 
         # get the user and password for the smtp server
         smtp_userfile = os.getenv("EMAIL_USER_FILE", None)
