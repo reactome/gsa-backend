@@ -92,6 +92,7 @@ def start_analysis(body):  # noqa: E501
     
     try:
         analysis_request = input_deserializer.create_analysis_input_object(analysis_dict)
+        del analysis_dict
     except Exception as e:
         LOGGER.debug("Unknown analysis method submitted: " + analysis_dict["methodName"])
         abort(404, "Unknown analysis method selected.")
@@ -114,8 +115,8 @@ def start_analysis(body):  # noqa: E501
             analysis_id = str(uuid.uuid1())
 
         # Load request data from storage
-        for n_dataset in range(0, len(analysis_dict["datasets"])):
-            data = analysis_dict["datasets"][n_dataset]["data"]
+        for n_dataset in range(0, len(analysis_request.datasets)):
+            data = analysis_request.datasets[n_dataset].data
 
             # Update for external datasets
             if data[0:4] == "rqu_" or len(data) < 20:
@@ -128,7 +129,7 @@ def start_analysis(body):  # noqa: E501
                 stored_data = storage.get_request_data(data)
 
                 # update the request object
-                analysis_dict["datasets"][n_dataset]["data"] = stored_data.decode("UTF-8")
+                analysis_request.datasets[n_dataset].data = stored_data.decode("UTF-8")
 
         # Set the initial status
         encoder = JSONEncoder()
@@ -137,8 +138,8 @@ def start_analysis(body):  # noqa: E501
         storage.set_status(analysis_id, encoder.encode(status))
 
         # Save the request data
-        analysis_dict["analysisId"] = analysis_id
-        storage.set_analysis_request_data(token=analysis_id, data=encoder.encode(analysis_dict))
+        analysis_request._analysis_id = analysis_id
+        storage.set_analysis_request_object(token=analysis_id, analysis_request=analysis_request)
 
         try:
             # Submit the request to the queue
