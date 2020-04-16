@@ -223,6 +223,8 @@ class ReactomeAnalysisReportGenerator:
                         data_type = "report"
                     elif extension == ".pdf":
                         data_type = "pdf_report"
+                    elif extension == ".r":
+                        data_type = "r_script"
                     else:
                         LOGGER.error("Unknown extension encountered: " + extension)
                         continue
@@ -257,8 +259,7 @@ class ReactomeAnalysisReportGenerator:
             LOGGER.debug("Sending report e-mail...")
             ReactomeAnalysisReportGenerator.send_email(user_address=request.user_mail,
                                                        available_reports=generated_results,
-                                                       available_visualizations=available_visualizations,
-                                                       result_id=request.analysis_id)
+                                                       available_visualizations=available_visualizations)
 
         self._acknowledge_message(ch, method)
 
@@ -273,7 +274,7 @@ class ReactomeAnalysisReportGenerator:
         LOGGER.debug("Report creation completed.")
 
     @staticmethod
-    def send_email(user_address, available_reports, available_visualizations: dict, result_id: str):
+    def send_email(user_address, available_reports, available_visualizations: dict):
         """
         Send an e-mail notifying the user about the new
         reports of the analysis.
@@ -281,7 +282,6 @@ class ReactomeAnalysisReportGenerator:
         :param available_reports: A list of the extensions of the available reports
         :param available_visualizations: List containing the names (key) and links (value) of available Reactome
                                          visualizations
-        :param result_id: The identifier of the result.
         """
         # only send an e-mail if at least one report was created
         if len(available_reports) < 1:
@@ -319,11 +319,6 @@ class ReactomeAnalysisReportGenerator:
         
           {reports}
 
-        You can additionally directly load the result into an R session using the following code:
-
-            library(ReactomeGSA)
-            analysis_result <- get_reactome_analysis_result(analysis_id="{analysis_id}")
-
         Kind regards,
         The Reactome Team
 
@@ -340,7 +335,7 @@ class ReactomeAnalysisReportGenerator:
         or contain viruses. The sender, therefore, does not accept liability for 
         any errors or omissions in the contents of this message which arise as a 
         result of email transmission.
-        """.format(reports="\n".join(plain_report_lines), analysis_id=result_id))
+        """.format(reports="\n".join(plain_report_lines)))
 
         # Add the html version.  This converts the message into a multipart/alternative
         # container, with the original text message as the first part and the new html
@@ -365,13 +360,6 @@ class ReactomeAnalysisReportGenerator:
               {reports}
             </ul>
             <p>
-                You can also directly load these results into an R session:
-            </p>
-            <pre>
-                library(ReactomeGSA)
-                analysis_result <- get_reactome_analysis_result(analysis_id="{analysis_id}")
-            </pre>
-            <p>
               Kind regards, <br />
               The Reactome Team
             </p>
@@ -390,7 +378,7 @@ class ReactomeAnalysisReportGenerator:
             </p>
           </body>
         </html>
-        """.format(reports="\n".join(html_report_lines), analysis_id=result_id), subtype='html')
+        """.format(reports="\n".join(html_report_lines)), subtype='html')
 
         # get the user and password for the smtp server
         smtp_userfile = os.getenv("EMAIL_USER_FILE", None)
@@ -429,6 +417,8 @@ class ReactomeAnalysisReportGenerator:
             return "PDF Report"
         elif extension == ".xlsx":
             return "MS Excel Report (xlsx)"
+        elif extension == ".r":
+            return "R Script"
         else:
             return "Report"
 
@@ -443,6 +433,8 @@ class ReactomeAnalysisReportGenerator:
             return "application/pdf"
         elif extension == ".xlsx":
             return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        elif extension == ".r":
+            return "text/plain"
         else:
             return None
 
@@ -502,6 +494,14 @@ class ReportGenerationProcess(multiprocessing.Process):
             self.create_pdf_report(pdf_filename)
 
             self.result_queue.put(pdf_filename)
+
+            # create the R script
+            LOGGER.debug("Creating R script...")
+
+            r_filename = "/tmp/result_" + self.report_request.analysis_id + ".r"
+            self.create_r_script(r_filename)
+
+            self.result_queue.put(r_filename)
         except Exception as e:
             # put the error message in the queue
             LOGGER.error("Error during report generation: " + str(e))
@@ -564,3 +564,30 @@ class ReportGenerationProcess(multiprocessing.Process):
             """)
         except Exception as e:
             LOGGER.error("RRuntimeError: " + str(e))
+
+    def create_r_script(self, r_filename: str) -> None:
+        """
+        Create an R script to load the analysis result into an R session.
+        :param r_filename: The target filename of the script
+        """
+        # the base_url is taken of an environmental parameter
+        base_url = os.getenv("BASE_URL", "http://193.62.55.4")
+
+        with open(r_filename, "w") as writer:
+            writer.write("""
+# install the ReactomeGSA package if not available
+if (!require(ReactomeGSA)) {
+    if (!requireNamespace("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+
+    BiocManager::install("ReactomeGSA")
+}
+
+# load the package
+library(ReactomeGSA)
+
+# load the analysis result
+result <- get_reactome_analysis_result(analysis_id = "{analysis_id}", reactome_url = "{base_url}")
+
+# get the overview over all pathways
+all_pathways <- pathways(result)""".format(analysis_id=self.report_request.analysis_id, base_url=base_url))

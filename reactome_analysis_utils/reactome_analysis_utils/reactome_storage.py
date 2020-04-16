@@ -106,6 +106,8 @@ class ReactomeStorage:
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
+            elif data_type == "r_script":
+                result_key = self._get_r_script_result_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -120,7 +122,7 @@ class ReactomeStorage:
         """
         Store the result for the specified analysis
         :param analysis_identifier: The analysis' identifier
-        :param data_type: The data type to get the status for ["analysis", "report", "pdf_report"]
+        :param data_type: The data type to get the status for ["analysis", "report", "pdf_report", "r_script"]
         :param result: The result as a string
         """
         try:
@@ -130,6 +132,8 @@ class ReactomeStorage:
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
+            elif data_type == "r_script":
+                result_key = self._get_r_script_result_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -359,6 +363,16 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "pdf_report:{}:result".format(token)
+
+    @staticmethod
+    def _get_r_script_result_key(token: str) -> str:
+        """
+        Creates the redis key for the specified R report script
+
+        :param token: The token identifying the report
+        :return: The matching redis key
+        """
+        return "r_script:{}:result".format(token)
 
     @staticmethod
     def _get_status_key(analysis_id: str) -> str:
