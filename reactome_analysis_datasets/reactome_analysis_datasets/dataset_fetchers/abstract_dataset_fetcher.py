@@ -3,6 +3,9 @@ from reactome_analysis_utils import reactome_mq
 
 
 class DatasetFetcher:
+    def __init__(self):
+        self._status_callback = None
+
     """
     Abstract base class of all dataset fetchers
     """
@@ -38,6 +41,25 @@ class DatasetFetcher:
         :returns: The datsaet identifier
         """
         raise NotImplementedError
+
+    def set_status_callback(self, status_callback) -> None:
+        """
+        Set the function to use to update status messages.
+
+        The function must follow the signature (progress: float (0-1), message: str)
+        :param status_callback: The function to use for status updates
+        """
+        self._status_callback = status_callback
+
+    def _update_status(self, progress: float, message: str) -> None:
+        """
+        Update the current status.
+
+        :param progress: The progress as a float between 0 - 1
+        :param message: The status message to show
+        """
+        if self._status_callback:
+            self._status_callback(progress=progress, message=message)
 
 class DatasetFetcherException(Exception):
     """

@@ -68,6 +68,9 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         The init function is currently only used to initialise the maximum loading timeout
         """
+        # call the abstract constructor
+        super().__init__()
+
         self.max_timeout = int(os.getenv("LOADING_MAX_TIMEOUT", 60))
 
     def get_dataset_id(self, parameters: list) -> str:
@@ -96,12 +99,14 @@ class ExpressionAtlasFetcher(DatasetFetcher):
             raise DatasetFetcherException("{} is not a valid ExpressionAtlas identifier".format(identifier))
 
         # get the available files for download
+        self._update_status(progress=0.1, message="Fetching available files")
         download_files = self.fetch_available_files(identifier)
 
         # try to retrieve the type of the passed identifier
         dataset_type = self.get_dataset_type(download_files)
 
         # load the data based on the type
+        self._update_status(progress=0.2, message="Downloading data from ExpressionAtlas")
         if dataset_type == ExpressionAtlasTypes.R_MICROARRAY or dataset_type == ExpressionAtlasTypes.R_RNA_SEQ:
             loaded_data = self.load_r_data(download_files, reactome_mq)
         elif dataset_type == ExpressionAtlasTypes.PROTEOMICS:
@@ -109,6 +114,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
             loaded_data["data_type"] = "proteomics_int"
 
         # convert the metadata into a summary object
+        self._update_status(progress=0.8, message="Creating summary data")
         summary = self._create_summary(identifier, loaded_data["data_type"], loaded_data["metadata"])
 
         return (loaded_data["expression_values"], summary)
@@ -188,6 +194,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         expression_data = self._download_atlas_file(expression_file).decode()
 
         # process the metadata file
+        self._update_status(progress=0.4, message="Converting ExpressionAtlas data")
         clean_metadata = ExpressionAtlasFetcher._filter_metadata(design_data)
 
         # process the expression data
@@ -338,6 +345,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
             stored_r_file.close()
 
         # Use the RLoadingProcess to load the file
+        self._update_status(progress=0.4, message="Converting ExpressionAtlas data")
         file_loaded_event = multiprocessing.Event()
         file_loading_queue = multiprocessing.Queue()
         heartbeat_queue = multiprocessing.Queue()

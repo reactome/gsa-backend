@@ -39,10 +39,14 @@ class ExampleDatasetFetcher(DatasetFetcher):
             raise DatasetFetcherException("Unknown example data identifier {}".format(identifier))
 
         # load the data
+        self._update_status(progress=0.2, message="Loading expression data")
+
         try:
             example_data = self.load_textfile(data_file)
         except Exception:
             raise DatasetFetcherException("Failed to load data for {}".format(identifier))
+
+        self._update_status(progress=0.7, message="Loading summary data")
 
         try:
             summary_data = self.load_textfile(summary_file)
@@ -50,6 +54,7 @@ class ExampleDatasetFetcher(DatasetFetcher):
             raise DatasetFetcherException("Failed to load summary data for {}".format(identifier))
 
         # convert the summary into an object
+        self._update_status(progress=0.8, message="Converting loaded data")
         try:
             summary_dict = json.loads(summary_data)
             summary_obj = ExternalData.from_dict(summary_dict)

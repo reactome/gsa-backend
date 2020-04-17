@@ -143,6 +143,11 @@ class ReactomeAnalysisDatasetFetcher:
             self._acknowledge_message(ch, method)
             return
 
+        # set the status callback
+        dataset_fetcher.set_status_callback(lambda progress, message:
+            self._set_status(request_id=request.loading_id, status="running", completion=progress, description=message)
+        )
+
         # connect to the storage system
         try:
             storage = self._get_storage()

@@ -57,22 +57,27 @@ class ScExpressionAtlasFetcher(DatasetFetcher):
             raise DatasetFetcherException("Missing required parameter 'k' to load the Single Cell Expression Atlas dataset")
 
         # get the clustering data
+        self._update_status(progress=0.1, message="Loading cell clustering data")
         cell_clusterings = self._get_cell_clusterings(dataset_id=identifier, k=k)
 
         # download the matrix files
+        self._update_status(progress=0.2, message="Downloading expression data")
         logger.debug("Downloading norm counts for {id}".format(id=identifier))
         file_url = "https://www.ebi.ac.uk/gxa/sc/experiment/{id}/download/zip?fileType=normalised&accessKey=".format(id=identifier)
         matrix_file_dir = self._download_zip_file(file_url=file_url)
 
         # get the average expression per cluster
+        self._update_status(progress=0.5, message="Calculating average expression per cluster")
         logger.debug("Calculating average expression per cluster...")
         (av_exp, rownames, colnames) = self._get_av_cluster_expression(matrix_file_dir=matrix_file_dir, cell_clusterings=cell_clusterings)
 
         # create the tab-delimited string to represent the expression table
+        self._update_status(progress=0.7, message="Creating expression table")
         logger.debug("Creating expression table...")
         expression_table = self._create_expression_table(expression=av_exp, rownames=rownames, colnames=colnames)
 
         # create a sensible summary object
+        self._update_status(progress=0.9, message="Creating dataset summary")
         logger.debug("Creating summary object...")
         summary = self._create_summary(dataset_id=identifier, k=k, sample_ids=colnames, cell_clusterings=cell_clusterings)
 
