@@ -4,6 +4,7 @@ R-based reactome analyser
 
 import logging
 import gc
+import re
 from collections.abc import Iterable
 
 import rpy2.rinterface as ri
@@ -58,6 +59,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         self.reactome_result_types = [ReactomeResultTypes.gsa]
         self.r_messages = list()
 
+        self.padog_update_pattern = re.compile(r"\s*(\d+ / \d+)\s*")
+
         # Note: This changed in rp2 version 3.x
         # see https://rpy2.github.io/doc/latest/html/callbacks.html?highlight=warn
         rpy2.rinterface_lib.callbacks.consolewrite_print = self._catch_message
@@ -71,12 +74,19 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         # triggers a "heartbeat"
         self._heartbeat()
 
-        message = message.strip()
-        if len(message) == 0:
-            return
+        # check if it contains a new-line
+        if "\n" in message:
+            full_message = "".join(self.r_messages)
 
-        LOGGER.debug("R Message: " + message)
-        self.r_messages.append(message)
+            LOGGER.debug("R Message: " + full_message)
+            self.r_messages.clear()
+
+            # check if it's a PADOG progress update
+            padog_match = self.padog_update_pattern.match(full_message)
+            if padog_match:
+                self._update_status(message="Permutation {}".format(padog_match.group(1)))
+        else:
+            self.r_messages.append(message)
 
     """
     Performs pathway analysis using different R methods

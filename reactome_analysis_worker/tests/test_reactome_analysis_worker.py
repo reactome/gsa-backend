@@ -25,10 +25,10 @@ class TestReactome_analysis_worker(unittest.TestCase):
 
     def setUp(self):
         os.environ["REDIS_HOST"] = "192.168.99.100"
-        os.environ["REDIS_PORT"] = "31297"
+        os.environ["REDIS_PORT"] = "32725"
         os.environ["REDIS_PASSWORD"] = "test"
         os.environ["RABBIT_HOST"] = "192.168.99.100"
-        os.environ["RABBIT_PORT"] = "31715"
+        os.environ["RABBIT_PORT"] = "30186"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
 
@@ -49,6 +49,7 @@ class TestReactome_analysis_worker(unittest.TestCase):
             gene_set.save("/tmp/reactome_homo_sapiens_interactors.pkl")
         worker = reactome_analysis_worker.ReactomeAnalysisWorker()
         worker.start_analyses()
+        #worker.process_single_message()
 
     def _get_gene_set(self):
         # load the gene set

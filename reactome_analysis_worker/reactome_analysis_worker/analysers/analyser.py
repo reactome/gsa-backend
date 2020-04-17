@@ -28,6 +28,7 @@ class ReactomeAnalyser:
         self.status_callback = None
         self.heartbeat_callback = None
         self.reactome_result_types = list()
+        self.completion = 0
 
     def set_status_callback(self, callback):
         """
@@ -51,16 +52,23 @@ class ReactomeAnalyser:
         if self.heartbeat_callback:
             self.heartbeat_callback()
 
-    def _update_status(self, message: str, complete: float):
+    def _update_status(self, message: str, complete: float = None):
         """
         Uses the defined callback to update the status of the current process.
         :param message: The message to set
-        :param complete: Percent completion (0 - 1)
+        :param complete: Percent completion (0 - 1). If not set, the previous completion value is used.
         """        
         # also triggers a heartbeat
         self._heartbeat()
 
         if self.status_callback:
+            # use the previous completion if not set
+            if not complete:
+                complete = self.completion
+
+            # update the previous completion
+            self.completion = complete
+
             self.status_callback(message, complete)
 
     def analyse_request(self, request, gene_set_mappings: dict, identifier_mappings: dict, gene_set: gene_set.GeneSet):
