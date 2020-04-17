@@ -1,0 +1,54 @@
+{
+  "description": "Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
+  "group": "SC_EXAMPLES",
+  "id": "EXAMPLE_SC_B_CELLS",
+  "title": "B cell scRNAseq example",
+  "type": "rnaseq_counts",
+  "sample_ids": [
+    "Cluster 1",
+    "Cluster 2",
+    "Cluster 3",
+    "Cluster 4",
+    "Cluster 5",
+    "Cluster 6",
+    "Cluster 7",
+    "Cluster 8",
+    "Cluster 9",  
+    "Cluster 10",
+    "Cluster 11",
+    "Cluster 12",
+    "Cluster 13" 
+  ],
+  "sample_metadata": [
+    {
+      "name": "cell.type",
+      "values": [
+        "Memory 0", "Naive", "Memory 1", "Memory 2", "Memory 3", "Memory 4", "Memory 5", 
+        "Memory switched resting", "Plasmablast", "Memory 6", "Double negative", 
+        "Memory switch activated", "Plasma cell"
+      ]
+    },
+    {
+      "name": "cell.group",
+      "values": [
+        "Memory", "Naive", "Memory", "Memory", "Memory", "Memory", "Memory", 
+        "Memory", "Plasma.like", "Memory", "Double negative", 
+        "Memory", "Plasma.like"
+      ]
+    }
+  ],
+  "default_parameters": [
+    {
+      "name": "analysis_group",
+      "value": "cell.group"
+    },
+    {
+      "name": "comparison_group_1",
+      "value": "Memory"
+    },
+    {
+      "name": "comparison_group_2",
+      "value": "Plasma.like"
+    }
+  ]
+}

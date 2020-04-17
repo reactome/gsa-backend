@@ -35,7 +35,10 @@ def get_examples():  # noqa: E501
                      group="GRISS_MELANOMA"),
         ExternalData(id="EXAMPLE_MEL_PROT", title="Melanoma proteomics example", type="proteomics_int",
                      description="Quantitative (TMT-labelled) proteomics analysis of melanoma associated B cells.",
-                     group="GRISS_MELANOMA")
+                     group="GRISS_MELANOMA"),
+        ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
+                     description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
+                     group="SC_EXAMPLES")
     ]
 
 
