@@ -63,6 +63,9 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
     :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
     :return: A dict with the original identifier as key and the mapping result as values of a list
     """
+    # convert all identifiers to string
+    identifiers = [str(value) for value in identifiers]
+
     proxy = os.getenv("PROXY", None)
 
     if proxy:
