@@ -103,6 +103,15 @@ def start_analysis(body):  # noqa: E501
         LOGGER.debug("Analysis request contains duplicate names")
         abort(406, "Datasets must not have duplicate names")
 
+    # make sure the analysis design is present
+    for n_dataset in range(0, len(analysis_request.datasets)):
+        if not analysis_request.datasets[n_dataset].design:
+            LOGGER.debug("Analysis request misses design")
+            abort(406, "Invalid request. Dataset '{name}' misses the required experimental design.")
+        if not analysis_request.datasets[n_dataset].design.comparison:
+            LOGGER.debug("Analysis request misses design comparison")
+            abort(406, "Invalid request. Dataset '{name}' misses the required comparison specification.")
+
     # generate an analysis id
     analysis_id = str(uuid.uuid1())
 
