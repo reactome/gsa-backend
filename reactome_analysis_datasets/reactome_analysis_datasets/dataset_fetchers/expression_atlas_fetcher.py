@@ -13,6 +13,7 @@ This tool reads the following env parameters:
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 import reactome_analysis_worker
 import reactome_analysis_worker.util
+from reactome_analysis_worker.analysers import ReactomeRAnalyser
 from reactome_analysis_utils import reactome_mq
 from pkg_resources import resource_string
 import re
@@ -234,7 +235,6 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         # return as one string
         return "\n".join(filtered_lines)
-
 
     @staticmethod
     def _filter_metadata(metadata_string: str) -> str:
@@ -584,16 +584,14 @@ class RLoadingProcess(multiprocessing.Process):
             self.heartbeat()
 
             LOGGER.debug("Converting metadata data.frame to string")
-            # pylint: disable=no-member
-            metadata_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["metadata"])[0])
+            metadata_string = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["metadata"])
             self.heartbeat()
 
             if self.exit:
                 return
 
             LOGGER.debug("Converting expression data.frame to string")
-            # pylint: disable=no-member
-            expression_value_string = str(self.preprocessing_functions.data_frame_as_string(ri.globalenv["expression_values"])[0])
+            expression_value_string = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["expression_values"])
             self.heartbeat()
 
             if self.exit: 

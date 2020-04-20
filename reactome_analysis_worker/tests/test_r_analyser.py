@@ -5,6 +5,8 @@ import os
 import unittest
 import time
 from tempfile import gettempdir
+import rpy2.rinterface as ri
+import rpy2.robjects as ro
 
 from reactome_analysis_api.input_deserializer import create_analysis_input_object
 
@@ -12,6 +14,9 @@ from reactome_analysis_worker import util, geneset_builder
 from reactome_analysis_worker.analysers.r_analyser import ReactomeRAnalyser
 from reactome_analysis_worker.models.gene_set_mapping import GeneSetMapping
 from reactome_analysis_worker.reactome_analysis_worker import ReactomeAnalysisWorker
+
+
+ri.initr()
 
 
 class TestReactomeRAnalyzer(unittest.TestCase):
@@ -198,3 +203,34 @@ class TestReactomeRAnalyzer(unittest.TestCase):
 
       # make sure the heartbeat was updated
       self.assertGreater(self.last_heartbeat, start_time)
+
+    def test_df_to_str(self):
+      # create the test data.frame
+      ro.reval("""
+          test_frame = data.frame(
+              name = c("John", "Doe"),
+              age = c(1, 2),
+              row.names = c("Id1", "Id2")
+          )
+
+          test_frame_2 = data.frame(
+              name = c("John", "Doe"),
+              age = c(1.12345, 2.12345),
+              row.names = c("Id1", "Id2")
+          )
+      """)
+
+      r_data_frame = ri.globalenv["test_frame"]
+
+      string_df = ReactomeRAnalyser.data_frame_to_string(r_data_frame)
+
+      self.assertIsNotNone(string_df)
+      self.assertEqual("\\tname\\tage\\nId1\\tJohn\\t1.0\\nId2\\tDoe\\t2.0", string_df)
+
+      # check the precision
+      r_data_frame2 = ri.globalenv["test_frame_2"]
+
+      string_df2 = ReactomeRAnalyser.data_frame_to_string(r_data_frame2)
+
+      self.assertIsNotNone(string_df2)
+      self.assertEqual("\\tname\\tage\\nId1\\tJohn\\t1.12345\\nId2\\tDoe\\t2.12345", string_df2)

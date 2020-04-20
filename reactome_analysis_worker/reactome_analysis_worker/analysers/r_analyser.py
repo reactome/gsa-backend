@@ -10,6 +10,7 @@ from collections.abc import Iterable
 import rpy2.rinterface as ri
 import rpy2.rinterface_lib
 import rpy2.robjects as ro
+from rpy2.robjects import pandas2ri
 from pkg_resources import resource_string, resource_listdir
 from reactome_analysis_api.models.analysis_result_results import AnalysisResultResults
 from rpy2.robjects.packages import importr
@@ -19,6 +20,8 @@ from reactome_analysis_worker.result_converter import ReactomeResultTypes
 
 # initialize R
 ri.initr()
+# initialize pandas2ri
+pandas2ri.activate()
 # create a standard logger object
 LOGGER = logging.getLogger(__name__)
 
@@ -374,6 +377,31 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         sample_data.do_slot_assign("row.names", sample_names)
 
         return sample_data
+
+    @staticmethod
+    def data_frame_to_string(r_data_frame) -> str:
+        """
+        Convert an R data.frame to a string representation using rpy2.
+        :param r_data_frame: The R data.frame object
+        :returns: The string representation in tab-delimited format.
+        """
+        # convert the R data.frame to numpy
+        data_frame = ro.conversion.rpy2py(r_data_frame)
+
+        # initialise the list of rows with the header
+        all_lines = ["\\t" + "\\t".join(list(data_frame.columns))]
+
+        # add each row
+        for row in data_frame.iterrows():
+            this_line = [row[0]] + list(row[1])
+
+            # convert to single string
+            all_lines.append("\\t".join([str(value) for value in this_line]))
+
+        # join the lines
+        complete_string = "\\n".join(all_lines)
+
+        return complete_string
 
 
 ReactomeAnalyser.register_analyser("camera", ReactomeRAnalyser)
