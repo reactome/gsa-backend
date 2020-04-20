@@ -107,10 +107,10 @@ def start_analysis(body):  # noqa: E501
     for n_dataset in range(0, len(analysis_request.datasets)):
         if not analysis_request.datasets[n_dataset].design:
             LOGGER.debug("Analysis request misses design")
-            abort(406, "Invalid request. Dataset '{name}' misses the required experimental design.")
+            abort(406, "Invalid request. Dataset '{name}' misses the required experimental design.".format(name=analysis_request.datasets[n_dataset].name))
         if not analysis_request.datasets[n_dataset].design.comparison:
             LOGGER.debug("Analysis request misses design comparison")
-            abort(406, "Invalid request. Dataset '{name}' misses the required comparison specification.")
+            abort(406, "Invalid request. Dataset '{name}' misses the required comparison specification.".format(name=analysis_request.datasets[n_dataset].name))
 
     # generate an analysis id
     analysis_id = str(uuid.uuid1())
