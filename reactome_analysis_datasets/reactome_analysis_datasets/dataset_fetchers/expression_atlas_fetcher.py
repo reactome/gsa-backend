@@ -569,6 +569,8 @@ class RLoadingProcess(multiprocessing.Process):
                 # add a "sample.id" column for the metadata
                 metadata$sample.id <- rownames(metadata)
                 metadata <- metadata[, c(ncol(metadata), 1:(ncol(metadata)-1))]
+                # convert to a standard data.frame
+                metadata <- data.frame(metadata)
 
                 # add a "gene" column for the expression values
                 expression_values$gene <- rownames(expression_values)

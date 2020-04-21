@@ -155,8 +155,8 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             LOGGER.debug("Creating the analysis result...")
 
             analysis_result = AnalysisResultResults(name=dataset.name,
-                                                    pathways=str(ReactomeRAnalyser.preprocess.data_frame_as_string(result)[0]),
-                                                    fold_changes=str(ReactomeRAnalyser.preprocess.data_frame_as_string(fold_changes)[0]))
+                                                    pathways=ReactomeRAnalyser.data_frame_to_string(result),
+                                                    fold_changes=ReactomeRAnalyser.data_frame_to_string(fold_changes))
 
             analysis_results.append(analysis_result)
 
@@ -377,27 +377,34 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         return sample_data
 
     @staticmethod
-    def data_frame_to_string(r_data_frame) -> str:
+    def data_frame_to_string(r_data_frame, add_rownames = False) -> str:
         """
         Convert an R data.frame to a string representation using rpy2.
         :param r_data_frame: The R data.frame object
+        :param add_rownames: If set, rownames are added to the output
         :returns: The string representation in tab-delimited format.
         """
         # convert the R data.frame to numpy
         data_frame = pandas2ri.rpy2py(r_data_frame)
 
-        # initialise the list of rows with the header
-        all_lines = ["\\t" + "\\t".join(list(data_frame.columns))]
+        # initialise the list of rows with the header and an optional empty first field
+        if add_rownames:
+            all_lines = ["\t" + "\t".join(list(data_frame.columns))]
+        else:
+            all_lines = ["\t".join(list(data_frame.columns))]
 
         # add each row
         for row in data_frame.iterrows():
-            this_line = [row[0]] + list(row[1])
+            if add_rownames:
+                this_line = [row[0]] + list(row[1])
+            else:
+                this_line = list(row[1])
 
             # convert to single string
-            all_lines.append("\\t".join([str(value) for value in this_line]))
+            all_lines.append("\t".join([str(value) for value in this_line]))
 
         # join the lines
-        complete_string = "\\n".join(all_lines)
+        complete_string = "\n".join(all_lines) + "\n"
 
         return complete_string
 

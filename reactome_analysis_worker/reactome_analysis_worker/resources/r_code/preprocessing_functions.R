@@ -89,6 +89,22 @@ create_design <- function(sample.data, group_1) {
     return(design)
 }
 
+#' Changes the column order in a data.frame to put the specified
+#' column first
+#'
+#' @param data The data.frame to convert
+#' @param rowname_column If set, the rownames will be stored as this column name
+#' @return The adapted data.frame
+change_first_column <- function(data, rowname_column) {
+    data[, rowname_column] <- rownames(data)
+    # use as first column
+    other_columns <- colnames(data)[colnames(data) != rowname_column]
+
+    data <- data[, c(rowname_column, other_columns)]
+    
+    return(data)
+}
+
 #' Converts a data.frame to a string representation
 #'
 #' A data.frame is converted into a single string using

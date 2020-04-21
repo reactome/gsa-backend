@@ -112,3 +112,10 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
 
         self.assertIsNotNone(id_param)
         self.assertEqual("E-MTAB-970", id_param)
+
+    def test_benchmark_loading(self):
+        os.environ["LOADING_MAX_TIMEOUT"] = "1000"
+        parameters = [DatasetRequestParameter("dataset_id", "E-ENAD-33")]
+        fetcher = ExpressionAtlasFetcher()
+
+        fetcher.load_dataset(parameters, MockMQ())

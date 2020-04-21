@@ -84,8 +84,10 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
             expression_data = self._convert_dataset(dataset, sample_names)
 
             # convert the fold_changes to the text representation
-            r_fold_change_text = ReactomeRAnalyser.preprocess.data_frame_as_string(expression_data,
-                                                                                   rowname_column=ri.StrSexpVector(["Identifier"]))
+            # pylint: disable=no-member
+            expression_data = ReactomeRAnalyser.preprocess.change_first_column(expression_data, 
+                                                                               rowname_column=ri.StrSexpVector(["Identifier"]))
+            r_fold_change_text = ReactomeRAnalyser.data_frame_to_string(expression_data)
 
             LOGGER.debug("Converting gene_index")
 
@@ -110,6 +112,7 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
                                               ri.StrSexpVector([analysis_parameters.get("pathways", "")]))
 
             # add the pathway's name
+            # pylint: disable=no-member
             result = ReactomeRAnalyser.preprocess.add_pathway_names(result, pathway_names)
 
             LOGGER.debug("GSVA analysis completed for {}".format(dataset.name))
@@ -118,7 +121,7 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
                                 complete=previous_progress + (0.6 / len(request.datasets)))
 
             # convert the data.frame to a string
-            r_text_result = ReactomeRAnalyser.preprocess.data_frame_as_string(result)
+            r_text_result = ReactomeRAnalyser.data_frame_to_string(result)
 
             # add the result
             analysis_results.append(AnalysisResultResults(name=dataset.name,
