@@ -4,6 +4,8 @@ import unittest
 
 from reactome_analysis_report.reactome_analysis_report_generator import ReactomeAnalysisReportGenerator
 
+# Note: PDF generation cannot be tested here
+
 
 class ReactomeAnalysisReportGeneratorTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -26,11 +28,3 @@ class ReactomeAnalysisReportGeneratorTest(unittest.TestCase):
     def test_process_all_messages(self):
         generator = ReactomeAnalysisReportGenerator()
         generator.start_listening()
-
-    def test_xslx_creation(self):
-        result_file = "/tmp/report_result.xlsx"
-
-        ReactomeAnalysisReportGenerator.create_excel_file(analysis_result=self.test_json.encode(),
-                                                          filename=result_file)
-
-        self.assertTrue(os.path.isfile(result_file))

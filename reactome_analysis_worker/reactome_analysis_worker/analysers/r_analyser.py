@@ -20,8 +20,6 @@ from reactome_analysis_worker.result_converter import ReactomeResultTypes
 
 # initialize R
 ri.initr()
-# initialize pandas2ri
-pandas2ri.activate()
 # create a standard logger object
 LOGGER = logging.getLogger(__name__)
 
@@ -386,7 +384,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         :returns: The string representation in tab-delimited format.
         """
         # convert the R data.frame to numpy
-        data_frame = ro.conversion.rpy2py(r_data_frame)
+        data_frame = pandas2ri.rpy2py(r_data_frame)
 
         # initialise the list of rows with the header
         all_lines = ["\\t" + "\\t".join(list(data_frame.columns))]
