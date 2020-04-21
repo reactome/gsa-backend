@@ -235,6 +235,14 @@ class ReactomeAnalysisWorker:
         for dataset in request.datasets:
             dataset.df = self._filter_dataset(dataset.df, identifier_mappings, dataset.design,
                                               max_missing_values=float(request.parameter_dict.get("max_missing_values", 0.5)))
+            # make sure there are identifiers left
+            if dataset.df.size < 1:
+                LOGGER.debug("No identifiers left after filter")
+                self._set_status(request.analysis_id, status="failed",
+                                 description="No identifiers left in dataset {name} after filtering. Please adjust "
+                                             "the max_missing_values parameter.".format(name=dataset.name), completed=1)
+                self._acknowledge_message(ch, method)
+                return
 
         # get the retained identifiers
         identifiers_after_filter = ReactomeAnalysisWorker._extract_identifiers(datasets=request.datasets)
@@ -644,6 +652,13 @@ def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> N
     """
     try:
         result_data = util.string_to_array(str_data)
+
+        # change the gene names to string (not the case for NCBI gene ids)
+        if result_data.dtype[0] != "<U4":
+            dt = result_data.dtype.descr
+            dt[0] = (dt[0][0], '<U4')
+            result_data = result_data.astype(dt)
+
         result_queue.put(result_data)
     # Mark the analysis as failed if the conversion caused an error.
     except util.ConversionException as e:
