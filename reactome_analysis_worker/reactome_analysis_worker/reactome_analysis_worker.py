@@ -654,9 +654,9 @@ def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> N
         result_data = util.string_to_array(str_data)
 
         # change the gene names to string (not the case for NCBI gene ids)
-        if result_data.dtype[0] != "<U4":
+        if not str(result_data.dtype[0]).startswith("<U"):
             dt = result_data.dtype.descr
-            dt[0] = (dt[0][0], '<U4')
+            dt[0] = (dt[0][0], '<U15')
             result_data = result_data.astype(dt)
 
         result_queue.put(result_data)
