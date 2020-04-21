@@ -442,4 +442,4 @@ class ReactomeStorage:
         :param token: The token identifying the analysis request
         :return: The matching redis key
         """
-        return "analysis_request:{}:data"
+        return "analysis_request:{}:data".format(token)
