@@ -85,9 +85,9 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
 
             # convert the fold_changes to the text representation
             # pylint: disable=no-member
-            expression_data = ReactomeRAnalyser.preprocess.change_first_column(expression_data, 
+            expression_data_id = ReactomeRAnalyser.preprocess.change_first_column(expression_data, 
                                                                                rowname_column=ri.StrSexpVector(["Identifier"]))
-            r_fold_change_text = ReactomeRAnalyser.data_frame_to_string(expression_data)
+            r_fold_change_text = ReactomeRAnalyser.data_frame_to_string(expression_data_id)
 
             LOGGER.debug("Converting gene_index")
 
