@@ -49,7 +49,7 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
         # load the libraries
         try:
             analysis_package.load_libraries()
-        except ri.RRuntimeError as e:
+        except Exception as e:
             LOGGER.critical("Failed to load required package: " + str(e))
             raise AnalysisException("Failed to load required R package")
 
@@ -125,8 +125,8 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
 
             # add the result
             analysis_results.append(AnalysisResultResults(name=dataset.name,
-                                                          pathways=str(r_text_result[0]),
-                                                          fold_changes=str(r_fold_change_text[0])))
+                                                          pathways=r_text_result,
+                                                          fold_changes=r_fold_change_text))
 
             previous_progress += 0.7 / len(request.datasets)
 
