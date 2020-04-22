@@ -405,7 +405,8 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
             if _ignore_pathway(reactome_blueprint["pathways"][i], excluded_pathways=excluded_pathways):
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
             elif pathway_id not in gsva_expr_per_pathway:
-                raise ConversionException("Missing pathway GSVA information for '" + pathway_id + "'")
+                LOGGER.error("Missing pathway GSVA information for '{pathway}'".format(pathway=pathway_id))
+                reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
             else:
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = \
                     gsva_expr_per_pathway[pathway_id]
