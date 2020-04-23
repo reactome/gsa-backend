@@ -61,6 +61,7 @@ def process_file_upload():
 
     # get the uploaded file
     user_file = request.files['file']
+    user_filename = user_file.filename
 
     # initialize the return object
     return_object = {"sample_names": None, "top_identifiers": list(), "n_lines": None}
@@ -68,7 +69,11 @@ def process_file_upload():
     n_samples = -1
 
     # read the file
-    all_lines = [line.decode("UTF-8") for line in user_file.readlines()]
+    try:
+        all_lines = [line.decode("UTF-8") for line in user_file.readlines()]
+    except Exception as e:
+        LOGGER.error("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
+        abort(400, "Uploaded file is not a text file.")
 
     # guess the delimiter
     delimiter = None
