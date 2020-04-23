@@ -573,6 +573,59 @@ class ReactomeAnalysisWorker:
                                  completed=1)
                 return False
 
+            # make sure comparison groups are different
+            if dataset.design.comparison.group1 == dataset.design.comparison.group2:
+               # mark the analysis as failed
+                self._set_status(analysis_id, status="failed",
+                                 description="Comparison group 1 and 2 must be different. Both set to '{}'"
+                                 .format(dataset.design.comparison.group1),
+                                 completed=1)
+                return False 
+
+            # make sure the sample groups are presnet
+            sample_groups = set(dataset.design.analysis_group)
+
+            if dataset.design.comparison.group1 not in sample_groups:
+                # mark the analysis as failed
+                self._set_status(analysis_id, status="failed",
+                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}"
+                                 .format(dataset.design.comparison.group1, ", ".join(sample_groups)),
+                                 completed=1)
+                return False
+            if not dataset.design.comparison.group2 not in sample_groups:
+                # mark the analysis as failed
+                self._set_status(analysis_id, status="failed",
+                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}"
+                                 .format(dataset.design.comparison.group2, ", ".join(sample_groups)),
+                                 completed=1)
+                return False
+
+            # get the number of samples per group
+            n_group_1 = 0
+            n_group_2 = 0
+
+            for sample_group in dataset.design.analysis_group:
+                if sample_group == dataset.design.comparison.group1:
+                    n_group_1 += 1
+                if sample_group == dataset.design.comparison.group2:
+                    n_group_2 += 1
+
+            if n_group_1 < 3:
+                # mark the analysis as failed
+                self._set_status(analysis_id, status="failed",
+                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples."
+                                 .format(dataset.design.comparison.group1, str(n_group_1)),
+                                 completed=1)
+                return False
+
+            if n_group_2 < 3:
+                # mark the analysis as failed
+                self._set_status(analysis_id, status="failed",
+                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples."
+                                 .format(dataset.design.comparison.group2, str(n_group_2)),
+                                 completed=1)
+                return False
+
         return True
 
     def _convert_mapping_result(self, identifier_mappings: dict) -> list:
