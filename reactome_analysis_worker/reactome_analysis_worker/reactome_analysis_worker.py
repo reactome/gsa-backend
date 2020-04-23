@@ -588,15 +588,15 @@ class ReactomeAnalysisWorker:
             if dataset.design.comparison.group1 not in sample_groups:
                 # mark the analysis as failed
                 self._set_status(analysis_id, status="failed",
-                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}"
-                                 .format(dataset.design.comparison.group1, ", ".join(sample_groups)),
+                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
+                                 .format(dataset.design.comparison.group1, "', '".join(sample_groups)),
                                  completed=1)
                 return False
-            if not dataset.design.comparison.group2 not in sample_groups:
+            if dataset.design.comparison.group2 not in sample_groups:
                 # mark the analysis as failed
                 self._set_status(analysis_id, status="failed",
-                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}"
-                                 .format(dataset.design.comparison.group2, ", ".join(sample_groups)),
+                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
+                                 .format(dataset.design.comparison.group2, "', '".join(sample_groups)),
                                  completed=1)
                 return False
 
