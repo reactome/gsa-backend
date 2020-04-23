@@ -233,8 +233,18 @@ class ReactomeAnalysisWorker:
 
         # filter the datasets
         for dataset in request.datasets:
-            dataset.df = self._filter_dataset(dataset.df, identifier_mappings, dataset.design,
-                                              max_missing_values=float(request.parameter_dict.get("max_missing_values", 0.5)))
+            try:
+                dataset.df = self._filter_dataset(dataset.df, identifier_mappings, dataset.design,
+                                                max_missing_values=float(request.parameter_dict.get("max_missing_values", 0.5)))
+            except Exception as e:
+                LOGGER.error("Failed to filter dataset {id}: {error}".format(id=request.analysis_id, error=(str(e))))
+                self._set_status(request.analysis_id, status="failed",
+                                 description="Failed to filter dataset {name}. Please ensure "
+                                             "that both analysis groups have samples assigned to them."
+                                             .format(name=dataset.name), completed=1)
+                self._acknowledge_message(ch, method)
+                return
+
             # make sure there are identifiers left
             if dataset.df.size < 1:
                 LOGGER.debug("No identifiers left after filter")
