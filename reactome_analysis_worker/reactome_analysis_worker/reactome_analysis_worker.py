@@ -215,6 +215,7 @@ class ReactomeAnalysisWorker:
             self._set_status(request.analysis_id, status="failed",
                              description=str(e), completed=1)
             self._acknowledge_message(ch, method)
+            return
 
         # make sure the experimental design matches the number of samples
         if not self._validate_experimental_design(request.datasets, request.analysis_id):
