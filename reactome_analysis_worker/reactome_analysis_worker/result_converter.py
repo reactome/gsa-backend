@@ -383,6 +383,8 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
 
     # prepare a list of "missing values"
     missing_exp = [0 for c in column_names]
+    # count missing pathways to create one single error (if there are any)
+    missing_pathways = list()
 
     # populate the pathway data
     for i in range(0, len(reactome_blueprint["pathways"])):
@@ -405,11 +407,16 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
             if _ignore_pathway(reactome_blueprint["pathways"][i], excluded_pathways=excluded_pathways):
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
             elif pathway_id not in gsva_expr_per_pathway:
-                LOGGER.error("Missing pathway GSVA information for '{pathway}'".format(pathway=pathway_id))
+                # keep track of missing pathways
+                missing_pathways.append(pathway_id)
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_exp
             else:
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = \
                     gsva_expr_per_pathway[pathway_id]
+
+    # check if any pathways were missing
+    if len(missing_pathways) > 0:
+        LOGGER.error("Missing pahtways: " + ", ".join(missing_pathways))
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
