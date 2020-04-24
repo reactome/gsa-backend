@@ -498,6 +498,15 @@ class ReactomeAnalysisWorker:
                                  description="Converting dataset {}...".format(dataset.name), completed=0.05)
                 LOGGER.debug("Converting dataset {}...".format(dataset.name))
 
+                # check for illegal characters
+                if "#" in dataset.data:
+                    LOGGER.info("Invalid data: '#' found")
+                    # mark the analysis as failed
+                    self._set_status(request.analysis_id, status="failed",
+                                     description="Failed to convert dataset '{}': Illegal character in data: '#'".format(dataset.name), completed=1)
+
+                    return False
+
                 result_queue = multiprocessing.Queue()
                 process = multiprocessing.Process(target=convert_string_data, args=(dataset.data, result_queue) )
                 process.start()
