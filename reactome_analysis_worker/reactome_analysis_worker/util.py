@@ -66,6 +66,9 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
     # convert all identifiers to string
     identifiers = [str(value) for value in identifiers]
 
+    # make sure that the identifiers are valid
+    _check_valid_identifiers(identifiers)
+
     proxy = os.getenv("PROXY", None)
 
     if proxy:
@@ -82,7 +85,7 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
                            timeout=30)
 
     if request.status != 200:
-        msg = "Failed to retrieve mappings: Invalid identifiers submitted ({})".format(str(request.status))
+        msg = "Failed to retrieve mappings: Invalid identifiers submitted"
         LOGGER.error(msg + " (" + str(request.status) + ")")
         raise MappingException(msg)
 
@@ -104,6 +107,20 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
                 final_mappings[mapping["identifier"]].append(mapped_identifier["identifier"])
 
     return final_mappings
+
+
+def _check_valid_identifiers(identifiers: list) -> None:
+    """
+    Checks whether all passed identifiers are valid - or rather
+    tries to detect common problems. If a problem is found, an
+    exception is raised.
+    :param identifiers: The list of identifiers to check
+    """
+    # check for protein groups
+    for identifier in identifiers:
+        if ";" in identifier:
+            raise MappingException("Invalid gene/protein identifiers submitted. Identifiers contain ';'. Did you submit protein groups? Only single identifiers are supported.")
+
 
 
 def get_reactome_url(reactome_server: str) -> str:

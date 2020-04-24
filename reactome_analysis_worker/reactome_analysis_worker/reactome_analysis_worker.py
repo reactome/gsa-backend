@@ -455,7 +455,7 @@ class ReactomeAnalysisWorker:
             identifier_mappings = util.map_identifiers(all_identifiers, return_all=True, reactome_server=reactome_server)
         except util.MappingException as e:
             LOGGER.debug("Identifier mapping failed", exc_info=1)
-            raise Exception("Invalid gene/protein identifiers submitted")
+            raise Exception(str(e))
         except Exception as e:
             LOGGER.error("Failed to connect to mapping service: " + str(e))
             LOGGER.debug("Mapping failed", exc_info=1)
