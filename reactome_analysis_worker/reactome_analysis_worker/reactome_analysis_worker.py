@@ -613,7 +613,7 @@ class ReactomeAnalysisWorker:
             if n_group_1 < 3:
                 # mark the analysis as failed
                 self._set_status(analysis_id, status="failed",
-                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples."
+                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples for accurate results."
                                  .format(dataset.design.comparison.group1, str(n_group_1)),
                                  completed=1)
                 return False
@@ -621,7 +621,7 @@ class ReactomeAnalysisWorker:
             if n_group_2 < 3:
                 # mark the analysis as failed
                 self._set_status(analysis_id, status="failed",
-                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples."
+                                 description="Analysis group '{}' only contains {} samples. Each group must at least contain 3 samples for accurate results."
                                  .format(dataset.design.comparison.group2, str(n_group_2)),
                                  completed=1)
                 return False
