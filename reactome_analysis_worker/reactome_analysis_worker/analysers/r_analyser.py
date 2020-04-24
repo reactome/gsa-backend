@@ -120,7 +120,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                     (expression_data, sample_data, design) = \
                         self._prepare_dataset(dataset=dataset)
                 except Exception as e:
-                    LOGGER.error("Failed to convert data: {}".format(str(e)), exc_info=True)
+                    LOGGER.info("Failed to convert data: {}".format(str(e)), exc_info=True)
                     raise AnalysisException("Dataset '{}' contains invalid data".format(dataset.name))
 
                 self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
