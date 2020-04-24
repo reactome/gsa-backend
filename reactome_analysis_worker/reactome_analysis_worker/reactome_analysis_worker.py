@@ -40,6 +40,8 @@ TIMED_OUT_ANALYSIS = prometheus_client.Counter("reactome_worker_timed_out_analys
                                                "Number of analysis that were killed because of a timeout.")
 COMPLETED_ANALYSES = prometheus_client.Counter("reactome_worker_completed_analyses",
                                                "Number of successfully completed analyses.")
+PROTEIN_GROUP_SUBMITTED = prometheus_client.Counter("reactome_worker_error_protein_group",
+                                                    "Number of requests where protein groups where submitted.")
 
 
 class ReactomeAnalysisWorker:
@@ -454,6 +456,10 @@ class ReactomeAnalysisWorker:
         try:
             identifier_mappings = util.map_identifiers(all_identifiers, return_all=True, reactome_server=reactome_server)
         except util.MappingException as e:
+            # count protein group submissions
+            if "protein groups" in str(e):
+                PROTEIN_GROUP_SUBMITTED.inc()
+
             LOGGER.debug("Identifier mapping failed", exc_info=1)
             raise Exception(str(e))
         except Exception as e:
