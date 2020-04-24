@@ -42,6 +42,8 @@ COMPLETED_ANALYSES = prometheus_client.Counter("reactome_worker_completed_analys
                                                "Number of successfully completed analyses.")
 PROTEIN_GROUP_SUBMITTED = prometheus_client.Counter("reactome_worker_error_protein_group",
                                                     "Number of requests where protein groups where submitted.")
+MALFORMATTED_DATA = prometheus_client.Counter("reactome_worker_error_data_conversion",
+                                              "Any data conversion error.", ['type'])
 
 
 class ReactomeAnalysisWorker:
@@ -504,7 +506,7 @@ class ReactomeAnalysisWorker:
                     # mark the analysis as failed
                     self._set_status(request.analysis_id, status="failed",
                                      description="Failed to convert dataset '{}': Illegal character in data: '#'".format(dataset.name), completed=1)
-
+                    MALFORMATTED_DATA.labels(method="hashtag").inc()
                     return False
 
                 result_queue = multiprocessing.Queue()
@@ -538,7 +540,7 @@ class ReactomeAnalysisWorker:
                 # mark the analysis as failed
                 self._set_status(request.analysis_id, status="failed",
                                  description="Failed to convert dataset '{}'".format(dataset.name), completed=1)
-
+                MALFORMATTED_DATA.labels(method="other").inc()
                 return False
 
         return True
