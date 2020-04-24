@@ -506,7 +506,7 @@ class ReactomeAnalysisWorker:
                     # mark the analysis as failed
                     self._set_status(request.analysis_id, status="failed",
                                      description="Failed to convert dataset '{}': Illegal character in data: '#'".format(dataset.name), completed=1)
-                    MALFORMATTED_DATA.labels(method="hashtag").inc()
+                    MALFORMATTED_DATA.labels(type="hashtag").inc()
                     return False
 
                 result_queue = multiprocessing.Queue()
@@ -540,7 +540,7 @@ class ReactomeAnalysisWorker:
                 # mark the analysis as failed
                 self._set_status(request.analysis_id, status="failed",
                                  description="Failed to convert dataset '{}'".format(dataset.name), completed=1)
-                MALFORMATTED_DATA.labels(method="other").inc()
+                MALFORMATTED_DATA.labels(type="other").inc()
                 return False
 
         return True
