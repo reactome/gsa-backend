@@ -104,65 +104,69 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         previous_progress = 0.3
 
         for dataset in request.datasets:
-            # make sure the dataset has a design
-            if dataset.design is None:
-                raise AnalysisException("Dataset '" + dataset.name + "' does not contain an experimental design.")
+            try:
+                # make sure the dataset has a design
+                if dataset.design is None:
+                    raise AnalysisException("Dataset '" + dataset.name + "' does not contain an experimental design.")
 
-            LOGGER.debug("Analysing dataset " + dataset.name)
+                LOGGER.debug("Analysing dataset " + dataset.name)
 
-            # get the gene index
-            gene_index = self.dict_of_list_to_r(gene_set_mappings[dataset.name].gene_set_indices, value_type=int)
+                # get the gene index
+                gene_index = self.dict_of_list_to_r(gene_set_mappings[dataset.name].gene_set_indices, value_type=int)
 
-            # prepare the dataset for the analysis - including pre-processing
-            (expression_data, sample_data, design) = \
-                self._prepare_dataset(dataset=dataset)
+                # prepare the dataset for the analysis - including pre-processing
+                (expression_data, sample_data, design) = \
+                    self._prepare_dataset(dataset=dataset)
 
-            self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                complete=previous_progress + (0.3 / len(request.datasets)))
+                self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
+                                    complete=previous_progress + (0.3 / len(request.datasets)))
 
-            LOGGER.debug("Starting GSA...")
+                LOGGER.debug("Starting GSA...")
 
-            result = self._perform_gsa(method=request.method_name,
-                                       parameters=getattr(dataset, "parameter_dict", dict()),
-                                       expression_data=expression_data, sample_data=sample_data, design=design,
-                                       gene_index=gene_index, data_type=dataset.type,
-                                       pathway_names=pathway_names,
-                                       comparison_group_1=dataset.design.comparison.group1,
-                                       comparison_group_2=dataset.design.comparison.group2)
+                result = self._perform_gsa(method=request.method_name,
+                                        parameters=getattr(dataset, "parameter_dict", dict()),
+                                        expression_data=expression_data, sample_data=sample_data, design=design,
+                                        gene_index=gene_index, data_type=dataset.type,
+                                        pathway_names=pathway_names,
+                                        comparison_group_1=dataset.design.comparison.group1,
+                                        comparison_group_2=dataset.design.comparison.group2)
 
-            self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                complete=previous_progress + (0.5 / len(request.datasets)))
+                self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
+                                    complete=previous_progress + (0.5 / len(request.datasets)))
 
-            LOGGER.debug("Estimating fold changes...")
+                LOGGER.debug("Estimating fold changes...")
 
-            fold_changes = self._estimate_gene_fc(method=request.method_name,
-                                                  parameters=getattr(dataset, "parameter_dict", dict()),
-                                                  expression_data=expression_data, sample_data=sample_data,
-                                                  design=design, data_type=dataset.type,
-                                                  comparison_group_1=dataset.design.comparison.group1,
-                                                  comparison_group_2=dataset.design.comparison.group2)
+                fold_changes = self._estimate_gene_fc(method=request.method_name,
+                                                    parameters=getattr(dataset, "parameter_dict", dict()),
+                                                    expression_data=expression_data, sample_data=sample_data,
+                                                    design=design, data_type=dataset.type,
+                                                    comparison_group_1=dataset.design.comparison.group1,
+                                                    comparison_group_2=dataset.design.comparison.group2)
 
-            self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                complete=previous_progress + (0.7 / len(request.datasets)))
+                self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
+                                    complete=previous_progress + (0.7 / len(request.datasets)))
 
-            LOGGER.debug("Adding pathway fold changes...")
+                LOGGER.debug("Adding pathway fold changes...")
 
-            # add average fold-changes to the analysis result
-            # pylint: disable=no-member
-            result = ReactomeRAnalyser.preprocess.add_pathway_foldchanges(result, fold_changes, gene_index,
-                                                                          expression_data)
+                # add average fold-changes to the analysis result
+                # pylint: disable=no-member
+                result = ReactomeRAnalyser.preprocess.add_pathway_foldchanges(result, fold_changes, gene_index,
+                                                                            expression_data)
 
-            LOGGER.debug("Creating the analysis result...")
+                LOGGER.debug("Creating the analysis result...")
 
-            analysis_result = AnalysisResultResults(name=dataset.name,
-                                                    pathways=ReactomeRAnalyser.data_frame_to_string(result),
-                                                    fold_changes=ReactomeRAnalyser.data_frame_to_string(fold_changes))
+                analysis_result = AnalysisResultResults(name=dataset.name,
+                                                        pathways=ReactomeRAnalyser.data_frame_to_string(result),
+                                                        fold_changes=ReactomeRAnalyser.data_frame_to_string(fold_changes))
 
-            analysis_results.append(analysis_result)
+                analysis_results.append(analysis_result)
 
-            previous_progress += 0.7 / len(request.datasets)
+                previous_progress += 0.7 / len(request.datasets)
 
-            LOGGER.debug("Dataset analysis complete")
+                LOGGER.debug("Dataset analysis complete")
+            except Exception as e:
+                LOGGER.error(str(e), exc_info=True)
+                raise Exception("Failed to analyse dataset '{}'".format(dataset.name))
 
         return analysis_results
 
