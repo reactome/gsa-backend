@@ -115,8 +115,13 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                 gene_index = self.dict_of_list_to_r(gene_set_mappings[dataset.name].gene_set_indices, value_type=int)
 
                 # prepare the dataset for the analysis - including pre-processing
-                (expression_data, sample_data, design) = \
-                    self._prepare_dataset(dataset=dataset)
+                LOGGER.debug("Preparing data...")
+                try:
+                    (expression_data, sample_data, design) = \
+                        self._prepare_dataset(dataset=dataset)
+                except Exception as e:
+                    LOGGER.error("Failed to convert data: {}".format(str(e)), exc_info=True)
+                    raise AnalysisException("Dataset '{}' contains invalid data".format(dataset.name))
 
                 self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
                                     complete=previous_progress + (0.3 / len(request.datasets)))
@@ -165,8 +170,12 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
                 LOGGER.debug("Dataset analysis complete")
             except Exception as e:
+                # ignore "my" exceptions
+                if isinstance(e, AnalysisException):
+                    raise e
+
                 LOGGER.error(str(e), exc_info=True)
-                raise Exception("Failed to analyse dataset '{}'".format(dataset.name))
+                raise AnalysisException("Failed to analyse dataset '{}'".format(dataset.name))
 
         return analysis_results
 
