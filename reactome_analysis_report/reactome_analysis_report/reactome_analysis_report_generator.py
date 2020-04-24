@@ -267,6 +267,7 @@ class ReactomeAnalysisReportGenerator:
         if len(generated_results) > 0:
             self._set_status(analysis_id=request.analysis_id, status="complete", completion=1,
                              description="Report generation complete.", reports=generated_results)
+            COMPLETED_REPORTS.inc()
         else:
             self._set_status(analysis_id=request.analysis_id, status="failed", completion=1,
                              description="Report generation failed")
