@@ -251,11 +251,12 @@ def _get_identifier_changes(identifier_fcs: list, all_identifiers: set, min_p: f
     return identifier_changes
 
 
-def _get_gsva_pathway_expression(result: AnalysisResult) -> dict:
+def _get_gsva_pathway_expression(result: AnalysisResult, scale: bool=True) -> dict:
     """
     Extracts the GSVA expression values per pathway and returns the concatenated values
     across all datasets as a dict with the pathway id as key and the expression values in a list as value.
     :param result: An AnalysisResult object
+    :param scale: If true, convert to zscores
     :return: A dict with the pathway id as key and expression values as value
     """
     # get all observed pathways
@@ -280,6 +281,11 @@ def _get_gsva_pathway_expression(result: AnalysisResult) -> dict:
         for pathway_row in pathway_fc:
             pathway_id = pathway_row[0]
             gsva_expr_per_pathway[pathway_id] += pathway_row.tolist()[2:]
+
+            # change to zscore if set
+            if scale:
+                gsva_expr_per_pathway[pathway_id] = zscore(gsva_expr_per_pathway[pathway_id])
+
             processed_pathways.add(pathway_id)
 
         # add missing values
