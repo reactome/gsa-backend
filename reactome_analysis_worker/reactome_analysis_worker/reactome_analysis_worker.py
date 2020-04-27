@@ -44,7 +44,8 @@ PROTEIN_GROUP_SUBMITTED = prometheus_client.Counter("reactome_worker_error_prote
                                                     "Number of requests where protein groups where submitted.")
 MALFORMATTED_DATA = prometheus_client.Counter("reactome_worker_error_data_conversion",
                                               "Any data conversion error.", ['type'])
-INVALID_DESIGN = prometheus_client.Counter("reactome_worker_error_design", ['type'])
+INVALID_DESIGN = prometheus_client.Counter("reactome_worker_error_design",
+                                           "Issues with the experimental design.", ['type'])
 
 
 class ReactomeAnalysisWorker:
