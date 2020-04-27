@@ -40,7 +40,8 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 # count upload errors
-UPLOAD_ERRORS = Counter("reactome_api_upload_errors", "Invalid file uploads", ("extension"))
+UPLOAD_ERRORS = Counter("reactome_api_upload_errors", 
+                        "Invalid file uploads", labelnames=["extension"])
 
 
 def main():
