@@ -5,10 +5,11 @@ import json
 import logging
 import uuid
 import sys
+import os
 
 import connexion
 from flask import redirect, request, abort, make_response
-from prometheus_client import make_wsgi_app
+from prometheus_client import make_wsgi_app, Counter
 from reactome_analysis_api import encoder
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
@@ -37,6 +38,9 @@ logging.getLogger("reactome_analysis_utils").setLevel(logging.INFO)
 # set this logger to debug
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+# count upload errors
+UPLOAD_ERRORS = Counter("reactome_api_upload_errors", "Invalid file uploads", ("extension"))
 
 
 def main():
@@ -72,8 +76,17 @@ def process_file_upload():
     try:
         all_lines = [line.decode("UTF-8") for line in user_file.readlines()]
     except Exception as e:
-        LOGGER.error("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
-        abort(400, "Uploaded file is not a text file.")
+        # get the extension
+        (name, extension) = os.path.splitext(user_filename)
+
+        if extension == ".xlsx":
+            UPLOAD_ERRORS.labels(extension=extension).inc()
+            LOGGER.debug("Excel file upload")
+            abort(400, "MS Excel files are not supported. Please save as a text file (txt, csv, or tsv).")
+        else:
+            LOGGER.error("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
+            UPLOAD_ERRORS.labels(extension="other").inc()
+            abort(400, "Uploaded file is not a text file.")
 
     # guess the delimiter
     delimiter = None
