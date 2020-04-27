@@ -284,7 +284,7 @@ def _get_gsva_pathway_expression(result: AnalysisResult, scale: bool=True) -> di
 
             # change to zscore if set
             if scale:
-                gsva_expr_per_pathway[pathway_id] = zscore(gsva_expr_per_pathway[pathway_id])
+                gsva_expr_per_pathway[pathway_id] = zscore(gsva_expr_per_pathway[pathway_id]).tolist()
 
             processed_pathways.add(pathway_id)
 
