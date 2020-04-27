@@ -165,7 +165,7 @@ def get_url_for_system(service_name) -> str:
     Loads the services from the sources.json and returns the matching
     URL for the specified service. If not service_name is set, the
     user is prompted to enter one.
-    
+
     :param service_name: The service's name
     :returns: The url
     """
@@ -190,6 +190,8 @@ def get_url_for_system(service_name) -> str:
 
     for service in service_list:
         services[service["name"]] = service["url"]
+        if not services[service["name"]].endswith("/"):
+            services[service["name"]] += "/"
 
     # ask the user to choose a service name
     if not service_name:
@@ -200,7 +202,7 @@ def get_url_for_system(service_name) -> str:
         print("Error: Unknown service '{name}'".format(name=service_name))
         sys.exit(1)
 
-    return services[service_name]
+    return services[service_name] + "0.1/"
 
 
 def send_request(url, error_msg, decode_json=True):
