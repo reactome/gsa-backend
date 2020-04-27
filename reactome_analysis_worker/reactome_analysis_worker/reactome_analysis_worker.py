@@ -44,6 +44,7 @@ PROTEIN_GROUP_SUBMITTED = prometheus_client.Counter("reactome_worker_error_prote
                                                     "Number of requests where protein groups where submitted.")
 MALFORMATTED_DATA = prometheus_client.Counter("reactome_worker_error_data_conversion",
                                               "Any data conversion error.", ['type'])
+INVALID_DESIGN = prometheus_client.Counter("reactome_worker_error_design", ['type'])
 
 
 class ReactomeAnalysisWorker:
@@ -588,6 +589,7 @@ class ReactomeAnalysisWorker:
                                              "experimental design ({}) and the expression matrix ({})"
                                  .format(dataset.name, str(len(design_samples)), str(len(matrix_samples))),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Format error").inc()
                 return False
 
             # make sure comparison groups are different
@@ -597,6 +599,7 @@ class ReactomeAnalysisWorker:
                                  description="Comparison group 1 and 2 must be different. Both set to '{}'"
                                  .format(dataset.design.comparison.group1),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Same group").inc()
                 return False 
 
             # make sure the sample groups are presnet
@@ -608,6 +611,7 @@ class ReactomeAnalysisWorker:
                                  description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
                                  .format(dataset.design.comparison.group1, "', '".join(sample_groups)),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Empty group").inc()
                 return False
             if dataset.design.comparison.group2 not in sample_groups:
                 # mark the analysis as failed
@@ -615,6 +619,7 @@ class ReactomeAnalysisWorker:
                                  description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
                                  .format(dataset.design.comparison.group2, "', '".join(sample_groups)),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Empty group").inc()
                 return False
 
             # get the number of samples per group
@@ -633,6 +638,7 @@ class ReactomeAnalysisWorker:
                                  description="Analysis group '{}' only contains {} sample(s). Each group must at least contain 3 samples for accurate results."
                                  .format(dataset.design.comparison.group1, str(n_group_1)),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Few samples").inc()
                 return False
 
             if n_group_2 < 3:
@@ -641,6 +647,7 @@ class ReactomeAnalysisWorker:
                                  description="Analysis group '{}' only contains {} sample(s). Each group must at least contain 3 samples for accurate results."
                                  .format(dataset.design.comparison.group2, str(n_group_2)),
                                  completed=1)
+                INVALID_DESIGN.labels(type="Few samples").inc()
                 return False
 
         return True
