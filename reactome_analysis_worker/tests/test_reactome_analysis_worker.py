@@ -31,7 +31,7 @@ class TestReactome_analysis_worker(unittest.TestCase):
         os.environ["RABBIT_PORT"] = "30186"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
-
+        
         logging.basicConfig(level=logging.DEBUG)
         pika_logger = logging.getLogger("pika")
         pika_logger.setLevel(logging.ERROR)
@@ -39,17 +39,20 @@ class TestReactome_analysis_worker(unittest.TestCase):
         util_logger = logging.getLogger("reactome_analysis_utils")
         util_logger.setLevel(logging.DEBUG)
 
+        self.test_file_dir = os.path.join(os.path.dirname(__file__), "testfiles")
+        os.environ["REACTOME_STORAGE_PATH"] = self.test_file_dir
+
     def test_process_all_messages(self):
         if (True):
             return
 
-        if not os.path.isfile("/tmp/reactome_homo_sapiens.pkl"):
+        if not os.path.isfile(os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl")):
             gene_set = self._get_gene_set()
-            gene_set.save("/tmp/reactome_homo_sapiens.pkl")
-            gene_set.save("/tmp/reactome_homo_sapiens_interactors.pkl")
+            gene_set.save(os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl"))
+            gene_set.save(os.path.join(self.test_file_dir, "reactome_homo_sapiens_interactors.pkl"))
         worker = reactome_analysis_worker.ReactomeAnalysisWorker()
-        worker.start_analyses()
-        #worker.process_single_message()
+        #worker.start_analyses()
+        worker.process_single_message()
 
     def _get_gene_set(self):
         # load the gene set
@@ -117,9 +120,10 @@ class TestReactome_analysis_worker(unittest.TestCase):
         mq.post_analysis(request_json, "camera")
 
         # download the gene sets
-        if not os.path.isfile("/tmp/reactome_homo_sapiens.pkl"):
+        gene_set_file = os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl")
+        if not os.path.isfile(gene_set_file):
             geneset = self._get_gene_set()
-            geneset.save("/tmp/reactome_homo_sapiens.pkl")
+            geneset.save(gene_set_file)
 
         # enable debug mode
         os.environ["REACTOME_WORKER_DEBUG"] = "True"
@@ -222,9 +226,10 @@ class TestReactome_analysis_worker(unittest.TestCase):
         mq.post_analysis(json_request, "camera")
 
         # download the gene sets
-        if not os.path.isfile("/tmp/reactome_homo_sapiens.pkl"):
+        gene_set_file = os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl")
+        if not os.path.isfile(gene_set_file):
             geneset = self._get_gene_set()
-            geneset.save("/tmp/reactome_homo_sapiens.pkl")
+            geneset.save(gene_set_file)
 
         # enable debug mode
         os.environ["REACTOME_WORKER_DEBUG"] = "True"
