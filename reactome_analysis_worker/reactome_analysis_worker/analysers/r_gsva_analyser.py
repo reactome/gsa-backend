@@ -30,6 +30,13 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
         # only set the correct supported result types
         self.reactome_result_types = [ReactomeResultTypes.gsva]
 
+    def uses_design(self) -> bool:
+        """
+        This analyser never requires a design
+        :returns A boolean indicating that a design is not required
+        """
+        return False
+
     """
     Performs GSVA analysis using different R methods
     """

@@ -203,6 +203,12 @@ class ReactomeAnalysisWorker:
             self._acknowledge_message(ch, method)
             return
 
+        # remove the design if not needed
+        if not reactome_analyser.uses_design():
+            LOGGER.debug("Analyser does not require designs. Removing them.")
+            for n_dataset in range(0, len(request.datasets)):
+                request.datasets[n_dataset].design = None
+
         # update the status and mark it as received
         self._set_status(request.analysis_id, status="running", description="Converting datasets...", completed=0.05)
 

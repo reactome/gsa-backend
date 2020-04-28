@@ -96,6 +96,13 @@ class ReactomeAnalyser:
         """
         raise NotImplementedError("This class must be implemented by any child class")
 
+    def uses_design(self) -> bool:
+        """
+        Indicates whether the analyser requires an experimental design
+        :return: A boolean indicating whether it uses an experimental design
+        """
+        raise NotImplementedError("This class must be implemented by any child class")
+
     @staticmethod
     def get_analyser_for_method(method: str):
         if method in ReactomeAnalyser._method_to_analyser:

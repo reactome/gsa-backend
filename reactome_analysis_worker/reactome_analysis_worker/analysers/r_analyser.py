@@ -67,6 +67,13 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         rpy2.rinterface_lib.callbacks.consolewrite_print = self._catch_message
         rpy2.rinterface_lib.callbacks.consolewrite_warnerror = self._catch_message
 
+    def uses_design(self) -> bool:
+        """
+        This analyser always requires a design
+        :returns A boolean indicating that a design is required
+        """
+        return True
+
     def _catch_message(self, message):
         """
         Function used to append messages received from R to the buffer
