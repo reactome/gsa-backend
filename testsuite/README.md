@@ -51,10 +51,21 @@ the specification of tests that are automatically run:
 Test Specification:
    'tests': [
        {
-           'name': Test name, # name of the test to run
-           'dataset': str, # name of the dataset to evaluate
-           'type': ["pathways", "fold_changes"] # whether to test number of pathways or fold changes
-           'value': numeric # The expected value
+           "name": "First test",
+           "dataset": "dataset_1",
+           "type": "pathways",
+           "value": 1234
        }
    ]
 ```
+
+The above test would evaluate whether the dataset "dataset_1" contains 1234 pathways.
+
+Any number of tests can be added to the request object.
+
+**Fields**:
+
+  * name: An arbitrary name of the test
+  * dataset: The dataset to evaluate
+  * type: "pathways" or "fold_changes" - evaluates the total number
+  * value: The expected value (ie total number of pathways or fold_changes)
