@@ -29,12 +29,22 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option("-s", "--server", default=None)
-@click.argument("filename")
-def submit_request(server, filename):
+@click.argument("filenames", nargs=-1, type=click.Path())
+def submit_request(server, filenames):
     logging.basicConfig(level=logging.DEBUG)
     urllib_logger = logging.getLogger("urllib3")
     urllib_logger.setLevel(logging.ERROR)
 
+    for filename in filenames:
+        process_file(server, filename)
+
+
+def process_file(server: str, filename: str) -> None:
+    """
+    Process a request file
+    :param server: Name of the remote server to use.
+    :param filename: Path to the file
+    """
     # make sure the file exists
     if not os.path.isfile(filename):
         print("Error: {name} does not exist".format(filename))
