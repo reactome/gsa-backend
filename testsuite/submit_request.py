@@ -35,15 +35,23 @@ def submit_request(server, filenames):
     urllib_logger = logging.getLogger("urllib3")
     urllib_logger.setLevel(logging.ERROR)
 
+    all_tests_ok = True
+
     for filename in filenames:
-        process_file(server, filename)
+        all_tests_ok = all_tests_ok and process_file(server, filename)
+
+    if all_tests_ok:
+        print("\nAll tests succeeded.")
+    else:
+        print("\nError: Some tests failed.")
 
 
-def process_file(server: str, filename: str) -> None:
+def process_file(server: str, filename: str) -> bool:
     """
     Process a request file
     :param server: Name of the remote server to use.
     :param filename: Path to the file
+    :return: Returns whether all tests succeeded
     """
     # make sure the file exists
     if not os.path.isfile(filename):
@@ -76,17 +84,22 @@ def process_file(server: str, filename: str) -> None:
     print_result_statistics(result)
 
     if "tests" in request_object:
-        run_tests(request_object["tests"], result)
+        return run_tests(request_object["tests"], result)
+    else:
+        return True
 
 
-def run_tests(tests: list, result: dict) -> None:
+def run_tests(tests: list, result: dict) -> bool:
     """
     Run the tests defined in the request object's test structure.
     :param tests: The tests to run in the above defined structure
     :param result: The result object as a dict
+    :return: Indicates whether all tests succeeded
     """
 
     print("\nRunning tests...")
+
+    all_tests_ok = True
 
     for the_test in tests:
         if not "type" in the_test or not "name" in the_test:
@@ -100,12 +113,14 @@ def run_tests(tests: list, result: dict) -> None:
             dataset = get_dataset(result, the_test["dataset"])
             if not dataset:
                 print("Failed.\n  Dataset '{name}' does not exist".format(name=the_test["dataset"]))
+                all_tests_ok = False
                 continue
             
             n_fold_changes = len(dataset["fold_changes"].split("\n")) - 1
             if n_fold_changes != int(the_test["value"]):
                 print("Failed.\n  Expected {exp} but got {num}"
                 .format(exp=str(the_test["value"]), num=str(n_fold_changes)))
+                all_tests_ok = False
                 continue
             else:
                 print("OK.")
@@ -115,15 +130,19 @@ def run_tests(tests: list, result: dict) -> None:
             dataset = get_dataset(result, the_test["dataset"])
             if not dataset:
                 print("Failed.\n  Dataset '{name}' does not exist".format(name=the_test["dataset"]))
+                all_tests_ok = False
                 continue
             
             n_pathways = len(dataset["pathways"].split("\n")) - 1
             if n_pathways != int(the_test["value"]):
                 print("Failed.\n  Expected {exp} but got {num}"
                 .format(exp=str(the_test["value"]), num=str(n_pathways)))
+                all_tests_ok = False
                 continue
             else:
                 print("OK.")
+
+    return all_tests_ok
 
 
 def get_dataset(result: dict, name: str) -> dict:
