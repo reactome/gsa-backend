@@ -39,7 +39,8 @@ RUNNING_ANALYSES = prometheus_client.Gauge("reactome_worker_running_analyses",
 TIMED_OUT_ANALYSIS = prometheus_client.Counter("reactome_worker_timed_out_analyses",
                                                "Number of analysis that were killed because of a timeout.")
 COMPLETED_ANALYSES = prometheus_client.Counter("reactome_worker_completed_analyses",
-                                               "Number of successfully completed analyses.")
+                                               "Number of successfully completed analyses.",
+                                               ["method"])
 PROTEIN_GROUP_SUBMITTED = prometheus_client.Counter("reactome_worker_error_protein_group",
                                                     "Number of requests where protein groups where submitted.")
 MALFORMATTED_DATA = prometheus_client.Counter("reactome_worker_error_data_conversion",
@@ -436,7 +437,7 @@ class ReactomeAnalysisWorker:
                 message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
 
             # count the complete analysis
-            COMPLETED_ANALYSES.inc()
+            COMPLETED_ANALYSES.labels(method=request.method_name.lower()).inc()
         except Exception as e:
             self._set_status(request.analysis_id, status="failed", description="Failed to analyse dataset: " + str(e),
                              completed=1)
