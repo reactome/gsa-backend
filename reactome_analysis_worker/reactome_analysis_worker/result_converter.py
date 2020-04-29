@@ -537,7 +537,8 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = pathway_expr[pathway_id]
 
     # log the error
-    LOGGER.error("Missing pathway information for GSA result: {}".format(", ".join(missing_pathways)))
+    if len(missing_pathways) > 0:
+        LOGGER.error("Missing pathway information for GSA result: {}".format(", ".join(missing_pathways)))
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
