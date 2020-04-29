@@ -120,6 +120,10 @@ def _check_valid_identifiers(identifiers: list) -> None:
     for identifier in identifiers:
         if ";" in identifier:
             raise MappingException("Invalid gene/protein identifiers submitted. Identifiers contain ';'. Did you submit protein groups? Only single identifiers are supported.")
+        if " " in identifier:
+            raise MappingException("Invalid gene/protein identifiers submitted. Identifier '{}' contains a ' '.".format(identifier))
+        if "," in identifier:
+            raise MappingException("Invalid gene/protein identifiers submitted. Identifier '{}' contains a ','.".format(identifier))
 
 
 
