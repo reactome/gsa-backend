@@ -70,26 +70,24 @@ def process_file(server: str, filename: str) -> bool:
     # submit the request
     print("Submitting request to ReactomeGSA...")
 
-    analysis_id = run_analysis(request_object, service_url)
+    (analysis_id, status) = run_analysis(request_object, service_url)
 
-    if not analysis_id:
-        print("Analysis failed. Exiting...")
-        sys.exit(1)
-
-    # get the result object
-    result = retrieve_reactome_result(analysis_id, service_url)
-
-    print("Analysis completed. Final id = " + analysis_id)
-
-    print_result_statistics(result)
+    # get the result object - if the analysis succeeded
+    if analysis_id:
+        print("Analysis completed. Final id = " + analysis_id)
+        result = retrieve_reactome_result(analysis_id, service_url)
+        print_result_statistics(result)
+    else:
+        print("Analysis failed. No result received.")
+        result = None
 
     if "tests" in request_object:
-        return run_tests(request_object["tests"], result)
+        return run_tests(request_object["tests"], result, status)
     else:
         return True
 
 
-def run_tests(tests: list, result: dict) -> bool:
+def run_tests(tests: list, result: dict, status: dict) -> bool:
     """
     Run the tests defined in the request object's test structure.
     :param tests: The tests to run in the above defined structure
@@ -109,6 +107,11 @@ def run_tests(tests: list, result: dict) -> bool:
         print("* " + the_test["name"] + "...", end = "")
 
         if the_test["type"] == "fold_changes":
+            if not result:
+                print("Failed.\n  No result retrieved")
+                all_tests_ok = False
+                continue
+
             # get the result
             dataset = get_dataset(result, the_test["dataset"])
             if not dataset:
@@ -126,6 +129,11 @@ def run_tests(tests: list, result: dict) -> bool:
                 print("OK.")
 
         if the_test["type"] == "pathways":
+            if not result:
+                print("Failed.\n  No result retrieved")
+                all_tests_ok = False
+                continue
+
             # get the result
             dataset = get_dataset(result, the_test["dataset"])
             if not dataset:
@@ -141,6 +149,22 @@ def run_tests(tests: list, result: dict) -> bool:
                 continue
             else:
                 print("OK.")
+
+        if the_test["type"] == "status":
+            if the_test["value"] == status["description"]:
+                print("OK.")
+            else:
+                all_tests_ok = False
+                print("Failed.\n  Expected {exp} but got {num}".format(
+                    exp=the_test["value"], num=status["description"]))
+
+        if the_test["type"] == "status_contains":
+            if the_test["value"] in status["description"]:
+                print("OK.")
+            else:
+                all_tests_ok = False
+                print("Failed.\n  {exp} not found in \"{num}\"".format(
+                    exp=the_test["value"], num=status["description"]))
 
     return all_tests_ok
 
@@ -289,12 +313,12 @@ def load_expression_atlas(dataset_id: str, service_url: str) -> str:
     return loading_status["dataset_id"]
 
 
-def run_analysis(request: dict, service_url: str) -> str:
+def run_analysis(request: dict, service_url: str) -> (str, dict):
     """
     Run the specified analysis.
     :param request: The request object as a dict
     :param service_url: Reactome's URL
-    :returns: The analysis identifier
+    :returns: The (analysis identifier, status object)
     """
     # start the analysis
     analysis_request = requests.post(service_url + "analysis", json=request)
@@ -321,10 +345,9 @@ def run_analysis(request: dict, service_url: str) -> str:
         status = send_request(service_url + "status/" + analysis_id, "Failed to retrieve status")
 
     if status["status"] != "complete":
-        logger.error("Analysis failed: " + status["description"])
-        return None
+        analysis_id = None
 
-    return analysis_id
+    return (analysis_id, status)
 
 
 if __name__ == "__main__":

@@ -45,10 +45,13 @@ contain a request object as defined in the
 [ReactomeGSA API specification](https://gsa.reactome.org).
 
 Additionally, these requests objects may contain a "tests" property containing
-the specification of tests that are automatically run:
+the specification of tests that are automatically run.
+
+Any number of tests can be added to the request object.
+
+### Number of pathways / fold changes
 
 ```json
-Test Specification:
    'tests': [
        {
            "name": "First test",
@@ -61,7 +64,21 @@ Test Specification:
 
 The above test would evaluate whether the dataset "dataset_1" contains 1234 pathways.
 
-Any number of tests can be added to the request object.
+### Status messages
+
+Checks whether the analysis finished with the defined status. Failed analyses are evaluated as well.
+
+```json
+    'tests': [
+        {
+            "name": "Status test",
+            "type": "status",
+            "value": "The status message"
+        }
+    ]
+```
+
+Type `status_contains` checks whether the value is contained in the status message. Type `status` checks whether the description is equal to the value.
 
 **Fields**:
 
