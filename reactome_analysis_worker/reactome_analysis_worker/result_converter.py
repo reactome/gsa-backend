@@ -512,6 +512,7 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
                 reactome_blueprint["pathways"][i]["data"][identifier_level][entity_index]["exp"] = identifier_expr[org_id]
 
         # update the statistics
+        missing_pathways = list()
         for resource_index in range(0, len(reactome_blueprint["pathways"][i]["data"]["statistics"])):
             # set the pathway p-value to 1 if the pathway was excluded
             if _ignore_pathway(reactome_blueprint["pathways"][i], excluded_pathways=excluded_pathways):
@@ -519,10 +520,14 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = 1
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_expr
             else:
-                if pathway_id not in pathway_expr:
-                    raise ConversionException("Missing pathway regulation information for '" + pathway_id + "'")
-                if pathway_id not in pathway_p:
-                    raise ConversionException("Missing p-value for pathway '" + pathway_id + "'")
+                if pathway_id not in pathway_expr or pathway_id not in pathway_p:
+                    # keep track of missing pathways that should be there but still create the visualization
+                    missing_pathways.append(pathway_id)
+                    
+                    reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = 1
+                    reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesFDR"] = 1
+                    reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = missing_expr
+                    continue
 
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["entitiesPValue"] = \
                     pathway_p[pathway_id]["p"]
@@ -530,6 +535,9 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
                     pathway_p[pathway_id]["fdr"]
 
                 reactome_blueprint["pathways"][i]["data"]["statistics"][resource_index]["exp"] = pathway_expr[pathway_id]
+
+    # log the error
+    LOGGER.error("Missing pathway information for GSA result: {}".format(", ".join(missing_pathways)))
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
