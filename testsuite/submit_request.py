@@ -166,6 +166,15 @@ def run_tests(tests: list, result: dict, status: dict) -> bool:
                 print("Failed.\n  {exp} not found in \"{num}\"".format(
                     exp=the_test["value"], num=status["description"]))
 
+        if the_test["type"] == "visualisations":
+            if len(result["reactome_links"]) == int(the_test["value"]):
+                print("OK.")
+            else:
+                all_tests_ok = False
+                print("Failed.\n  Expected {exp} visualisations but found \"{num}\"".format(
+                    exp=the_test["value"], num=len(result["reactome_links"])))
+
+
     return all_tests_ok
 
 
@@ -191,6 +200,11 @@ def print_result_statistics(result_obj: dict) -> None:
     print("------------- Analysis Result ------------------")
     print("Reactome Version: " + result_obj["release"])
     print("# of datasets: " + str(len(result_obj["results"])))
+    
+    if len(result_obj["reactome_links"]) > 0:
+        print("Visualisations:")
+        for vis in result_obj["reactome_links"]:
+            print("  * {name}".format(name=vis["name"]))
 
     # process all datasets
     for dataset in result_obj["results"]:

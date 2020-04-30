@@ -62,6 +62,13 @@ Any number of tests can be added to the request object.
    ]
 ```
 
+**Fields**:
+
+  * name: An arbitrary name of the test
+  * dataset: The dataset to evaluate
+  * type: "pathways" or "fold_changes" - evaluates the total number
+  * value: The expected value (ie total number of pathways or fold_changes)
+
 The above test would evaluate whether the dataset "dataset_1" contains 1234 pathways.
 
 ### Status messages
@@ -80,9 +87,18 @@ Checks whether the analysis finished with the defined status. Failed analyses ar
 
 Type `status_contains` checks whether the value is contained in the status message. Type `status` checks whether the description is equal to the value.
 
-**Fields**:
+### Visualisations
 
-  * name: An arbitrary name of the test
-  * dataset: The dataset to evaluate
-  * type: "pathways" or "fold_changes" - evaluates the total number
-  * value: The expected value (ie total number of pathways or fold_changes)
+Number of visualisations returned.
+
+```json
+"tests": [
+    {
+        "name": "Visualisations test",
+        "type": "visualisations",
+        "value": 1
+    }
+]
+```
+
+The above example tests that 1 visualisation link was returned.
