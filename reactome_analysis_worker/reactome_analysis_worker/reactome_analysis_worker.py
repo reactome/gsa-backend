@@ -417,7 +417,8 @@ class ReactomeAnalysisWorker:
                         analysis_result.reactome_links.append(reactome_link)
                     except Exception as e:
                         # simply ignore this error
-                        LOGGER.warning("Failed to submit result to Reactome: " + str(e))
+                        LOGGER.error("Failed to submit result to Reactome ({request}): {msg}".format(
+                            request=request.analysis_id, msg=str(e)))
 
             # save the result
             storage = self._get_storage()
@@ -750,11 +751,6 @@ def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> N
         result_data = util.string_to_array(str_data)
 
         # change the gene names to string (not the case for NCBI gene ids)
-        if not str(result_data.dtype[0]).startswith("<U"):
-            dt = result_data.dtype.descr
-            dt[0] = (dt[0][0], '<U15')
-            result_data = result_data.astype(dt)
-
         result_queue.put(result_data)
     # Mark the analysis as failed if the conversion caused an error.
     except util.ConversionException as e:

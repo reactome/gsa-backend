@@ -29,12 +29,14 @@ class MappingException(Exception):
     pass
 
 
-def string_to_array(string: str) -> np.ndarray:
+def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
     """
     Convert an expression matrix with escaped line-breaks into
     a numpy array
     :param string: The string to convert.
     :param delimiter: The delimiter to use. Tab by default.
+    :param first_column_str: If set, the function ensures that the first column
+                             is interpreted as a string.
     :return: The resulting numpy array.
     """
     # Unescape the tab and new-line delimiters
@@ -48,6 +50,12 @@ def string_to_array(string: str) -> np.ndarray:
     try:
         array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=None,
                               encoding=None)
+
+        # ensure that the first (identifier) column is a string
+        if first_column_str and not str(array.dtype[0]).startswith("<U"):
+            dt = array.dtype.descr
+            dt[0] = (dt[0][0], '<U15')
+            array = array.astype(dt)
 
         return array
     except Exception as e:
