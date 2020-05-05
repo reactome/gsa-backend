@@ -352,20 +352,23 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         # create the R vector
         r_vector = ri.FloatSexpVector(expression_values)
 
-        rmatrix = ri.baseenv["matrix"]
-        rlist = ri.baseenv["list"]
+        r_base = ro.packages.importr("base")
 
         if len(sample_names) != len(colnames):
             # this should never happen since it was checked before
             raise AnalysisException("Different number of samples in the experimental design and the expression matrix.")
 
-        expression_data = rmatrix(r_vector, ncol=ri.IntSexpVector([len(colnames)]),
-                                  dimnames=rlist(ri.StrSexpVector(gene_names), sample_names))
+        # pylint: disable=no-member
+        expression_data = r_base.matrix(r_vector, ncol=ri.IntSexpVector([len(colnames)]),
+                                        dimnames=r_base.list(ri.StrSexpVector(gene_names), sample_names))
 
-        # convert to data.frame
-        rdataframe = ri.baseenv["data.frame"]
+        # change the matrix to a data_frame
+        expression_df = r_base.data_frame(expression_data)
 
-        return rdataframe(expression_data)
+        # ensure the rownames were not changed
+        expression_df.rownames = ri.StrSexpVector(gene_names)
+
+        return expression_df
 
     @staticmethod
     def _create_sample_data(design, sample_names):

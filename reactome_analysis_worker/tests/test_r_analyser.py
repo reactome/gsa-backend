@@ -7,6 +7,8 @@ import time
 from tempfile import gettempdir
 import rpy2.rinterface as ri
 import rpy2.robjects as ro
+import numpy
+from io import StringIO
 
 from reactome_analysis_api.input_deserializer import create_analysis_input_object
 
@@ -234,3 +236,28 @@ class TestReactomeRAnalyzer(unittest.TestCase):
 
       self.assertIsNotNone(string_df2)
       self.assertEqual("\\tname\\tage\\nId1\\tJohn\\t1.12345\\nId2\\tDoe\\t2.12345", string_df2)
+
+    def test_convert_dataset(self):
+      # create the sample data
+      df = numpy.genfromtxt(StringIO("Gene\tS1\tS2\tS3\nHLA-DQB1\t1\t2\t3\nMITF\t4\t5\t6\n"), dtype=None, delimiter="\t", names=True, 
+                            encoding = None)
+
+      class MockDS:
+        pass
+
+      dataset = MockDS()
+      dataset.df = df
+
+      sample_names = ri.StrSexpVector(["S1", "S2", "S3"])
+
+      # test the function
+      converted = ReactomeRAnalyser._convert_dataset(dataset, sample_names)
+
+      self.assertIsNotNone(converted)
+
+      rownames = ri.baseenv["rownames"]
+
+      converted_genes = list(rownames(converted))
+
+      self.assertIsNotNone(converted_genes)
+      self.assertEquals(["HLA-DQB1", "MITF"], converted_genes)
