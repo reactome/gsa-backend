@@ -55,7 +55,7 @@ def process_file(server: str, filename: str) -> bool:
     """
     # make sure the file exists
     if not os.path.isfile(filename):
-        print("Error: {name} does not exist".format(filename))
+        print("Error: {name} does not exist".format(name=filename))
         sys.exit(1)
 
     # get the service URL
@@ -66,6 +66,12 @@ def process_file(server: str, filename: str) -> bool:
         request_data = reader.read()
 
     request_object = json.loads(request_data)
+
+    # always change the e-mail
+    for n_param in range(0, len(request_object["parameters"])):
+        if request_object["parameters"][n_param]["name"] == "email":
+            logger.info("Removing e-mail")
+            request_object["parameters"][n_param]["value"] == ""
 
     # submit the request
     print("Submitting request to ReactomeGSA...")
