@@ -541,6 +541,16 @@ class ReactomeAnalysisWorker:
                     raise result
 
                 dataset.df = result
+
+                # make sure the genes are unique
+                genes = dataset.df[:][dataset.df.dtype.names[0]].tolist()
+
+                if len(genes) != len(set(genes)):
+                    # mark the analysis as failed
+                    self._set_status(request.analysis_id, status="failed",
+                                    description="Failed to convert dataset '{}': Table contains duplicate genes".format(dataset.name), completed=1)
+                    MALFORMATTED_DATA.labels(type="duplicate genes").inc()
+                    return False
             # Mark the analysis as failed if the conversion caused an error.
             except util.ConversionException as e:
                 LOGGER.error("Failed to convert dataset '{}' from analysis '{}': {}".format(
