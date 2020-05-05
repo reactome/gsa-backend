@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import typing
+import math
 
 import urllib3
 from reactome_analysis_api.models.analysis_result import AnalysisResult
@@ -284,7 +285,10 @@ def _get_gsva_pathway_expression(result: AnalysisResult, scale: bool=True) -> di
 
             # change to zscore if set
             if scale:
-                gsva_expr_per_pathway[pathway_id] = zscore(gsva_expr_per_pathway[pathway_id]).tolist()
+                scaled_values = zscore(gsva_expr_per_pathway[pathway_id]).tolist()
+                # replace nan by 0
+                scaled_values = [0 if math.isnan(value) else value for value in scaled_values]
+                gsva_expr_per_pathway[pathway_id] = scaled_values
 
             processed_pathways.add(pathway_id)
 
@@ -358,8 +362,11 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
     """
     reactome_blueprint = copy.deepcopy(reactome_blueprint)
 
+    # scale values if there are more than 2 samples
+    scale_values = len(result.results) > 2
+
     # get pathway and identifier expression values
-    gsva_expr_per_pathway = _get_gsva_pathway_expression(result)
+    gsva_expr_per_pathway = _get_gsva_pathway_expression(result, scale=scale_values)
     z_scores_per_identifier = _get_identifier_zscores(result)
 
     # get the min and max expression values
