@@ -760,7 +760,7 @@ def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> N
     try:
         result_data = util.string_to_array(str_data)
 
-        # change the gene names to string (not the case for NCBI gene ids)
+        # return the result
         result_queue.put(result_data)
     # Mark the analysis as failed if the conversion caused an error.
     except util.ConversionException as e:

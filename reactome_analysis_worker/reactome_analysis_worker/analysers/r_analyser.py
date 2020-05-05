@@ -5,6 +5,7 @@ R-based reactome analyser
 import logging
 import gc
 import re
+import math
 from collections.abc import Iterable
 
 import rpy2.rinterface as ri
@@ -347,7 +348,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
             expression_values += dataset.df[sample_name].tolist()
 
         # replace "NA" with "0"
-        expression_values = [value if value != "NA" else 0 for value in expression_values]
+        expression_values = [value if value != "NA" and not math.isnan(value) else 0 for value in expression_values]
 
         # create the R vector
         r_vector = ri.FloatSexpVector(expression_values)
