@@ -562,6 +562,15 @@ class ReactomeAnalysisWorker:
                                  description="Failed to convert dataset '{}'".format(dataset.name), completed=1)
                 MALFORMATTED_DATA.labels(type="other").inc()
                 return False
+            except Exception as e:
+                LOGGER.error("Unexpected error in dataset conversion: {}".format(str(e)), exc_info=True)
+
+                # mark the analysis as failed
+                self._set_status(request.analysis_id, status="failed",
+                                 description="Failed to convert dataset '{}'".format(dataset.name), completed=1)
+                MALFORMATTED_DATA.labels(type="unknown").inc()
+                
+                return False
 
         return True
 
