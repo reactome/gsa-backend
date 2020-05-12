@@ -101,9 +101,14 @@ def process_file_upload():
     if not delimiter:
         abort(500, "Failed to detect used delimiter")
 
-    csv_reader = csv.reader(all_lines, delimiter=delimiter)
-    header_line = csv_reader.__next__()
-    current_line = 1
+    try:
+        csv_reader = csv.reader(all_lines, delimiter=delimiter)
+        header_line = csv_reader.__next__()
+        current_line = 1
+    except csv.Error:
+        LOGGER.info("Malformatted file encountered.")
+        UPLOAD_ERRORS.labels(extension="malformatted csv").inc()
+        abort(400, "Malformatted text file. Ensure that quoted fields do not span multiple lines.")
 
     for line in csv_reader:
         current_line += 1
