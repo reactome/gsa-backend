@@ -85,7 +85,7 @@ def process_file_upload():
             LOGGER.debug("Excel file upload")
             abort(400, "MS Excel files are not supported. Please save as a text file (txt, csv, or tsv).")
         else:
-            LOGGER.error("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
+            LOGGER.info("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
             UPLOAD_ERRORS.labels(extension="other").inc()
             abort(400, "Uploaded file is not a text file.")
 
