@@ -84,7 +84,7 @@ def process_file(server: str, filename: str) -> bool:
         result = retrieve_reactome_result(analysis_id, service_url)
         print_result_statistics(result)
     else:
-        print("Analysis failed. No result received.")
+        print("Analysis failed. No result received: {msg}".format(msg=status["description"]))
         result = None
 
     if "tests" in request_object:
