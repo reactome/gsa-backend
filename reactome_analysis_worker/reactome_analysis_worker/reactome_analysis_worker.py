@@ -542,15 +542,16 @@ class ReactomeAnalysisWorker:
 
                 dataset.df = result
 
-                # make sure the genes are unique
-                genes = dataset.df[:][dataset.df.dtype.names[0]].tolist()
+                check_result = self._check_expression_matrix(result)
 
-                if len(genes) != len(set(genes)):
+                if check_result != True:
                     # mark the analysis as failed
                     self._set_status(request.analysis_id, status="failed",
-                                    description="Failed to convert dataset '{}': Table contains duplicate genes".format(dataset.name), completed=1)
-                    MALFORMATTED_DATA.labels(type="duplicate genes").inc()
+                                    description="Failed to convert dataset '{name}': {descr}".format(
+                                        name=dataset.name, descr=check_result), completed=1)
                     return False
+
+                
             # Mark the analysis as failed if the conversion caused an error.
             except util.ConversionException as e:
                 LOGGER.error("Failed to convert dataset '{}' from analysis '{}': {}".format(
@@ -572,6 +573,30 @@ class ReactomeAnalysisWorker:
                 
                 return False
 
+        return True
+
+    def _check_expression_matrix(self, data: numpy.ndarray) -> str:
+        """
+        Checks whether the passed data frame is a valid expression matrix
+        :param data: The data to check
+        :returns: True if it is ok. Otherwise the error as a string
+        """
+        # make sure the genes are unique
+        genes = data[:][data.dtype.names[0]].tolist()
+
+        if len(genes) != len(set(genes)):
+            # mark the analysis as failed
+            return "Table contains duplicate genes"
+
+        # test for likely issues
+        if "pvalue" in data.dtype.names:
+            return "Table must contain expression / intensity values per samples. Invalid column 'pvalue'. Did you submit an analysis result instead?"
+
+        # ensure that all sample columns are numeric
+        if any("U" in dt_type for (_, dt_type) in data.dtype.descr[1:]):
+            return "Table must contain expression / intensity values per samples. Expression table contains non-numeric columns."
+
+        # everything OK
         return True
 
     @staticmethod
