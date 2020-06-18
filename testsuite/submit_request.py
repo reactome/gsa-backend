@@ -38,6 +38,7 @@ def submit_request(server, filenames):
     all_tests_ok = True
 
     for filename in filenames:
+        logger.info("Processing " + filename + "...")
         all_tests_ok = all_tests_ok and process_file(server, filename)
 
     if all_tests_ok:
@@ -354,7 +355,11 @@ def run_analysis(request: dict, service_url: str) -> (str, dict):
     # get the status
     analysis_id = analysis_request.content.decode()
 
+    logger.info("Analysis submitted as " + analysis_id)
+
     status = send_request(service_url + "status/" + analysis_id, "Failed to retrieve status")
+
+    logger.info(status["description"])
 
     previous_status = status["description"]
 
