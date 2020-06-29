@@ -4,7 +4,7 @@ Renders the Kubernetes YAML specification for the REACTOME Analysis
 System.
 
 Usage:
-    render_template.py --template TEMPLATE_FILE --config CONFIG_FILE --output RESULT_FILE (--k_1_18)
+    render_template.py --template TEMPLATE_FILE --config CONFIG_FILE --output RESULT_FILE [--k_1_18]
     render_template.py (--help | --usage)
 
 Parameters:

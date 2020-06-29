@@ -648,6 +648,11 @@ spec:
             value: "/etc/mail/user"
           - name: EMAIL_PASSWORD_FILE
             value: "/etc/mail/password"
+          - name: MEM_LIMIT
+            valueFrom:
+              resourceFieldRef:
+                containerName: reactome-analysis-report
+                resource: limits.memory
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume

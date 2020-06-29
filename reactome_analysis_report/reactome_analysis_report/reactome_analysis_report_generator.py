@@ -521,9 +521,23 @@ class ReportGenerationProcess(multiprocessing.Process):
         # inject the result path
         ri.globalenv["excel_result_file"] = ri.StrSexpVector([filename])
 
+        # get the memory limit - default 1 GB
+        max_memory = int(os.getenv("MAX_MEMORY", 1024 * 1000 * 1000))
+
+        # set the max java memory to 100Mb less
+        if max_memory > 1024 * 1000 * 1000:
+            max_java_memory = int(Math.round((max_memory - (100 * 1024 * 1024))))
+        else:
+            max_java_memory = int(Math.round(max_memory * 0.9))
+
+        ri.globalenv["max_java_memory"] = max_java_memory
+
         ro.reval("""
             # get the pathways table
             pathway_result <- pathways(reactome_obj)
+
+            # increase Java memory
+            options(java.parameters = paste0("-Xmx", max_java_memory))
 
             # create the Excel file
             library(xlsx)
