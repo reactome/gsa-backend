@@ -522,7 +522,7 @@ class ReportGenerationProcess(multiprocessing.Process):
         ri.globalenv["excel_result_file"] = ri.StrSexpVector([filename])
 
         # get the memory limit - default 1 GB
-        max_memory = int(os.getenv("MAX_MEMORY", 1024 * 1000 * 1000))
+        max_memory = int(os.getenv("MEM_LIMIT", 1024 * 1000 * 1000))
 
         # set the max java memory to 100Mb less
         if max_memory > 1024 * 1000 * 1000:
