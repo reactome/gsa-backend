@@ -30,6 +30,7 @@ from reactome_analysis_worker import util
 from reactome_analysis_worker.analysers import *
 from reactome_analysis_worker.geneset_builder import GeneSet, generate_pathway_filename, load_disease_pathways
 from reactome_analysis_worker.models.gene_set_mapping import GeneSetMapping
+from reactome_analysis_worker.testing_tools.experimental_design_tests import ExperimentalDesignTester, ExperimentalDesignException, ExperimentalDesignExceptionType
 
 LOGGER = logging.getLogger(__name__)
 
@@ -627,83 +628,23 @@ class ReactomeAnalysisWorker:
         :param analysis_id: The analysis' id used to set the status in case it failed
         :return: Boolean to indicate whether the design is valid
         """
-        for dataset in datasets:
-            # ignore requests that do not contain a design
-            if not dataset.design:
-                continue
+        try:
+            ExperimentalDesignTester.test_experimental_designs(datasets)
+            
+            return True
+        except ExperimentalDesignException as e:
+            # mark the analysis as failed
+            self._set_status(analysis_id, status="failed",
+                             description="Failed to convert dataset '{dataset}'. {error}".format(
+                                 dataset=e.dataset_name,
+                                 error=str(e)
+                             ))
+            # track the error
+            error_type = e.type.name
+            INVALID_DESIGN.labels(type=error_type).inc()
 
-            design_samples = dataset.design.samples
-            matrix_samples = dataset.df.dtype.names[1:]
-
-            if not len(design_samples) == len(matrix_samples):
-                # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="Failed to convert dataset '{}'. Different number of samples in the "
-                                             "experimental design ({}) and the expression matrix ({})"
-                                 .format(dataset.name, str(len(design_samples)), str(len(matrix_samples))),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Format error").inc()
-                return False
-
-            # make sure comparison groups are different
-            if dataset.design.comparison.group1 == dataset.design.comparison.group2:
-               # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="Comparison group 1 and 2 must be different. Both set to '{}'"
-                                 .format(dataset.design.comparison.group1),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Same group").inc()
-                return False 
-
-            # make sure the sample groups are presnet
-            sample_groups = set(dataset.design.analysis_group)
-
-            if dataset.design.comparison.group1 not in sample_groups:
-                # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
-                                 .format(dataset.design.comparison.group1, "', '".join(sample_groups)),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Empty group").inc()
-                return False
-            if dataset.design.comparison.group2 not in sample_groups:
-                # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="No sample annotated as comparison group '{}'. Sample annotations are '{}'"
-                                 .format(dataset.design.comparison.group2, "', '".join(sample_groups)),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Empty group").inc()
-                return False
-
-            # get the number of samples per group
-            n_group_1 = 0
-            n_group_2 = 0
-
-            for sample_group in dataset.design.analysis_group:
-                if sample_group == dataset.design.comparison.group1:
-                    n_group_1 += 1
-                if sample_group == dataset.design.comparison.group2:
-                    n_group_2 += 1
-
-            if n_group_1 < 3:
-                # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="Analysis group '{}' only contains {} sample(s). Each group must at least contain 3 samples for accurate results."
-                                 .format(dataset.design.comparison.group1, str(n_group_1)),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Few samples").inc()
-                return False
-
-            if n_group_2 < 3:
-                # mark the analysis as failed
-                self._set_status(analysis_id, status="failed",
-                                 description="Analysis group '{}' only contains {} sample(s). Each group must at least contain 3 samples for accurate results."
-                                 .format(dataset.design.comparison.group2, str(n_group_2)),
-                                 completed=1)
-                INVALID_DESIGN.labels(type="Few samples").inc()
-                return False
-
-        return True
+            # indicate that the design is not valid
+            return False
 
     def _convert_mapping_result(self, identifier_mappings: dict) -> list:
         """
