@@ -1,13 +1,9 @@
 FROM jgriss/reactome-analysis_worker:THE_WORKER_VERSION
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
-ENV LD_LIBRARY_PATH /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/server:/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64
-
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y openjdk-8-jdk-headless r-cran-rjava r-cran-devtools libssl-dev pandoc && \
+    apt-get install --no-install-recommends -y r-cran-devtools libssl-dev pandoc && \
     rm -rf /var/lib/apt/lists/* && \
-    apt-get clean && \
-    R CMD javareconf
+    apt-get clean
 
 # install texlive
 COPY texlive.profile /tmp/

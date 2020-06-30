@@ -521,30 +521,22 @@ class ReportGenerationProcess(multiprocessing.Process):
         # inject the result path
         ri.globalenv["excel_result_file"] = ri.StrSexpVector([filename])
 
-        # get the memory limit - default 1 GB - in MB
-        max_memory = round(int(os.getenv("MEM_LIMIT", 1024 * 1024 * 1000)) / (1024 * 1024))
-
-        # set the max java memory to 100Mb less
-        if max_memory > 1000:
-            max_java_memory = max_memory - 100
-        else:
-            max_java_memory = round(max_memory * 0.9)
-
-        ri.globalenv["max_java_memory"] = max_java_memory
-
         ro.reval("""
             # get the pathways table
             pathway_result <- pathways(reactome_obj)
 
-            # increase Java memory
-            options(java.parameters = paste0("-Xmx", max_java_memory, "m"))
+            # create the workbook
+            library(openxlsx)
 
-            # create the Excel file
-            library(xlsx)
+            wb <- createWorkbook(creator = "ReactomeGSA", title = "ReactomeGSA Analysis Result", subject = "Pathway analysis")
 
-            # add the combined pathway data
-            write.xlsx2(pathway_result, file = excel_result_file, sheetName = "Pathways",
-                        col.names = T, row.names = T, append = F)
+            # bold headers
+            boldHeader <- createStyle(textDecoration = 'bold')
+
+            # write the pathways
+            addWorksheet(wb, 'Pathways')
+            writeData(wb, 'Pathways', pathway_result, headerStyle = boldHeader)
+            setColWidths(wb, 'Pathways', cols = 1:ncol(pathway_result), widths = 'auto')
 
             # add the expression values for every result
             if ("fold_changes" %in% result_types(reactome_obj)) {
@@ -552,11 +544,18 @@ class ReportGenerationProcess(multiprocessing.Process):
                     fold_changes <- get_result(reactome_obj, type = "fold_changes", name = dataset_name)
 
                     # add the fold-changes to the Excel file
-                    write.xlsx2(fold_changes, file = excel_result_file, 
-                                sheetName = paste0(dataset_name, " - fold changes"),
-                                col.names = T, row.names = F, append = T)
+                    sheet_name <- paste0(dataset_name, " - fold changes")
+
+                    addWorksheet(wb, sheet_name)
+                    writeData(wb, sheet_name, fold_changes, headerStyle = boldHeader)
+
+                    # nice column widths
+                    setColdWidths(wb, sheet_name, cols = 1:ncol(fold_changes), widths = 'auto')
                 }
             }
+
+            # save the workbook
+            saveWorkbook(wb, excel_result_file, overwrite = TRUE)
         """)
 
     def create_pdf_report(self, pdf_filename) -> None:

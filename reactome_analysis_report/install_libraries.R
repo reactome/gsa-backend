@@ -6,7 +6,7 @@
 # set the CRAN mirror to use
 options(repos=structure(c(CRAN = 'http://cran.ma.imperial.ac.uk')))
 
-install.packages("xlsx")
+install.packages("openxlsx")
 install.packages("httr")
 install.packages("progress")
 install.packages("jsonlite")
