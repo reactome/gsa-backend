@@ -550,7 +550,7 @@ class ReportGenerationProcess(multiprocessing.Process):
                     writeData(wb, sheet_name, fold_changes, headerStyle = boldHeader)
 
                     # nice column widths
-                    setColdWidths(wb, sheet_name, cols = 1:ncol(fold_changes), widths = 'auto')
+                    setColWidths(wb, sheet_name, cols = 1:ncol(fold_changes), widths = 'auto')
                 }
             }
 
