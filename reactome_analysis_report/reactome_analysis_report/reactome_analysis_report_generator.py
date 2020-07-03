@@ -546,6 +546,10 @@ class ReportGenerationProcess(multiprocessing.Process):
                     # add the fold-changes to the Excel file
                     sheet_name <- paste0(dataset_name, " - fold changes")
 
+                    if (nchar(sheet_name) > 30) {
+                        sheet_name <- paste0(substr(sheet_name, 1, 27), "...")
+                    }
+
                     addWorksheet(wb, sheet_name)
                     writeData(wb, sheet_name, fold_changes, headerStyle = boldHeader)
 
