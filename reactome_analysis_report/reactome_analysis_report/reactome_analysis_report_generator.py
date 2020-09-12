@@ -397,15 +397,18 @@ class ReactomeAnalysisReportGenerator:
             smtp_pwd = reader.read().strip()
 
         # Send the message
-        with smtplib.SMTP(host=smtp_server, port=smtp_port) as s:
-            s.ehlo()
-            s.starttls()
-            s.ehlo()
-            s.login(user=smtp_user, password=smtp_pwd)
-            s.ehlo()
-            s.send_message(msg)
+        try:
+            with smtplib.SMTP(host=smtp_server, port=smtp_port) as s:
+                s.ehlo()
+                s.starttls()
+                s.ehlo()
+                s.login(user=smtp_user, password=smtp_pwd)
+                s.ehlo()
+                s.send_message(msg)
 
-        SENT_EMAILS.inc()
+            SENT_EMAILS.inc()
+        except Exception as e:
+            LOGGER.error("Failed to send e-mail to {address}".format(address=user_address))
 
     @staticmethod
     def get_name_for_extension(extension: str) -> str:
