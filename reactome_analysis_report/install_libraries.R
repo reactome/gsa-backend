@@ -17,7 +17,7 @@ if (!require(devtools)) {
   install.packages("devtools")
 }
 
-# install the ReactomeGSA package
+# install the ReactomeGSA package - version 1.3.7
 devtools::install_github("reactome/ReactomeGSA")
 
 # install the ReactomeGSA report package - version 1.0.6
