@@ -73,6 +73,9 @@ def start_analysis(body):  # noqa: E501
 
     :rtype: str
     """
+    LOGGER.debug("User-Agent = " + connexion.request.headers.get("User-Agent"))
+    LOGGER.debug("ClientUI = " + connexion.request.headers.get("clientUI"))
+
     # get the JSON-encoded dict from the request object
     if connexion.request.is_json:
         analysis_dict = connexion.request.get_json(cache=False)
