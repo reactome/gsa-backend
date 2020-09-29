@@ -89,6 +89,11 @@ def process_file_upload():
             UPLOAD_ERRORS.labels(extension="other").inc()
             abort(400, "Uploaded file is not a text file.")
 
+    # make sure the file is not empty
+    if len(all_lines) < 1:
+        LOGGER.info("Empty file uploaded.")
+        abort(400, "The uploaded file seems to be empty.")
+
     # guess the delimiter
     delimiter = None
     if "\t" in all_lines[0]:
@@ -105,7 +110,7 @@ def process_file_upload():
         csv_reader = csv.reader(all_lines, delimiter=delimiter)
         header_line = csv_reader.__next__()
         current_line = 1
-    except csv.Error:
+    except Exception:
         LOGGER.info("Malformatted file encountered.")
         UPLOAD_ERRORS.labels(extension="malformatted csv").inc()
         abort(400, "Malformatted text file. Ensure that quoted fields do not span multiple lines.")
@@ -129,8 +134,15 @@ def process_file_upload():
                 abort(400, "Different number of column names than entries in row 1: header contains {} fields, "
                            "first line contains {} fields".format(str(len(header_line)), str(n_samples)))
 
+            # make sure the sample names are unique
+            sample_names = header_line[1:]
+
+            if len(sample_names) != len(set(sample_names)):
+                abort(400, "Duplicate sample names detected. All sample names (labels in the first line "
+                           "must be unique")
+
             # save the sample names
-            return_object["sample_names"] = header_line[1:]
+            return_object["sample_names"] = sample_names
 
             # start creating the converted object
             return_lines.append("\t".join(header_line))
