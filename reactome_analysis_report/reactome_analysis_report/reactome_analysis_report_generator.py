@@ -550,7 +550,7 @@ class ReportGenerationProcess(multiprocessing.Process):
                     sheet_name <- paste0(dataset_name, " - fold changes")
 
                     # make the sheet name save
-                    sheet_name <- gsub("[^A-Za-z0-9-.]", "_", sheet_name)
+                    sheet_name <- gsub("[^A-Za-z0-9_.]", "_", sheet_name)
                     sheet_name <- gsub("_+", "_", sheet_name)
 
                     if (nchar(sheet_name) > 30) {
