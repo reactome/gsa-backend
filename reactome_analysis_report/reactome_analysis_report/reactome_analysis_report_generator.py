@@ -549,6 +549,10 @@ class ReportGenerationProcess(multiprocessing.Process):
                     # add the fold-changes to the Excel file
                     sheet_name <- paste0(dataset_name, " - fold changes")
 
+                    # make the sheet name save
+                    sheet_name <- gsub("[^A-Za-z0-9-.]", "_", sheet_name)
+                    sheet_name <- gsub("_+", "_", sheet_name)
+
                     if (nchar(sheet_name) > 30) {
                         sheet_name <- paste0(substr(sheet_name, 1, 27), "...")
                     }
