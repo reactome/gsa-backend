@@ -75,6 +75,7 @@ def start_analysis(body):  # noqa: E501
     """
     LOGGER.debug("User-Agent = " + connexion.request.headers.get("User-Agent", "Unknown"))
     LOGGER.debug("ClientUI = " + connexion.request.headers.get("clientUI", "Unknown"))
+    LOGGER.debug("Referer = " + connexion.request.headers.get("Referer", "Unknown"))
 
     # get the JSON-encoded dict from the request object
     if connexion.request.is_json:
