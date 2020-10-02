@@ -164,7 +164,7 @@ def start_analysis(body):  # noqa: E501
             LOGGER.debug("Analysis " + analysis_id + " submitted to queue")
             queue.close()
 
-            STARTED_ANALYSIS_COUNTER.inc(client=user_client)
+            STARTED_ANALYSIS_COUNTER.labels(client=user_client).inc()
 
             return analysis_id
         except socket.gaierror as e:
