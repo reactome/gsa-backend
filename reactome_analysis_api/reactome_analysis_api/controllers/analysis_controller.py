@@ -17,7 +17,7 @@ from reactome_analysis_utils.models.analysis_request import AnalysisRequest
 
 LOGGER = logging.getLogger(__name__)
 STARTED_ANALYSIS_COUNTER = prometheus_client.Counter('reactome_api_started_analyses',
-                                                     'Analysis requests started through the API')
+                                                     'Analysis requests started through the API', ["client"])
 
 MISSING_DATA_TOKEN_COUNTER = prometheus_client.Counter('reactome_api_missing_token',
                                                        'Missing data for data tokens.')
@@ -73,9 +73,13 @@ def start_analysis(body):  # noqa: E501
 
     :rtype: str
     """
-    LOGGER.debug("User-Agent = " + connexion.request.headers.get("User-Agent", "Unknown"))
-    LOGGER.debug("ClientUI = " + connexion.request.headers.get("clientUI", "Unknown"))
-    LOGGER.debug("Referer = " + connexion.request.headers.get("Referer", "Unknown"))
+    user_client = "Unknown"
+
+    # set the basic user client
+    if "r-curl" in connexion.request.headers.get("User-Agent", "Unknown"):
+        user_client = "ReactomeGSA R"
+    else if "reactome.org/PathwayBrowser" in connexion.request.headers.get("Referer", "Unknown"):
+        user_client = "PathwayBrowser"
 
     # get the JSON-encoded dict from the request object
     if connexion.request.is_json:
