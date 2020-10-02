@@ -78,7 +78,7 @@ def start_analysis(body):  # noqa: E501
     # set the basic user client
     if "r-curl" in connexion.request.headers.get("User-Agent", "Unknown"):
         user_client = "ReactomeGSA R"
-    else if "reactome.org/PathwayBrowser" in connexion.request.headers.get("Referer", "Unknown"):
+    elif "reactome.org/PathwayBrowser" in connexion.request.headers.get("Referer", "Unknown"):
         user_client = "PathwayBrowser"
 
     # get the JSON-encoded dict from the request object
