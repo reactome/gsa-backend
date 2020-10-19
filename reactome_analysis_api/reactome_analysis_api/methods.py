@@ -38,7 +38,7 @@ global_parameters = [
                          display_name="Create reports",
                          type="bool",
                          scope="common",
-                         default="True",
+                         default="False",
                          description="If set to 'True', additional Microsoft Excel and PDF-based reports of the "
                                      "analysis result will be created."),
         MethodParameters(name="email",
