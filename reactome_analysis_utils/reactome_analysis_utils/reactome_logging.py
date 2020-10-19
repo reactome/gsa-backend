@@ -38,7 +38,7 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
     in the buffer.
     """
     def __init__(self, capacity=50, flushLevel=logging.ERROR, minLevel=logging.INFO):
-        logging.handlers.MemoryHandler.__init__(self, capacity, flushLevel)
+        logging.handlers.MemoryHandler.__init__(self, capacity=capacity, flushLevel=flushLevel, flushOnClose=False)
 
         # indicates whether all mail settings were found
         self.has_mail_support = False
@@ -90,33 +90,53 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
                     # create the nicely formatted string
                     messages = list()
 
+                    # ensure that there is a message with "flushLevel"
+                    has_min_level = False
+
                     for log_msg in self.buffer:
-                        messages.append(self.format(log_msg))
-
-                    # create the e-mail message
-                    from email.message import EmailMessage
-
-                    msg = EmailMessage()
-                    msg['Subject'] = "ReactomeGSA - Error"
-                    msg['From'] = self.smtp_from
-                    msg['To'] = self.smtp_to
-
-                    msg.set_content("\n".join(messages))
+                        if log_msg.levelno >= self.flushLevel:
+                            has_min_level = True
+                            break
 
                     # send the mail
-                    import smtplib
-
-                    with smtplib.SMTP(host=self.smtp_server, port=self.smtp_port) as s:
-                        s.ehlo()
-                        s.starttls()
-                        s.ehlo()
-                        s.login(user=self.smtp_user, password=self.smtp_password)
-                        s.ehlo()
-                        s.send_message(msg)
+                    if has_min_level:
+                        send_log_as_mail()
             except Exception as e:
                 LOGGER.debug("Failed to send log mail: " + str(e))
+            finally:
+                # clear the buffer
+                self.buffer = []
 
-            self.buffer = []
+    def send_log_as_mail(self):
+        """Send all log messages in the buffer as an e-mail
+        """
+        try:
+            # get the log messages as strings
+            for log_msg in self.buffer:
+                messages.append(self.format(log_msg))
+
+            # create the e-mail message
+            from email.message import EmailMessage
+
+            msg = EmailMessage()
+            msg['Subject'] = "ReactomeGSA - Error"
+            msg['From'] = self.smtp_from
+            msg['To'] = self.smtp_to
+
+            msg.set_content("\n".join(messages))
+
+            # send the mail
+            import smtplib
+
+            with smtplib.SMTP(host=self.smtp_server, port=self.smtp_port) as s:
+                s.ehlo()
+                s.starttls()
+                s.ehlo()
+                s.login(user=self.smtp_user, password=self.smtp_password)
+                s.ehlo()
+                s.send_message(msg)
+    except Exception as e:
+        LOGGER.debug("Failed to send log mail: " + str(e))
 
     @staticmethod
     def _load_secret_from_file(file):
