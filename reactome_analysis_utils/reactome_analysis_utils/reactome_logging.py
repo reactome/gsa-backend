@@ -100,7 +100,7 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
 
                     # send the mail
                     if has_min_level:
-                        send_log_as_mail()
+                        self.send_log_as_mail()
             except Exception as e:
                 LOGGER.debug("Failed to send log mail: " + str(e))
             finally:
