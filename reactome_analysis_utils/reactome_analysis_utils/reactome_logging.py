@@ -135,8 +135,8 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
                 s.login(user=self.smtp_user, password=self.smtp_password)
                 s.ehlo()
                 s.send_message(msg)
-    except Exception as e:
-        LOGGER.debug("Failed to send log mail: " + str(e))
+        except Exception as e:
+            LOGGER.debug("Failed to send log mail: " + str(e))
 
     @staticmethod
     def _load_secret_from_file(file):
