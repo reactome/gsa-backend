@@ -541,6 +541,9 @@ class ReportGenerationProcess(multiprocessing.Process):
             writeData(wb, 'Pathways', pathway_result, headerStyle = boldHeader)
             setColWidths(wb, 'Pathways', cols = 1:ncol(pathway_result), widths = 'auto')
 
+            # store all previous sheet names to ensure that they are unique
+            previous_sheet_names <- c()
+
             # add the expression values for every result
             if ("fold_changes" %in% result_types(reactome_obj)) {
                 for (dataset_name in names(reactome_obj)) {
@@ -557,6 +560,18 @@ class ReportGenerationProcess(multiprocessing.Process):
                         sheet_name <- paste0(substr(sheet_name, 1, 27), "...")
                     }
 
+                    # ensure that the sheetName is unique
+                    counter <- 0
+                    base_sheet_name <- sheet_name
+
+                    while (sheet_name %in% previous_sheet_names) {
+                        counter <- counter + 1
+                        sheet_name <- paste0(base_sheet_name, "-", counter)
+                    }
+
+                    previous_sheet_names <- c(previous_sheet_names, sheet_name)
+
+                    # add the sheet to the workbook
                     addWorksheet(wb, sheet_name)
                     writeData(wb, sheet_name, fold_changes, headerStyle = boldHeader)
 
