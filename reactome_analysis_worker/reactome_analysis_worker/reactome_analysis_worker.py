@@ -329,8 +329,11 @@ class ReactomeAnalysisWorker:
                 # update the last received heartbeat
                 if heartbeat_queue.qsize() > 0:
                     try:
+                        LOGGER.debug("Updating heartbeats...")
                         while heartbeat_queue.qsize() > 0:
                             last_heartbeat = heartbeat_queue.get(block=True, timeout=0.5)
+
+                        LOGGER.debug("Hearbeat update done.")
                     except Exception:
                         # ignore any timeouts since these should negatively effect the heartbeat
                         # anyway
@@ -340,6 +343,7 @@ class ReactomeAnalysisWorker:
                 current_timeout = int(time.time()) - last_heartbeat
                 if current_timeout > self.max_timeout:
                     LOGGER.error("Analysis timed out (" + str(current_timeout) + " seconds)")
+                    analysis_process.terminate()
                     # add a "nice" Exception to the gsa_result queue
                     result_queue.put(Exception("Error: Analysis timed out. Please retry the analysis at a later time."))
                     break
@@ -347,16 +351,20 @@ class ReactomeAnalysisWorker:
                 # receive and process any status updates
                 if status_queue.qsize() > 0:
                     try:
+                        LOGGER.debug("Fetching status updates...")
                         # only use the last update
                         while status_queue.qsize() > 0:
                             status_object = status_queue.get(block=True, timeout=0.5)
                         self._set_status(request.analysis_id, status="running", description=status_object.description,
                                          completed=status_object.completed)
+
+                        LOGGER.debug("Status update done.")
                     except Exception:
                         # this can safely be ignored since it is most commonly caused by the fact that the worker
                         # is too busy and fetching of the message timed out
                         pass
 
+                LOGGER.debug("Sleeping...")
                 self._get_mq().sleep(1)
 
             LOGGER.debug("Analysis process completed. Joining process...")
