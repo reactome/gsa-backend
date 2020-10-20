@@ -87,9 +87,6 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
         if len(self.buffer) > 0:
             try:
                 if self.has_mail_support:
-                    # create the nicely formatted string
-                    messages = list()
-
                     # ensure that there is a message with "flushLevel"
                     has_min_level = False
 
@@ -111,6 +108,9 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
         """Send all log messages in the buffer as an e-mail
         """
         try:
+            # create the nicely formatted string
+            messages = list()
+            
             # get the log messages as strings
             for log_msg in self.buffer:
                 messages.append(self.format(log_msg))
