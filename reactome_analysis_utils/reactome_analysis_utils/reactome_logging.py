@@ -11,7 +11,7 @@ import logging.handlers
 import os, sys
 
 
-REACTOME_LOGGING_FORMAT = "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
+REACTOME_LOGGING_FORMAT = "[%(asctime)s] %(levelname)s [%(threadName)s] [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
 LOGGER = logging.getLogger(__name__)
 
 
