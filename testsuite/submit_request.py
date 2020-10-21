@@ -72,7 +72,7 @@ def process_file(server: str, filename: str) -> bool:
     for n_param in range(0, len(request_object["parameters"])):
         if request_object["parameters"][n_param]["name"] == "email":
             logger.info("Removing e-mail")
-            request_object["parameters"][n_param]["value"] == ""
+            request_object["parameters"][n_param]["value"] = ""
 
     # submit the request
     print("Submitting request to ReactomeGSA...")
