@@ -4,6 +4,7 @@ The main entry point for the reactome_analysis_worker package.
 
 import logging
 import os
+import sys
 
 from prometheus_client import start_http_server
 
@@ -37,6 +38,7 @@ def main():
         worker.shutdown()
 
     LOGGER.info("Exiting.")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
