@@ -99,25 +99,32 @@ class ReactomeMQ:
         current_try = 1
         was_published = False
 
-        # try to submit the job n times
         try:
+            # try to submit the job n times
             while current_try <= max_retries and not was_published:
-                was_published = channel.basic_publish(exchange='',
-                                                      routing_key=self.queue_name,
-                                                      body=analysis,
-                                                      properties=pika.BasicProperties(
-                                                          delivery_mode=2  # make message persistent
-                                                      ),
-                                                      mandatory=True)  # require acknowledgement
-                current_try += 1
-                # wait for 1 sec to try again
-                if not was_published:
+                try:
+                    channel.basic_publish(exchange='',
+                        routing_key=self.queue_name,
+                        body=analysis,
+                        properties=pika.BasicProperties(
+                            delivery_mode=2  # make message persistent
+                        ),
+                        mandatory=True)  # require acknowledgement
+
+                    was_published = True
+                except pika.exceptions.UnroutableError:
+                    # only handle unroutable error
                     LOGGER.debug("Failed to publish analysis message. Retrying...")
+
+                    # simply retry
+                    current_try += 1
                     time.sleep(1)
 
             channel.close()
         except pika.exceptions.ConnectionClosed:
             raise ReactomeMQException("Message queue not accepting messages at the moment.")
+        except Exception as e:
+            LOGGER.error(f"Failed to publish message: {e}")
 
         if not was_published:
             raise ReactomeMQException("Failed to publish analysis")
