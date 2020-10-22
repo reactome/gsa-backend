@@ -74,6 +74,7 @@ class ReactomeMQ:
         """
         if self.connection:
             self.connection.close()
+            self.connection = None
 
     def post_analysis(self, analysis, method: str):
         """
