@@ -72,7 +72,7 @@ class ReactomeMQ:
         """
         Close the connection
         """
-        if self.connection:
+        if self.connection and not self.connection.is_closed:
             self.connection.close()
             self.connection = None
 
