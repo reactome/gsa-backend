@@ -180,8 +180,7 @@ class ReactomeMQ:
                 self._channel.basic_qos(prefetch_count=1)
 
                 # register the callback
-                self._channel.basic_consume(callback,
-                                            queue=self.queue_name)
+                self._channel.basic_consume(self.queue_name, callback)
 
                 # start listening
                 LOGGER.info("Starting listening for analysis messages...")
