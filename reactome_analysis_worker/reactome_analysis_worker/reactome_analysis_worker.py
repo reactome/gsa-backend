@@ -83,6 +83,7 @@ class ReactomeAnalysisWorker:
         """
         if not self._mq:
             try:
+                LOGGER.debug("Connecting to MQ service.")
                 self._mq = ReactomeMQ()
             except Exception as e:
                 LOGGER.error("Failed to connect to MQ service: " + str(e))
@@ -439,12 +440,21 @@ class ReactomeAnalysisWorker:
             # send the request to create the report
             if request.parameter_dict.get("create_reports", "False").lower() == "true" or \
                len(request.parameter_dict.get("email", "")) > 3:
+                # connect to the report queue
                 message_mq = ReactomeMQ(queue_name=REPORT_QUEUE)
-                report_request_obj = report_request.ReportRequest(analysis_id=request.analysis_id,
-                                                                  user_mail=request.parameter_dict.get("email", None),
-                                                                  include_interactors=use_interactors,
-                                                                  include_disease=include_disease)
-                message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
+
+                try:
+                    report_request_obj = report_request.ReportRequest(analysis_id=request.analysis_id,
+                                                                    user_mail=request.parameter_dict.get("email", None),
+                                                                    include_interactors=use_interactors,
+                                                                    include_disease=include_disease)
+                    message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
+                except Exception:
+                    # ignore any report issues for now
+                    LOGGER.error("Failed to submit report generation message.")
+                finally:
+                    # always close the connection to the report queue
+                    message_mq.close()
 
             # count the complete analysis
             COMPLETED_ANALYSES.labels(method=request.method_name.lower()).inc()
