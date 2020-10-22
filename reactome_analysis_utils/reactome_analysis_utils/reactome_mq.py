@@ -113,9 +113,9 @@ class ReactomeMQ:
                         mandatory=True)  # require acknowledgement
 
                     was_published = True
-                except pika.exceptions.UnroutableError:
+                except pika.exceptions.UnroutableError as e:
                     # only handle unroutable error
-                    LOGGER.debug("Failed to publish analysis message. Retrying...")
+                    LOGGER.warn(f"Failed to publish analysis message: ${e}")
 
                     # simply retry
                     current_try += 1
