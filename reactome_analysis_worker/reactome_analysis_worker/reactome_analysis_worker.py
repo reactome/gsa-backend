@@ -31,6 +31,8 @@ from reactome_analysis_worker.analysers import *
 from reactome_analysis_worker.geneset_builder import GeneSet, generate_pathway_filename, load_disease_pathways
 from reactome_analysis_worker.models.gene_set_mapping import GeneSetMapping
 from reactome_analysis_worker.testing_tools.experimental_design_tests import ExperimentalDesignTester, ExperimentalDesignException, ExperimentalDesignExceptionType
+from reactome_analysis_worker.processes.reactome_ora_analyser import ReactomeOraAnalyser
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -149,6 +151,93 @@ class ReactomeAnalysisWorker:
 
         # Decrement the number of running analyses
         RUNNING_ANALYSES.dec()
+
+    def _perform_gsa(self, analyser, request, gene_set_mappings, gene_set, identifier_mappings):
+        # move the analysis to a separate process in order to "stay alive" in the eyes of
+        # the queuing system - rpy2 causes python to stop
+        is_analysis_complete = multiprocessing.Event()
+        result_queue = multiprocessing.Queue()
+        status_queue = multiprocessing.Queue()
+        heartbeat_queue = multiprocessing.Queue()
+
+        # create the analysis process
+        analysis_process = AnalysisProcess(analyser=analyser, request=request, gene_set_mappings=gene_set_mappings,
+                                            gene_set=gene_set,
+                                            identifier_mappings=identifier_mappings,
+                                            on_complete=is_analysis_complete, result_queue=result_queue,
+                                            status_queue=status_queue, heartbeat_queue=heartbeat_queue)
+
+        LOGGER.debug("Launching process to perform the analysis...")
+
+        analysis_process.start()
+        
+        # keep track of the last log heartbeat to see if the process timed out
+        last_heartbeat = int(time.time())
+
+        # wait for completion
+        while analysis_process.is_alive() and not is_analysis_complete.is_set():
+            # test whether the analysis should be interrupted
+            if self._get_mq().get_is_shutdown():
+                LOGGER.debug("Shutdown triggered, terminating analysis process")
+                analysis_process.terminate()
+                analysis_process.join(0.1)
+                return None
+
+            # update the last received heartbeat
+            if heartbeat_queue.qsize() > 0:
+                try:
+                    LOGGER.debug("Updating heartbeats...")
+                    while heartbeat_queue.qsize() > 0:
+                        last_heartbeat = heartbeat_queue.get(block=True, timeout=0.5)
+
+                    LOGGER.debug("Hearbeat update done.")
+                except Exception:
+                    # ignore any timeouts since these should negatively effect the heartbeat
+                    # anyway
+                    pass
+
+            # make sure the process sent a heartbeat in the required minimum time
+            current_timeout = int(time.time()) - last_heartbeat
+            if current_timeout > self.max_timeout:
+                LOGGER.error("Analysis timed out (" + str(current_timeout) + " seconds)")
+                analysis_process.terminate()
+                # add a "nice" Exception to the gsa_result queue
+                result_queue.put(Exception("Error: Analysis timed out. Please retry the analysis at a later time."))
+                break
+
+            # receive and process any status updates
+            if status_queue.qsize() > 0:
+                try:
+                    LOGGER.debug("Fetching status updates...")
+                    # only use the last update
+                    while status_queue.qsize() > 0:
+                        status_object = status_queue.get(block=True, timeout=0.5)
+                    self._set_status(request.analysis_id, status="running", description=status_object.description,
+                                        completed=status_object.completed)
+
+                    LOGGER.debug("Status update done.")
+                except Exception:
+                    # this can safely be ignored since it is most commonly caused by the fact that the worker
+                    # is too busy and fetching of the message timed out
+                    pass
+
+            LOGGER.debug("Sleeping...")
+            self._get_mq().sleep(1)
+
+        LOGGER.debug("Analysis process completed. Joining process...")
+
+        # for potential cleanup
+        analysis_process.join(1)
+
+        # retrieve the result from the queue
+        try:
+            gsa_results = result_queue.get(block=True, timeout=0.5)
+        except queue.Empty:
+            gsa_results = None
+
+        LOGGER.debug("Result received from queue.")
+
+        return gsa_results
 
     def _on_new_analysis(self, ch, method, properties, body):
         """
@@ -286,100 +375,19 @@ class ReactomeAnalysisWorker:
                          description="Performing gene set analysis using {}".format(request.method_name), completed=0.2)
 
         try:
-            # move the analysis to a separate process in order to "stay alive" in the eyes of
-            # the queuing system - rpy2 causes python to stop
-            is_analysis_complete = multiprocessing.Event()
-            result_queue = multiprocessing.Queue()
-            status_queue = multiprocessing.Queue()
-            heartbeat_queue = multiprocessing.Queue()
-            analysis_process = AnalysisProcess(analyser=reactome_analyser, request=request, gene_set_mappings=mappings,
-                                               gene_set=gene_set,
-                                               identifier_mappings=identifier_mappings,
-                                               on_complete=is_analysis_complete, result_queue=result_queue,
-                                               status_queue=status_queue, heartbeat_queue=heartbeat_queue)
-            LOGGER.debug("Launching process to perform the analysis...")
-
-            analysis_process.start()
-            
-            # keep track of the last log heartbeat to see if the process timed out
-            last_heartbeat = int(time.time())
-
-            # fetch the blueprint (in parallel) for the REACTOME result conversion
+            # fetch the blueprint for the REACTOME result conversion
             reactome_blueprint = None
+            reactome_ora_analyser = ReactomeOraAnalyser(identifiers=identifiers_after_filter, include_disease=include_disease, 
+                                                        reactome_server=reactome_server, use_interactors=use_interactors)
 
-            try:
-                # only get the blueprint if the option is set
-                if request.parameter_dict.get("create_reactome_visualization").lower() == "true":
-                    LOGGER.debug("Fetching blueprint for Reactome result conversion")
-                    reactome_blueprint = result_converter.perform_reactome_gsa(identifiers=identifiers_after_filter,
-                                                                               use_interactors=use_interactors,
-                                                                               reactome_server=reactome_server,
-                                                                               include_disease=include_disease)
-            except Exception as e:
-                LOGGER.warning("Failed to retrieve Reactome blueprint: " + str(e))
+            # only get the blueprint if the option is set
+            if request.parameter_dict.get("create_reactome_visualization").lower() == "true":
+                reactome_ora_analyser.start()
 
-            # wait for completion
-            while analysis_process.is_alive() and not is_analysis_complete.is_set():
-                # test whether the analysis should be interrupted
-                if self._get_mq().get_is_shutdown():
-                    LOGGER.debug("Shutdown triggered, terminating analysis process")
-                    analysis_process.terminate()
-                    analysis_process.join(0.1)
-                    return
-
-                # update the last received heartbeat
-                if heartbeat_queue.qsize() > 0:
-                    try:
-                        LOGGER.debug("Updating heartbeats...")
-                        while heartbeat_queue.qsize() > 0:
-                            last_heartbeat = heartbeat_queue.get(block=True, timeout=0.5)
-
-                        LOGGER.debug("Hearbeat update done.")
-                    except Exception:
-                        # ignore any timeouts since these should negatively effect the heartbeat
-                        # anyway
-                        pass
-
-                # make sure the process sent a heartbeat in the required minimum time
-                current_timeout = int(time.time()) - last_heartbeat
-                if current_timeout > self.max_timeout:
-                    LOGGER.error("Analysis timed out (" + str(current_timeout) + " seconds)")
-                    analysis_process.terminate()
-                    # add a "nice" Exception to the gsa_result queue
-                    result_queue.put(Exception("Error: Analysis timed out. Please retry the analysis at a later time."))
-                    break
-
-                # receive and process any status updates
-                if status_queue.qsize() > 0:
-                    try:
-                        LOGGER.debug("Fetching status updates...")
-                        # only use the last update
-                        while status_queue.qsize() > 0:
-                            status_object = status_queue.get(block=True, timeout=0.5)
-                        self._set_status(request.analysis_id, status="running", description=status_object.description,
-                                         completed=status_object.completed)
-
-                        LOGGER.debug("Status update done.")
-                    except Exception:
-                        # this can safely be ignored since it is most commonly caused by the fact that the worker
-                        # is too busy and fetching of the message timed out
-                        pass
-
-                LOGGER.debug("Sleeping...")
-                self._get_mq().sleep(1)
-
-            LOGGER.debug("Analysis process completed. Joining process...")
-
-            # for potential cleanup
-            analysis_process.join(1)
-
-            # retrieve the result from the queue
-            try:
-                gsa_results = result_queue.get(block=True, timeout=0.5)
-            except queue.Empty:
-                gsa_results = None
-
-            LOGGER.debug("Result received from queue.")
+            # perform the GSA
+            gsa_results = self._perform_gsa(analyser=reactome_analyser, request=request, gene_set_mappings=mappings,
+                                           gene_set=gene_set,
+                                           identifier_mappings=identifier_mappings)
 
             # make sure a result was received
             if not isinstance(gsa_results, list) or len(gsa_results) < 1:
@@ -398,13 +406,23 @@ class ReactomeAnalysisWorker:
                 self._acknowledge_message(ch, method)
                 return
 
+            # retrieve the blueprint or wait for its completion
+            if request.parameter_dict.get("create_reactome_visualization").lower() == "true":
+                try:
+                    LOGGER.debug("Fetching Reactome blueprint...")
+                    reactome_blueprint = reactome_ora_analyser.get_result(sleep_function=self._get_mq().sleep)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to retrieve Reactome blueprint: {e}")
+
             # create the AnalysisResult object
             analysis_result = AnalysisResult(release=os.getenv("REACTOME_VERSION", "68"),
-                                             results=gsa_results,
-                                             mappings=self._convert_mapping_result(identifier_mappings))
+                                            results=gsa_results,
+                                            mappings=self._convert_mapping_result(identifier_mappings))
 
             # submit the result to Reactome
             if reactome_blueprint:
+                LOGGER.debug("Reactome blueprint received.")
+                
                 analysis_result.reactome_links = list()
                 self._set_status(request.analysis_id, status="running", description="Creating REACTOME visualization",
                                  completed=0.9)
