@@ -4,24 +4,24 @@
         "name": "Proteomics pathways",
         "dataset": "Proteomics",
         "type": "pathways",
-        "value": 1637
+        "value": 1643
     },
     {
         "name": "Proteomics fold-changes",
         "dataset": "Proteomics",
         "type": "fold_changes",
-        "value": 5330
+        "value": 5408
     },
     {
         "name": "RNA-seq pathways",
         "dataset": "RNA-seq",
         "type": "pathways",
-        "value": 1763
+        "value": 1770
     },
     {
         "name": "RNA-seq fold-changes",
         "dataset": "RNA-seq",
         "type": "fold_changes",
-        "value": 7670
+        "value": 7676
     }
 ]}
