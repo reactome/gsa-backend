@@ -429,7 +429,7 @@ def _convert_gsva_result(result: AnalysisResult, reactome_blueprint: dict, exclu
 
     # check if any pathways were missing
     if len(missing_pathways) > 0:
-        LOGGER.error("Missing pahtways: " + ", ".join(missing_pathways))
+        LOGGER.warn("Missing pahtways: " + ", ".join(missing_pathways))
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
@@ -545,7 +545,7 @@ def _convert_gsa_result(result: AnalysisResult, reactome_blueprint: dict, min_p:
 
     # log the error
     if len(missing_pathways) > 0:
-        LOGGER.error("Missing pathway information for GSA result: {}".format(", ".join(missing_pathways)))
+        LOGGER.warn("Missing pathway information for GSA result: {}".format(", ".join(missing_pathways)))
 
     # populate the "not found" data
     for i in range(0, len(reactome_blueprint["notFound"])):
