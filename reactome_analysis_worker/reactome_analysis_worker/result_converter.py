@@ -103,7 +103,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
     return reactome_blueprint
 
 
-def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResultTypes, reactome_blueprint: dict,
+def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResultTypes, reactome_blueprint: dict, analysis_id: str,
                               min_p: float = 0.05, reactome_server: str = "production", 
                               excluded_pathways: list = list()) -> AnalysisResultReactomeLinks:
     """
@@ -114,6 +114,7 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
                         GSA result), and "gsva".
     :param reactome_blueprint: The Reactome result object of the ORA analysis fetched using the `perform_reactome_gsa`
                                function.
+    :param analysis_id: The ReactomeGSA analysis id of this analysis.
     :param min_p: The minimum p-value to consider a pathway as significantly regulated. This is only used in the "gsa"
                   approach.
     :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
@@ -133,6 +134,9 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
     else:
         raise Exception("Invalid result_type '{}' passed to submit_result_to_reactome. Valid values are gsa, gsa_p, "
                         "or gsva")
+
+    # add the analysis token
+    converted_result["summary"]["gsaToken"] = analysis_id
 
     # upload the result to Reactome
     proxy = os.getenv("PROXY", None)

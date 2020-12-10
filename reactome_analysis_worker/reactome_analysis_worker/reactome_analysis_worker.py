@@ -441,7 +441,8 @@ class ReactomeAnalysisWorker:
                                                                                    reactome_blueprint=reactome_blueprint,
                                                                                    min_p=0.05,
                                                                                    reactome_server=reactome_server,
-                                                                                   excluded_pathways=pathways_to_exclude)
+                                                                                   excluded_pathways=pathways_to_exclude,
+                                                                                   analysis_id=request.analysis_id)
                         analysis_result.reactome_links.append(reactome_link)
                     except Exception as e:
                         # simply ignore this error
