@@ -115,6 +115,17 @@ def process_file_upload():
         UPLOAD_ERRORS.labels(extension="malformatted csv").inc()
         abort(400, "Malformatted text file. Ensure that quoted fields do not span multiple lines.")
 
+    # make sure the sample names are unique
+    sample_names = header_line[1:]
+
+    if len(sample_names) != len(set(sample_names)):
+        abort(400, "Duplicate sample names detected. All sample names (labels in the first line) "
+                    "must be unique")
+
+    # save the sample names
+    return_object["sample_names"] = sample_names
+
+    # process each entry
     for line in csv_reader:
         current_line += 1
 
@@ -134,23 +145,17 @@ def process_file_upload():
                 abort(400, "Different number of column names than entries in row 1: header contains {} fields, "
                            "first line contains {} fields".format(str(len(header_line)), str(n_samples)))
 
-            # make sure the sample names are unique
-            sample_names = header_line[1:]
-
-            if len(sample_names) != len(set(sample_names)):
-                abort(400, "Duplicate sample names detected. All sample names (labels in the first line "
-                           "must be unique")
-
-            # save the sample names
-            return_object["sample_names"] = sample_names
-
-            # start creating the converted object
+            # start creating the converted object by adding the header line
             return_lines.append("\t".join(header_line))
 
         # make sure the number of samples is OK
         if len(line) != n_samples:
             abort(400, "Different number of entries in line {}. File contains {} columns but line {} contains {}"
                   .format(str(current_line), str(n_samples), str(current_line), str(len(line))))
+
+        # make sure the line (= gene / protein id) is not empty
+        if len(line[0].strip()) == 0:
+            continue
 
         # save the first few identifiers as samples
         if current_line < 10:
