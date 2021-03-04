@@ -71,8 +71,23 @@ def process_file(server: str, filename: str) -> bool:
     # always change the e-mail
     for n_param in range(0, len(request_object["parameters"])):
         if request_object["parameters"][n_param]["name"] == "email":
-            logger.info("Removing e-mail")
-            request_object["parameters"][n_param]["value"] = ""
+            logger.info("Changing e-mail")
+            request_object["parameters"][n_param]["value"] = "jgriss@ebi.ac.uk"
+
+    # change the reactome server to dev
+    print("Using Reactome dev server...")
+    server_updated = False
+
+    for n_param in range(0, len(request_object["parameters"])):
+        if request_object["parameters"][n_param]["name"] == "reactome_server":
+            request_object["parameters"][n_param]["value"] = "dev"
+            server_updated = True
+
+    if not server_updated:
+        request_object["parameters"].append({
+            "name": "reactome_server",
+            "value": "dev"
+        })
 
     # submit the request
     print("Submitting request to ReactomeGSA...")
