@@ -138,6 +138,9 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
     # add the analysis token
     converted_result["summary"]["gsaToken"] = analysis_id
 
+    # add the method
+    converted_result["summary"]["gsaMethod"] = result.method_name
+
     # upload the result to Reactome
     proxy = os.getenv("PROXY", None)
 

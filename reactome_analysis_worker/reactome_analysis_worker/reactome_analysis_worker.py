@@ -416,6 +416,7 @@ class ReactomeAnalysisWorker:
 
             # create the AnalysisResult object
             analysis_result = AnalysisResult(release=os.getenv("REACTOME_VERSION", "68"),
+                                             method_name=request.method_name.lower(),
                                             results=gsa_results,
                                             mappings=self._convert_mapping_result(identifier_mappings))
 
