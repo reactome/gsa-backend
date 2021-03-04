@@ -591,11 +591,16 @@ definitions:
       - release
       - results
       - mappingResult
+      - methodName
     properties:
       release:
         type: string
         description: Release version of the Reactome pathway database used.
         example: "65"
+      methodName:
+        type: string
+        description: Name of the analysis method used.
+        example: "PADOG"
       results:
         type: array
         items:

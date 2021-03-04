@@ -18,11 +18,13 @@ class AnalysisResult(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, release: str=None, results: List[AnalysisResultResults]=None, reactome_links: List[AnalysisResultReactomeLinks]=None, mappings: List[AnalysisResultMappings]=None):  # noqa: E501
+    def __init__(self, release: str=None, method_name: str=None, results: List[AnalysisResultResults]=None, reactome_links: List[AnalysisResultReactomeLinks]=None, mappings: List[AnalysisResultMappings]=None):  # noqa: E501
         """AnalysisResult - a model defined in Swagger
 
         :param release: The release of this AnalysisResult.  # noqa: E501
         :type release: str
+        :param method_name: The method_name of this AnalysisResult.  # noqa: E501
+        :type method_name: str
         :param results: The results of this AnalysisResult.  # noqa: E501
         :type results: List[AnalysisResultResults]
         :param reactome_links: The reactome_links of this AnalysisResult.  # noqa: E501
@@ -32,6 +34,7 @@ class AnalysisResult(Model):
         """
         self.swagger_types = {
             'release': str,
+            'method_name': str,
             'results': List[AnalysisResultResults],
             'reactome_links': List[AnalysisResultReactomeLinks],
             'mappings': List[AnalysisResultMappings]
@@ -39,12 +42,14 @@ class AnalysisResult(Model):
 
         self.attribute_map = {
             'release': 'release',
+            'method_name': 'methodName',
             'results': 'results',
             'reactome_links': 'reactome_links',
             'mappings': 'mappings'
         }
 
         self._release = release
+        self._method_name = method_name
         self._results = results
         self._reactome_links = reactome_links
         self._mappings = mappings
@@ -84,6 +89,31 @@ class AnalysisResult(Model):
             raise ValueError("Invalid value for `release`, must not be `None`")  # noqa: E501
 
         self._release = release
+
+    @property
+    def method_name(self) -> str:
+        """Gets the method_name of this AnalysisResult.
+
+        Name of the analysis method used.  # noqa: E501
+
+        :return: The method_name of this AnalysisResult.
+        :rtype: str
+        """
+        return self._method_name
+
+    @method_name.setter
+    def method_name(self, method_name: str):
+        """Sets the method_name of this AnalysisResult.
+
+        Name of the analysis method used.  # noqa: E501
+
+        :param method_name: The method_name of this AnalysisResult.
+        :type method_name: str
+        """
+        if method_name is None:
+            raise ValueError("Invalid value for `method_name`, must not be `None`")  # noqa: E501
+
+        self._method_name = method_name
 
     @property
     def results(self) -> List[AnalysisResultResults]:

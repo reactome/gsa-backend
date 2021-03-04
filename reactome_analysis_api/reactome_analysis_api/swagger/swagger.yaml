@@ -664,6 +664,7 @@ definitions:
   AnalysisResult:
     type: "object"
     required:
+    - "methodName"
     - "release"
     - "results"
     properties:
@@ -671,6 +672,10 @@ definitions:
         type: "string"
         example: "65"
         description: "Release version of the Reactome pathway database used."
+      methodName:
+        type: "string"
+        example: "PADOG"
+        description: "Name of the analysis method used."
       results:
         type: "array"
         items:
@@ -695,6 +700,7 @@ definitions:
         - "mapped_to"
         - "mapped_to"
       release: "65"
+      methodName: "PADOG"
       reactome_links:
       - name: "GSA Regulation"
         description: "Gene set analysis result visualization in the Reactome pathway\
