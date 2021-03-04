@@ -556,8 +556,8 @@ class ReportGenerationProcess(multiprocessing.Process):
                     sheet_name <- gsub("[^A-Za-z0-9_.]", "_", sheet_name)
                     sheet_name <- gsub("_+", "_", sheet_name)
 
-                    if (nchar(sheet_name) > 30) {
-                        sheet_name <- paste0(substr(sheet_name, 1, 27), "...")
+                    if (nchar(sheet_name) > 25) {
+                        sheet_name <- paste0(substr(sheet_name, 1, 25), "...")
                     }
 
                     # ensure that the sheetName is unique
