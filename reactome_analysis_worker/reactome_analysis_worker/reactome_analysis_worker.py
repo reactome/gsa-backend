@@ -525,6 +525,13 @@ class ReactomeAnalysisWorker:
         if len(identifier_mappings) < 1:
             raise Exception("Failed to map any submitted identifiers")
 
+        # make sure a sufficient number of identifiers was mapped
+        if len(identifier_mappings) < 10:
+            raise Exception("Only {} identifiers could be mapped to Reactome entries. "
+                            "This is insufficient to perform reliable analyses. "
+                            "Please submit at least 10 genes / proteins for your analysis."
+                            .format(str(len(identifier_mappings))))
+
         return identifier_mappings
 
     def shutdown(self):
