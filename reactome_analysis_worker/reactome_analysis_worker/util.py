@@ -49,7 +49,7 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
     # Convert to a numpy array
     try:
         array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=None,
-                              encoding=None)
+                              encoding=None, missing_values="NA", filling_values=0)
 
         # ensure that the first (identifier) column is a string
         if first_column_str and not str(array.dtype[0]).startswith("<U"):
