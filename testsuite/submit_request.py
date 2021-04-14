@@ -39,7 +39,7 @@ def submit_request(server, filenames):
 
     for filename in filenames:
         logger.info("Processing " + filename + "...")
-        all_tests_ok = all_tests_ok and process_file(server, filename)
+        all_tests_ok = process_file(server, filename) and all_tests_ok
 
     if all_tests_ok:
         print("\nAll tests succeeded.")
