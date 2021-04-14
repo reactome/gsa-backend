@@ -4,12 +4,12 @@
         "name": "Pathways",
         "type": "pathways",
         "dataset": "Seurat",
-        "value": 2297
+        "value": 2330
     },
     {
         "name": "Fold changes",
         "type": "fold_changes",
         "dataset": "Seurat",
-        "value": 10953
+        "value": 10878
     }
 ]}
