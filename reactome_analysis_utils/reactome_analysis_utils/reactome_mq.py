@@ -17,6 +17,7 @@ parameters:
 
 import logging
 import os
+import sys
 import signal
 
 import pika
@@ -222,7 +223,14 @@ class ReactomeMQ:
         self._shutdown = True
 
         if self._channel:
-            self._channel.stop_consuming()
+            try:
+                self._channel.stop_consuming()
+            except Exception as e:
+                LOGGER.error("Failed to stop consuming channel: " + str(e))
+                LOGGER.debug("Error:", exc_info=1)
+
+                LOGGER.info("Forcing exit")
+                sys.exit(1)
 
     @staticmethod
     def _load_secret_from_file(file):
