@@ -627,6 +627,11 @@ class ReactomeAnalysisWorker:
         :param data: The data to check
         :returns: True if it is ok. Otherwise the error as a string
         """
+        # make sure it's a valid expression matrix
+        if data.ndim < 1:
+            LOGGER.info("Error: Invalid expression matrix")
+            return "Invalid expression matrix: Expression matrix must contain samples as columns and genes / proteins as rows."
+
         # make sure the genes are unique
         genes = data[:][data.dtype.names[0]].tolist()
 

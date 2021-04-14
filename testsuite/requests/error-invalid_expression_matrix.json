@@ -1,0 +1,20 @@
+{
+    "methodName": "ssGSEA", 
+    "parameters": [
+        {"name": "use_interactors", "value": "TRUE"}, 
+        {"name": "include_disease_pathways", "value": "FALSE"}, 
+        {"name": "create_reactome_visualization", "value": "FALSE"}, 
+        {"name": "create_reports", "value": "FALSE"}
+    ], 
+    "datasets": [
+        {"data": "\tTSPAN6\tDPM1\tSCYL3\tC1orf112\tFUCA2\tGCLC\tNFYA\tSTPG1\tNIPAL3\tLAS1L\tENPP4\tSEMA3F\tCFTR\tANKIB1\tCYP51A1\tKRIT1\tRAD52\tBAD\tLAP3\tHS3ST1\tAOC1\tLASP1\tSNX11\tTMEM176A\tM6PR\tICA1\tDBNDD1\tALS2\tCFLAR\tNDUFAF7\tRBM5\tARF5\tSARM1\tPOLDIP2\tPLXND1\tAK2\tFKBP4\tKDM1A\tRBM6\tRECQL\tVPS50\tNDUFAB1\tSLC25A13\tST7\tCDC27\tHCCS\tDVL2\tPRSS22\tUPF1\tSKAP2\tSLC25A5\tHOXA11\tPOLR2J\tDHX33\tLIG3\tRPAP3\tREXO5\tCIAPIN1\tSPPL2B\tFAM214B\tCOPZ2\tMSL3\tCREBBP\tTSPOAP1\tPON1\tGCFC2\tWDR54\tCROT\tABCB4\tKMT2E\tRHBDD2\tIBTK\tZNF195\tMYCBP2\tFBXL3\tPDK2\tITGA3\tZFX\tLAMP2\tGDE1\tREX1BD\tOSBPL7\tTMEM98\tYBX2\tTMEM132A\tAP2B1\tZNF263\tSPATA20\tTNFRSF12A\tDLX6\tMAP3K9\tRALA\tBAIAP2L1\tKDM7A\tETV1\tAGK\tPHTF2\tFARP2\tUSH1C\tGGCT\nav_counts\t2.06\t0.7\t0.51\t0.45\t1.05\t0.86\t0.25\t0.16\t0.66\t0.77\t0.55\t0.09\t3.12\t1.35\t4.34\t0.39\t0.15\t1.41\t0.61\t0.08\t0.03\t0.68\t0.2\t0.39\t1.37\t1.27\t0.09\t0.26\t1.87\t0.32\t1.56\t6.25\t0.07\t0.64\t0.53\t1.41\t2.72\t1.6\t1.42\t0.67\t0.22\t4.3\t0.93\t0.59\t0.75\t0.2\t0.29\t0.19\t1.42\t2.43\t15.25\t0.55\t2.11\t0.48\t0.36\t0.98\t0.08\t0.78\t1.87\t0.04\t0.02\t0.34\t1.35\t0.12\t0.01\t0.58\t0.32\t0.26\t0.01\t3.2\t1.01\t1.93\t1.18\t1.63\t0.6\t0.08\t0.2\t1.06\t3.88\t2.07\t1.32\t0.04\t0.1\t0.3\t0.55\t0.85\t0.49\t0.16\t1.47\t0.15\t0.46\t2.03\t1.41\t2.12\t0.23\t0.35\t0.58\t0.33\t0.59\t4.01", "name": "Seurat", "type": "rnaseq_counts", "design": {"analysisGroup": ["TSPAN6", "DPM1", "SCYL3", "C1orf112", "FUCA2", "GCLC", "NFYA", "STPG1", "NIPAL3", "LAS1L", "ENPP4", "SEMA3F", "CFTR", "ANKIB1", "CYP51A1", "KRIT1", "RAD52", "BAD", "LAP3", "HS3ST1", "AOC1", "LASP1", "SNX11", "TMEM176A", "M6PR", "ICA1", "DBNDD1", "ALS2", "CFLAR", "NDUFAF7", "RBM5", "ARF5", "SARM1", "POLDIP2", "PLXND1", "AK2", "FKBP4", "KDM1A", "RBM6", "RECQL", "VPS50", "NDUFAB1", "SLC25A13", "ST7", "CDC27", "HCCS", "DVL2", "PRSS22", "UPF1", "SKAP2", "SLC25A5", "HOXA11", "POLR2J", "DHX33", "LIG3", "RPAP3", "REXO5", "CIAPIN1", "SPPL2B", "FAM214B", "COPZ2", "MSL3", "CREBBP", "TSPOAP1", "PON1", "GCFC2", "WDR54", "CROT", "ABCB4", "KMT2E", "RHBDD2", "IBTK", "ZNF195", "MYCBP2", "FBXL3", "PDK2", "ITGA3", "ZFX", "LAMP2", "GDE1", "REX1BD", "OSBPL7", "TMEM98", "YBX2", "TMEM132A", "AP2B1", "ZNF263", "SPATA20", "TNFRSF12A", "DLX6", "MAP3K9", "RALA", "BAIAP2L1", "KDM7A", "ETV1", "AGK", "PHTF2", "FARP2", "USH1C", "GGCT"], "comparison": {"group1": "TSPAN6", "group2": "DPM1"}, "samples": ["TSPAN6", "DPM1", "SCYL3", "C1orf112", "FUCA2", "GCLC", "NFYA", "STPG1", "NIPAL3", "LAS1L", "ENPP4", "SEMA3F", "CFTR", "ANKIB1", "CYP51A1", "KRIT1", "RAD52", "BAD", "LAP3", "HS3ST1", "AOC1", "LASP1", "SNX11", "TMEM176A", "M6PR", "ICA1", "DBNDD1", "ALS2", "CFLAR", "NDUFAF7", "RBM5", "ARF5", "SARM1", "POLDIP2", "PLXND1", "AK2", "FKBP4", "KDM1A", "RBM6", "RECQL", "VPS50", "NDUFAB1", "SLC25A13", "ST7", "CDC27", "HCCS", "DVL2", "PRSS22", "UPF1", "SKAP2", "SLC25A5", "HOXA11", "POLR2J", "DHX33", "LIG3", "RPAP3", "REXO5", "CIAPIN1", "SPPL2B", "FAM214B", "COPZ2", "MSL3", "CREBBP", "TSPOAP1", "PON1", "GCFC2", "WDR54", "CROT", "ABCB4", "KMT2E", "RHBDD2", "IBTK", "ZNF195", "MYCBP2", "FBXL3", "PDK2", "ITGA3", "ZFX", "LAMP2", "GDE1", "REX1BD", "OSBPL7", "TMEM98", "YBX2", "TMEM132A", "AP2B1", "ZNF263", "SPATA20", "TNFRSF12A", "DLX6", "MAP3K9", "RALA", "BAIAP2L1", "KDM7A", "ETV1", "AGK", "PHTF2", "FARP2", "USH1C", "GGCT"]}, 
+        "parameters": []}], 
+        "analysisId": "e68272ec-4074-11eb-9d12-5ee35bf1e1bc",
+    "tests": [
+        {
+            "name": "Status",
+            "type": "status_contains",
+            "value": "Invalid expression matrix: Expression matrix must contain samples as columns and genes / proteins as rows."
+        }
+    ]
+}
