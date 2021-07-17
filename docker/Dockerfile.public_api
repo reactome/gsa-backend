@@ -22,5 +22,6 @@ CMD ["uwsgi", \
      "--die-on-term", \
      "--log-master", \
      "--enable-threads", \
+     "--disable-logging," \
      "--wsgi", "reactome_analysis_api.__main__:app_dispatch"]
      

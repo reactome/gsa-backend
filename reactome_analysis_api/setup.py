@@ -12,7 +12,7 @@ VERSION = "1.0.0"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["connexion", "flask", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client"]
+REQUIRES = ["connexion", "flask<2", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client"]
 
 setup(
     name=NAME,
