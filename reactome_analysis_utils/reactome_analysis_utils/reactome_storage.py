@@ -336,7 +336,7 @@ class ReactomeStorage:
                                            retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
                                            socket_connect_timeout=3)
 
-            return redis_connection
+        return redis_connection
 
     @staticmethod
     def _get_result_key(analysis_id: str) -> str:
