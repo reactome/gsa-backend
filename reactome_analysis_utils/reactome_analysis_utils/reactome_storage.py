@@ -324,15 +324,19 @@ class ReactomeStorage:
         startup_nodes = [{"host": redis_host, "port": redis_port}]
 
         if use_redis_cluster:
-            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, password=redis_password,
-                                                         retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
+            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, 
+                                                         password=redis_password,
+                                                         skip_full_coverage_check=True,
+                                                         retry_on_timeout=False, 
+                                                         socket_keepalive=False, 
+                                                         socket_timeout=3,
                                                          socket_connect_timeout=3)
         else:
             redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
                                            retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
                                            socket_connect_timeout=3)
 
-        return redis_connection
+            return redis_connection
 
     @staticmethod
     def _get_result_key(analysis_id: str) -> str:
