@@ -207,8 +207,8 @@ metadata:
   namespace: {{ namespace }}
   {% endif %}
 data:
-  password: {{ random_password(debug=debug, length=40) }}
-  user: {{ random_password(debug=debug, length=8) }}
+  password: {{ random_password(debug=debug, length=40, alphanumeric=True) }}
+  user: {{ random_password(debug=debug, length=8, alphanumeric=True) }}
 type: Opaque
 ---
 #  rabbit-mq deployment
