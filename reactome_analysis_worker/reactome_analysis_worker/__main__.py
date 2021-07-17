@@ -26,6 +26,7 @@ def main():
     # set config for other packages
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
+    logging.getLogger("rediscluster").setLevel(logging.ERROR)
 
     worker = ReactomeAnalysisWorker()
 
