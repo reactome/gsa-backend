@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 @click.option("--url", help="URL of the Reactome service to use")
 @click.argument("id")
 def test_status(url: str, id: str):
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s]: %(levelname)s - %(message)s")
     urllib_logger = logging.getLogger("urllib3")
     urllib_logger.setLevel(logging.ERROR)
 
