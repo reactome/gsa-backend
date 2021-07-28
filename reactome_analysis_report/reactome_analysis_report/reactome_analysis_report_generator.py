@@ -31,8 +31,17 @@ ri.initr()
 def ignore_message(message: str) -> None:
     pass
 
+def log_r_warning(message: str) -> None:
+    LOGGER.warn("R Error: " + message)
+
+# exit the process if R needs any input on the console
+def exit_process(message: str) -> None:
+    LOGGER.error("R Console Read triggered: " + message)
+    raise RuntimeError("R Project failed")
+
 rpy2.rinterface_lib.callbacks.consolewrite_print = ignore_message
-rpy2.rinterface_lib.callbacks.consolewrite_warnerror = ignore_message
+rpy2.rinterface_lib.callbacks.consolewrite_warnerror = log_r_warning
+rpy2.rinterface_lib.callbacks.consoleread = exit_process
 
 # set the counters
 RUNNING_REPORTS = prometheus_client.Gauge("reactome_report_running",
