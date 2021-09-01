@@ -101,8 +101,17 @@ def start_analysis(body):  # noqa: E501
     try:
         analysis_request = input_deserializer.create_analysis_input_object(analysis_dict)
     except Exception as e:
-        LOGGER.debug("Unknown analysis method submitted: " + analysis_dict["methodName"])
-        abort(404, "Unknown analysis method selected.")
+        if "Unknown analysis method" in str(e):
+            LOGGER.debug("Unknown analysis method submitted: " + analysis_dict["methodName"])
+            abort(404, "Unknown analysis method selected.")
+
+        LOGGER.debug("Invalid analysis request: " + str(e))
+
+        # try to find a nice error message
+        if "Invalid value for `type`" in str(e):
+            abort(400, "Invalid request: " + str(e))
+        
+        abort(400, "Invalid analysis request submitted")
 
     # make sure all datasets have unique names
     all_names = [dataset.name for dataset in analysis_request.datasets]
