@@ -69,6 +69,9 @@ def process_file(server: str, filename: str) -> bool:
     request_object = json.loads(request_data)
 
     # always change the e-mail
+    if "parameters" not in request_object:
+        request_object["parameters"] = list()
+
     for n_param in range(0, len(request_object["parameters"])):
         if request_object["parameters"][n_param]["name"] == "email":
             logger.info("Changing e-mail")
@@ -366,6 +369,8 @@ def run_analysis(request: dict, service_url: str) -> (str, dict):
 
     if analysis_request.status_code != 200:
         raise Exception("Failed to submit analysis: " + analysis_request.content.decode())
+
+    logger.info("Analysis submitted with code = " + str(analysis_request.status_code))
 
     # get the status
     analysis_id = analysis_request.content.decode()
