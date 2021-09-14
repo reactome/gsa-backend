@@ -7,6 +7,7 @@ import json
 import logging
 import multiprocessing
 import os
+import sys
 import smtplib
 from email.headerregistry import Address
 from email.message import EmailMessage
@@ -37,7 +38,7 @@ def log_r_warning(message: str) -> None:
 # exit the process if R needs any input on the console
 def exit_process(message: str) -> None:
     LOGGER.error("R Console Read triggered: " + message)
-    raise RuntimeError("R Project failed")
+    sys.exit(1)
 
 rpy2.rinterface_lib.callbacks.consolewrite_print = ignore_message
 rpy2.rinterface_lib.callbacks.consolewrite_warnerror = log_r_warning
