@@ -318,12 +318,9 @@ class ReactomeStorage:
         if redis_env_password:
             redis_password = redis_env_password
 
-        LOGGER.debug("Connecting to Redis at " + redis_host + ":" + str(redis_port))
-
-        # TODO: select redis cluster or the default redis depending on some (new) config variable
-        startup_nodes = [{"host": redis_host, "port": redis_port}]
-
         if use_redis_cluster:
+            # add all redis nodes
+            startup_nodes = [{"host": "redis-cluster-{}.redis".format(str(n)), "port": redis_port} for n in range(0, 6)]
             redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, 
                                                          password=redis_password,
                                                          skip_full_coverage_check=True,
@@ -332,6 +329,8 @@ class ReactomeStorage:
                                                          socket_timeout=3,
                                                          socket_connect_timeout=3)
         else:
+            # only one startup node
+            startup_nodes = [{"host": redis_host, "port": redis_port}]
             redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
                                            retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
                                            socket_connect_timeout=3)

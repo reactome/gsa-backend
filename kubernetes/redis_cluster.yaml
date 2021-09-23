@@ -32,11 +32,8 @@ metadata:
     app: redis
     tier: backend
 spec:
-  {% if debug %}
-  type: NodePort
-  {% else %}
   type: ClusterIP
-  {% endif %}
+  clusterIP: "None"
   ports:
   - port: {{ redis.port }}
     targetPort: {{ redis.port }}
