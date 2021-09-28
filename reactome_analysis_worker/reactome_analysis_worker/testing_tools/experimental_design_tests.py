@@ -81,7 +81,7 @@ class ExperimentalDesignTester:
 
             if too_few_samples_group:
                 raise ExperimentalDesignException(
-                        msg="Insufficient samples in group '{group}'. Each group must at least contain 3 samples for accurate results.".format(group=missing_group),
+                        msg="Insufficient samples in group '{group}'. Each group must at least contain 3 samples for accurate results.".format(group=too_few_samples_group),
                         type=ExperimentalDesignExceptionType.FEW_SAMPLES,
                         dataset_name=dataset.name)
 
