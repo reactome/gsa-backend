@@ -3,7 +3,7 @@ R-based reactome analyser
 """
 
 import logging
-import gc
+import sys
 import re
 import math
 from collections.abc import Iterable
@@ -67,6 +67,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         # see https://rpy2.github.io/doc/latest/html/callbacks.html?highlight=warn
         rpy2.rinterface_lib.callbacks.consolewrite_print = self._catch_message
         rpy2.rinterface_lib.callbacks.consolewrite_warnerror = self._catch_message
+        rpy2.rinterface_lib.callbacks.consoleread = self._exit_process
 
     def uses_design(self) -> bool:
         """
@@ -74,6 +75,16 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         :returns A boolean indicating that a design is required
         """
         return True
+
+    def _exit_process(self, message):
+        """Function to simply exit the process if the R kernel requires
+        any input. A state that should never happen
+
+        :param message: The original message
+        :type message: str
+        """
+        LOGGER.error("R Kernel crashed (requires input): " + message)
+        sys.exit(1)
 
     def _catch_message(self, message):
         """
