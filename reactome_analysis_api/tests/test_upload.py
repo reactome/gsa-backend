@@ -15,11 +15,11 @@ from reactome_analysis_api.__main__ import app
 
 class TestAnalysisController(unittest.TestCase):
     def setUp(self):
-        os.environ["REDIS_HOST"] = "192.168.99.100"
-        os.environ["REDIS_PORT"] = "31930"
+        os.environ["REDIS_HOST"] = "localhost"
+        os.environ["REDIS_PORT"] = "32606"
         os.environ["REDIS_PASSWORD"] = "test"
-        os.environ["RABBIT_HOST"] = "192.168.99.100"
-        os.environ["RABBIT_PORT"] = "30050"
+        os.environ["RABBIT_HOST"] = "localhost"
+        os.environ["RABBIT_PORT"] = "32214"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
 
@@ -174,7 +174,7 @@ MITF\t1\t2\t3"""
                                   '"comparison": {"group1": "A", "group2": "B"},' \
                                   '"samples": ["Sample 1", "Sample 2", "Sample 3"]' \
                                   '},' \
-                                  '"name": "storedResult", "type": "rnaseq"' \
+                                  '"name": "storedResult", "type": "rnaseq_counts"' \
                                   '}]}' \
 
             # create the request object

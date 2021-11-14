@@ -116,15 +116,7 @@ def process_file_upload():
         UPLOAD_ERRORS.labels(extension="malformatted csv").inc()
         abort(400, "Malformatted text file. Ensure that quoted fields do not span multiple lines.")
 
-    # make sure the sample names are unique
-    sample_names = header_line[1:]
-
-    if len(sample_names) != len(set(sample_names)):
-        abort(400, "Duplicate sample names detected. All sample names (labels in the first line) "
-                    "must be unique")
-
-    # save the sample names
-    return_object["sample_names"] = sample_names
+    sample_names = None
 
     # process each entry
     for line in csv_reader:
@@ -132,6 +124,23 @@ def process_file_upload():
 
         if n_samples == -1:
             n_samples = len(line)
+
+            if sample_names is None:
+                # make sure the sample names are unique
+                if len(header_line) == n_samples:
+                    sample_names = header_line[1:]
+                elif len(header_line) == n_samples - 1:
+                    sample_names = header_line
+                else:
+                    abort(400, "Number of header columns does not match number of samples.")
+
+                # make sure the sample names are unique
+                if len(sample_names) != len(set(sample_names)):
+                    abort(400, "Duplicate sample names detected. All sample names (labels in the first line) "
+                                "must be unique")
+
+                # save the sample names
+                return_object["sample_names"] = sample_names
 
             # make sure the file was parsed more or less correctly
             if n_samples < 2:
