@@ -10,6 +10,6 @@
         "name": "Fold changes",
         "type": "fold_changes",
         "dataset": "Seurat",
-        "value": 10900
+        "value": 10871
     }
 ]}
