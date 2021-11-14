@@ -45,6 +45,11 @@ MITF\t1\t2\t3"""
 \"CD20\";1;2;3
 \"MITF\";1;2;3"""
 
+        self.test_empty_columns = """Sample 1\tSample 2\tSample 3\t\t\t
+CD19\t1\t2\t3\t\t\t
+CD20\t1\t2\t3\t\t\t
+MITF\t1\t2\t3\t\t\t"""
+
     def test_failed_get(self):
         with app.app.test_client() as client:
             response = client.get("/upload")
@@ -146,7 +151,7 @@ MITF\t1\t2\t3"""
             self.assertTrue("data" in result_obj)
 
             # CSV is converted to tsv in the application and quotes removed
-            self.assertEqual("Gene\t" + self.test_tsv, result_obj["data"])
+            self.assertEqual("\t" + self.test_tsv, result_obj["data"])
 
     def test_incorrect_header(self):
         with app.app.test_client() as client:
@@ -156,8 +161,7 @@ MITF\t1\t2\t3"""
             self.assertEqual(400, response.status_code)
             result_obj = json.loads(response.data)
 
-            self.assertEqual("Different number of column names than entries in row 1: header contains 5 fields, "
-                             "first line contains 4 fields", result_obj["detail"])
+            self.assertEqual("Number of header columns does not match number of samples.", result_obj["detail"])
 
     def test_analysis(self):
         with app.app.test_client() as client:
@@ -182,6 +186,26 @@ MITF\t1\t2\t3"""
                                             content_type="application/json")
 
             self.assertEqual(200, analysis_response.status_code)
+
+    def test_empty_columns(self):
+        with app.app.test_client() as client:
+            response = client.post("/upload?store=false",
+                                   data={"file": (io.BytesIO(self.test_empty_columns.encode("UTF-8")), "test.tsv")})
+
+            self.assertEqual(200, response.status_code)
+
+            result_obj = json.loads(response.data.decode())
+
+            # make sure the samples are correct
+            self.assertEqual("Sample 1:Sample 2:Sample 3", ":".join(result_obj["sample_names"]))
+            self.assertEqual(4, result_obj["n_lines"])
+            self.assertEqual("CD19:CD20:MITF", ":".join(result_obj["top_identifiers"]))
+
+            # make sure the data was stored correctly
+            self.assertFalse("data_token" in result_obj)
+            self.assertTrue("data" in result_obj)
+
+            self.assertEqual("\t" + self.test_tsv, result_obj["data"])
 
 
 if __name__ == '__main__':

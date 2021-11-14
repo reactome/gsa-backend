@@ -125,6 +125,7 @@ def process_file_upload():
         if n_samples == -1:
             n_samples = len(line)
 
+            # set the sample names
             if sample_names is None:
                 # make sure the sample names are unique
                 if len(header_line) == n_samples:
@@ -133,6 +134,10 @@ def process_file_upload():
                     sample_names = header_line
                 else:
                     abort(400, "Number of header columns does not match number of samples.")
+
+                # remove empty sample names
+                sample_names = [sample_name for sample_name in sample_names if sample_name != ""]
+                n_samples = len(sample_names)
 
                 # make sure the sample names are unique
                 if len(sample_names) != len(set(sample_names)):
@@ -146,20 +151,11 @@ def process_file_upload():
             if n_samples < 2:
                 abort(400, "Failed to parse the file. Only one column detected.")
 
-            # add an empty cell if there is exactly one column less than the number of samples
-            if len(header_line) == n_samples - 1:
-                header_line = [""] + header_line
-
-            # make sure the header matches
-            if len(header_line) != n_samples:
-                abort(400, "Different number of column names than entries in row 1: header contains {} fields, "
-                           "first line contains {} fields".format(str(len(header_line)), str(n_samples)))
-
             # start creating the converted object by adding the header line
-            return_lines.append("\t".join(header_line))
+            return_lines.append("\t" + "\t".join(sample_names))
 
         # make sure the number of samples is OK
-        if len(line) != n_samples:
+        if len(line) - 1 < n_samples:
             abort(400, "Different number of entries in line {}. File contains {} columns but line {} contains {}"
                   .format(str(current_line), str(n_samples), str(current_line), str(len(line))))
 
@@ -172,7 +168,7 @@ def process_file_upload():
             return_object["top_identifiers"].append(line[0])
 
         # save the line
-        return_lines.append("\t".join(line))
+        return_lines.append("\t".join(line[0:n_samples+1]))
 
     # save the results
     return_object["n_lines"] = current_line
