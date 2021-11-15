@@ -10,7 +10,7 @@
         "name": "Pathways",
         "type": "pathways",
         "dataset": "RNASEQ_NORM_1",
-        "value": 1049
+        "value": 1035
     },
     {
         "name": "Fold-changes",
