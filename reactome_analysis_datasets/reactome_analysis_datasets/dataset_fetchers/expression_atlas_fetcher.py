@@ -534,6 +534,11 @@ class RLoadingProcess(multiprocessing.Process):
                 # load the file
                 load(filename)
 
+                # ExpressionAtlas changed the filename
+                if (!exists("experimentSummary")) {
+                    experimentSummary <- experiment_summary
+                }
+
                 # make sure it only contains 1 experiment
                 if (length(experimentSummary) != 1) {
                     stop("Error: Unexpected number of experiments")
