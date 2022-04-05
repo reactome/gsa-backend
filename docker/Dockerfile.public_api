@@ -1,9 +1,6 @@
 FROM alpine:3.15.4
 
-RUN apk update && apk add --no-cache uwsgi-python3
-
-# install the required six library
-RUN pip3 install six
+RUN apk update && apk add --no-cache uwsgi-python3 py3-pip
 
 RUN mkdir -p /usr/apps
 
