@@ -3,6 +3,8 @@ R-based reactome analyser
 """
 
 import logging
+import os
+import shutil
 
 import rpy2.rinterface as ri
 import rpy2.robjects as ro
@@ -55,10 +57,21 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
 
         # load the libraries
         try:
+            # HDF5Array recently started having issues if the tmp directory already exists
+            # as a workaround, /tmp directories are deleted before the library is loaded
+            hdf5_tmp_dirs = [dirname for dirname in os.listdir("/tmp")
+                                if os.path.exists(os.path.join("/tmp", dirname, "HDF5Array_dump_files_global_counter"))]
+
+            LOGGER.debug("Deleting hdf5 tmp directory: %s...", str(hdf5_tmp_dirs))
+
+            for dirname in hdf5_tmp_dirs:
+                shutil.rmtree(os.path.join("/tmp", dirname))
+
+            # load the packages
             analysis_package.load_libraries()
-        except Exception as e:
+        except Exception as err:
             LOGGER.critical("Failed to load required package: " + str(e))
-            raise AnalysisException("Failed to load required R package")
+            raise AnalysisException("Failed to load required R package") from err
 
         LOGGER.debug("R libraries loaded")
 
