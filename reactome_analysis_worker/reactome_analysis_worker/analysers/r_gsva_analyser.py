@@ -68,7 +68,8 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
                 # delete all files in the directory
                 for filename in os.listdir(os.path.join("/tmp", dirname)):
                     if filename.startswith("HDF5Array_"):
-                        shutil.rmtree(os.path.join("/tmp", dirname, filename))
+                        complete_path = os.path.join("/tmp", dirname, filename)
+                        shutil.rmtree(complete_path) if os.path.isdir(complete_path) else os.unlink(complete_path)
 
             # load the packages
             analysis_package.load_libraries()
