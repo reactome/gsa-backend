@@ -29,8 +29,9 @@ logger = logging.getLogger(__name__)
 
 @click.command()
 @click.option("-s", "--server", default=None)
+@click.option("-u", "--update-tests", default=False, is_flag=True)
 @click.argument("filenames", nargs=-1, type=click.Path())
-def submit_request(server, filenames):
+def submit_request(server, update_tests, filenames):
     logging.basicConfig(level=logging.DEBUG)
     urllib_logger = logging.getLogger("urllib3")
     urllib_logger.setLevel(logging.ERROR)
@@ -39,7 +40,7 @@ def submit_request(server, filenames):
 
     for filename in filenames:
         logger.info("Processing " + filename + "...")
-        all_tests_ok = process_file(server, filename) and all_tests_ok
+        all_tests_ok = process_file(server, filename, update_tests) and all_tests_ok
 
     if all_tests_ok:
         print("\nAll tests succeeded.")
@@ -47,11 +48,13 @@ def submit_request(server, filenames):
         print("\nError: Some tests failed.")
 
 
-def process_file(server: str, filename: str) -> bool:
+def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
     """
     Process a request file
     :param server: Name of the remote server to use.
     :param filename: Path to the file
+    :param update_tests: If set, test values for the number of pathways 
+                         and fold-changes are updated.
     :return: Returns whether all tests succeeded
     """
     # make sure the file exists
@@ -107,9 +110,64 @@ def process_file(server: str, filename: str) -> bool:
         result = None
 
     if "tests" in request_object:
-        return run_tests(request_object["tests"], result, status)
+        if update_tests:
+            update_file_tests(filename, request_object, result)
+        else:
+            return run_tests(request_object["tests"], result, status)
     else:
         return True
+
+
+def update_file_tests(filename: str, request_object: dict, result: dict) -> None:
+    """Update the values stored for the number of pathways and the number of
+       fold changes in the test definition of the request file.
+
+    :param filename: The filename to update
+    :type filename: str
+    :param request_object: The request object
+    :type request_object: dict
+    :param result: The retrieved result
+    :type result: dict
+    """
+    logger.info(f"Updating tests in {filename}...")
+
+    if "tests" not in request_object:
+        return
+
+    if not result:
+        logger.error("No result object passed")
+        return
+
+    for (index, the_test) in enumerate(request_object["tests"]):
+        if not "type" in the_test or not "name" in the_test:
+            logger.error("Invalid test specification found")
+            continue
+
+        logger.info(f"  Updating data for {the_test['name']}...")
+
+        # get the result
+        dataset = get_dataset(result, the_test["dataset"])
+        if not dataset:
+            print("Failed.\n  Dataset '{name}' does not exist".format(name=the_test["dataset"]))
+            continue
+
+        if the_test["type"] == "fold_changes":
+            n_fold_changes = len(dataset["fold_changes"].split("\n")) - 1
+            # update the value
+            request_object["tests"][index]["value"] = n_fold_changes
+        
+            continue
+
+        if the_test["type"] == "pathways":
+            n_pathways = len(dataset["pathways"].split("\n")) - 1
+            # update the value
+            request_object["tests"][index]["value"] = n_pathways
+
+            continue
+
+    # save the update file
+    with open(filename, "w") as writer:
+        json.dump(request_object, writer, indent=4)
 
 
 def run_tests(tests: list, result: dict, status: dict) -> bool:
