@@ -62,15 +62,18 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
             hdf5_tmp_dirs = [dirname for dirname in os.listdir("/tmp")
                                 if os.path.exists(os.path.join("/tmp", dirname, "HDF5Array_dump_files_global_counter"))]
 
-            LOGGER.debug("Deleting hdf5 tmp directory: %s...", str(hdf5_tmp_dirs))
+            LOGGER.debug("Deleting hdf5 tmp files in %s...", str(hdf5_tmp_dirs))
 
             for dirname in hdf5_tmp_dirs:
-                shutil.rmtree(os.path.join("/tmp", dirname))
+                # delete all files in the directory
+                for filename in os.listdir(os.path.join("/tmp", dirname)):
+                    if filename.startswith("HDF5Array_"):
+                        shutil.rmtree(os.path.join("/tmp", dirname, filename))
 
             # load the packages
             analysis_package.load_libraries()
         except Exception as err:
-            LOGGER.critical("Failed to load required package: " + str(e))
+            LOGGER.critical("Failed to load required package: " + str(err))
             raise AnalysisException("Failed to load required R package") from err
 
         LOGGER.debug("R libraries loaded")
