@@ -143,6 +143,9 @@ def update_file_tests(filename: str, request_object: dict, result: dict) -> None
             logger.error("Invalid test specification found")
             continue
 
+        if "dataset" not in the_test:
+            continue
+
         logger.info(f"  Updating data for {the_test['name']}...")
 
         # get the result
@@ -415,7 +418,7 @@ def load_expression_atlas(dataset_id: str, service_url: str) -> str:
     return loading_status["dataset_id"]
 
 
-def run_analysis(request: dict, service_url: str) -> (str, dict):
+def run_analysis(request: dict, service_url: str):
     """
     Run the specified analysis.
     :param request: The request object as a dict
