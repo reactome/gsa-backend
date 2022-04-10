@@ -208,7 +208,7 @@ class ExperimentalDesignTester:
             instance_counts = dict()
 
             for sample_label in design.additional_properties[property_name]:
-                if not sample_label:
+                if sample_label is None:
                     raise ExperimentalDesignException(
                         f"Missing sample label in {property_name}", 
                         ExperimentalDesignExceptionType.INVALID_DESIGN, 
