@@ -91,6 +91,10 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
                     has_min_level = False
 
                     for log_msg in self.buffer:
+                        # ignore redis moved
+                        if log_msg.msg and "MovedError" in log_msg.msg:
+                            continue
+
                         if log_msg.levelno >= self.flushLevel:
                             has_min_level = True
                             break
@@ -98,8 +102,8 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
                     # send the mail
                     if has_min_level:
                         self.send_log_as_mail()
-            except Exception as e:
-                LOGGER.debug("Failed to send log mail: " + str(e))
+            except Exception as err:
+                LOGGER.debug("Failed to send log mail: %s", str(err))
             finally:
                 # clear the buffer
                 self.buffer = []
