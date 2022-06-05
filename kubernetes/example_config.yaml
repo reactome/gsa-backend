@@ -69,6 +69,8 @@ reactome_datasets:
   max_mem: "200Mi"
   min_cpu: "0.1"
   max_cpu: "0.3"
+  # Maximum amount of storage cache for the pod
+  max_storage: "1Gi"
   min_replicas: 1
   max_replicas: 1
   target_cpu_usage: 75

@@ -784,6 +784,7 @@ spec:
           limits:
             cpu: {{ reactome_datasets.max_cpu }}
             memory: {{ reactome_datasets.max_mem }}
+            ephemeral-storage: {{ reactome_datasets.max_storage }}
       volumes:
       - name: redis-secret-volume
         secret:
