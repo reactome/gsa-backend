@@ -781,6 +781,7 @@ spec:
           requests:
             cpu: {{ reactome_datasets.min_cpu }}
             memory: {{ reactome_datasets.min_mem }}
+            ephemeral-storage: {{ reactome_datasets.min_storage }}
           limits:
             cpu: {{ reactome_datasets.max_cpu }}
             memory: {{ reactome_datasets.max_mem }}

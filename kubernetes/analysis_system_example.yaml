@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: NElONmg1WW5kSzRsMEtaUno3TExMNXBMaWhPVGlrWHZFMlROVDZXOGRXdHZVYjlNeWo=
+          value: bEk3MjE3eHcwY0xxZllpUmpxZmtGS3FXVDJaRnRvcGlhbGtnNFBteFRMMTRTRXRsV0Y=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -734,6 +734,7 @@ spec:
           requests:
             cpu: 0.1
             memory: 100Mi
+            ephemeral-storage: 500Mi
           limits:
             cpu: 0.3
             memory: 200Mi
