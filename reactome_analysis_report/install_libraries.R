@@ -6,6 +6,9 @@
 # set the CRAN mirror to use
 options(repos=structure(c(CRAN = 'http://cran.ma.imperial.ac.uk')))
 
+# set the correct site library
+.libPaths("/usr/local/lib/R/site-library")
+
 install.packages("openxlsx")
 install.packages("httr")
 install.packages("progress")
