@@ -10,6 +10,8 @@ install.packages("openxlsx")
 install.packages("httr")
 install.packages("progress")
 install.packages("jsonlite")
+# necessary as this is otherwise outdated
+install.packages("vctrs")
 
 # install the ReactomeGSA package
 # install devtools if needed
