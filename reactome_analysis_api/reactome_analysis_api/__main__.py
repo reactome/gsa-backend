@@ -140,6 +140,7 @@ def process_file_upload():
         return custom_abort(400, "Malformatted text file. Ensure that quoted fields do not span multiple lines.")
 
     sample_names = None
+    gene_ids = list()
 
     # process each entry
     for line in csv_reader:
@@ -186,12 +187,19 @@ def process_file_upload():
         if len(line[0].strip()) == 0:
             continue
 
+        # make sure the gene ids are unique
+        gene_ids.append(line[0].strip())
+
         # save the first few identifiers as samples
         if current_line < 10:
             return_object["top_identifiers"].append(line[0])
 
         # save the line
         return_lines.append("\t".join(line[0:n_samples+1]))
+
+    # make sure the gene's are unqiue
+    if len(gene_ids) != len(set(gene_ids)):
+        custom_abort(400, "Duplicate gene identifiers detected.")
 
     # save the results
     return_object["n_lines"] = current_line
