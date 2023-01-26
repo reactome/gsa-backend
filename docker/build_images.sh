@@ -15,6 +15,12 @@
 # The Docker Hub username to tag the images with
 DOCKER_USER="jgriss"
 
+# The executable used to run docker (alternative could be "podman")
+DOCKER_EXEC="docker"
+
+# simply set this to an empty string if sudo is not needed
+SUDO_CMD="sudo"
+
 # make sure the working directory is the "docker" directory
 if [ ! -d "../reactome_analysis_api" -o ! -d "../reactome_analysis_utils" -o ! -d "../reactome_analysis_worker" -o ! -d "../reactome_analysis_datasets" ]; then
     echo "Error: Failed to find required python directories. The script must be executed from within the 'docker' directory."
@@ -54,7 +60,7 @@ echo -n "Rebuild datasets [version/N]: "
 read REBUILD_DATASETS
 
 # get sudo privileges required to work with docker
-sudo echo ""
+${SUDO_CMD} echo ""
 
 # Update the Reactome mappings (if set)
 # This function downloads all required files from the Reactome
@@ -125,22 +131,22 @@ check_error $? "Failed to copy install_libraries.R"
 
 # Rebuild the images
 if [ -n "${REBUILD_API}" -a "${REBUILD_API}" != "n" ]; then
-	sudo docker build --no-cache -t ${DOCKER_USER}/reactome-analysis_public-api:latest -f Dockerfile.public_api .
+	${SUDO_CMD} ${DOCKER_EXEC} build --no-cache -t ${DOCKER_USER}/reactome-analysis_public-api:latest -f Dockerfile.public_api .
 	check_error $? "Failed to build public API"
 
 	# additionally tag the image
 	if [ "${REBUILD_API}" != "y" -a "${REBUILD_API}" != "latest" ]; then
-		sudo docker tag ${DOCKER_USER}/reactome-analysis_public-api:latest ${DOCKER_USER}/reactome-analysis_public-api:${REBUILD_API}
+		${SUDO_CMD} ${DOCKER_EXEC} tag ${DOCKER_USER}/reactome-analysis_public-api:latest ${DOCKER_USER}/reactome-analysis_public-api:${REBUILD_API}
 	fi
 fi
 
 if [ -n "${REBUILD_WORKER}" -a "${REBUILD_WORKER}" != "n" ]; then
-	sudo docker build -t ${DOCKER_USER}/reactome-analysis_worker:latest -f Dockerfile.worker .
+	${SUDO_CMD} ${DOCKER_EXEC} build -t ${DOCKER_USER}/reactome-analysis_worker:latest -f Dockerfile.worker .
 	check_error $? "Failed to build worker"
 
 	# additionally tag the image
 	if [ "${REBUILD_WORKER}" != "y" -a "${REBUILD_WORKER}" != "latest" ]; then
-		sudo docker tag ${DOCKER_USER}/reactome-analysis_worker:latest ${DOCKER_USER}/reactome-analysis_worker:${REBUILD_WORKER}
+		${SUDO_CMD} ${DOCKER_EXEC} tag ${DOCKER_USER}/reactome-analysis_worker:latest ${DOCKER_USER}/reactome-analysis_worker:${REBUILD_WORKER}
 	fi
 fi
 
@@ -156,12 +162,12 @@ if [ -n "${REBUILD_REPORT}" -a "${REBUILD_REPORT}" != "n" ]; then
     # replace the worker version in the Docker file
     sed "s/THE_WORKER_VERSION/${WORKER_VERSION}/" Dockerfile.report > Dockerfile.report_version
 
-	sudo docker build -t ${DOCKER_USER}/reactome-analysis_report:latest -f Dockerfile.report_version .
+	${SUDO_CMD} ${DOCKER_EXEC} build -t ${DOCKER_USER}/reactome-analysis_report:latest -f Dockerfile.report_version .
     check_error $? "Failed to build report"
 
 	# additionally tag the image
 	if [ "${REBUILD_REPORT}" != "y" -a "${REBUILD_REPORT}" != "latest" ]; then
-		sudo docker tag ${DOCKER_USER}/reactome-analysis_report:latest ${DOCKER_USER}/reactome-analysis_report:${REBUILD_REPORT}
+		${SUDO_CMD} ${DOCKER_EXEC} tag ${DOCKER_USER}/reactome-analysis_report:latest ${DOCKER_USER}/reactome-analysis_report:${REBUILD_REPORT}
 	fi
 
     # remove the versioned file
@@ -180,12 +186,12 @@ if [ -n "${REBUILD_DATASETS}" -a "${REBUILD_DATASETS}" != "n" ]; then
     # replace the worker version in the Docker file
     sed "s/THE_WORKER_VERSION/${WORKER_VERSION}/" Dockerfile.datasets > Dockerfile.datasets_version
 
-	sudo docker build -t ${DOCKER_USER}/reactome-analysis_datasets:latest -f Dockerfile.datasets_version .
+	${SUDO_CMD} ${DOCKER_EXEC} build -t ${DOCKER_USER}/reactome-analysis_datasets:latest -f Dockerfile.datasets_version .
     check_error $? "Failed to build datasets"
 
 	# additionally tag the image
 	if [ "${REBUILD_DATASETS}" != "y" -a "${REBUILD_DATASETS}" != "latest" ]; then
-		sudo docker tag ${DOCKER_USER}/reactome-analysis_datasets:latest ${DOCKER_USER}/reactome-analysis_datasets:${REBUILD_DATASETS}
+		${SUDO_CMD} ${DOCKER_EXEC} tag ${DOCKER_USER}/reactome-analysis_datasets:latest ${DOCKER_USER}/reactome-analysis_datasets:${REBUILD_DATASETS}
 	fi
 
     # remove the versioned file
