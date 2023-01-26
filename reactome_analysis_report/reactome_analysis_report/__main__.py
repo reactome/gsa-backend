@@ -11,10 +11,6 @@ from reactome_analysis_report import reactome_analysis_report_generator
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
 
 
-# rediscluster logs expected errors
-logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
-
-
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 
@@ -30,7 +26,7 @@ def main():
     # set config for other packages
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
-    logging.getLogger("rediscluster").setLevel(logging.ERROR)
+    logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
 
     report_generator = reactome_analysis_report_generator.ReactomeAnalysisReportGenerator()
 
