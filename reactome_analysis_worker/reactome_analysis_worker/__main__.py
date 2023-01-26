@@ -5,15 +5,12 @@ The main entry point for the reactome_analysis_worker package.
 import logging
 import os
 import sys
+from pathlib import Path
 
 from prometheus_client import start_http_server
 
 from reactome_analysis_worker.reactome_analysis_worker import ReactomeAnalysisWorker
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
-
-
-# rediscluster logs expected errors
-logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
 
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
@@ -31,8 +28,12 @@ def main():
     # set config for other packages
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
-    logging.getLogger("rediscluster").setLevel(logging.ERROR)
+    logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
 
+    # tell k8s that we're alive
+    Path('/tmp/healthy').touch()
+
+    # create the main worker object
     worker = ReactomeAnalysisWorker()
 
     try:
@@ -44,6 +45,10 @@ def main():
         worker.shutdown()
 
     LOGGER.info("Exiting.")
+
+    # delete the k8s file - just in case
+    Path('/tmp/healthy').unlink()
+
     sys.exit(0)
 
 

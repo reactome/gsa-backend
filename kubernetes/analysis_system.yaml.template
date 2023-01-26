@@ -508,6 +508,13 @@ spec:
         {% if debug %}
         imagePullPolicy: "Always"
         {% endif %}
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+            initialDelaySeconds: 30
+            periodSeconds: 10
         ports:
         - containerPort: 9090
           name: "prometheus"
