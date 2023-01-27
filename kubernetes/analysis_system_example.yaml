@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: UnBSMW9hQ2JhS0wwWjZKRjQ4TzkyMklSZWlpNHdjYXZYbFpiRWNld25ON1VmNTExYjI=
+          value: YXJjOWhKMUxzbFB0MzRKbjFZSjIwQ1dQNHNhbHZmTGREcTVVOVZEbHpsRHVwNzlZQlU=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -343,8 +343,8 @@ metadata:
   name: mail-secret
   
 data:
-  user: test
-  password: test
+  user: dGVzdAo=
+  password: dGVzdAo=
 type: Opaque
 ---
 # REACTOME API deployment

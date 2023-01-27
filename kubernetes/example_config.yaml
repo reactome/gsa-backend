@@ -8,8 +8,8 @@ mail:
   smtp_server: ""
   smtp_port: 587
   from_address: ""
-  smtp_user: "test"
-  smtp_password: "test"
+  smtp_user: "dGVzdAo="
+  smtp_password: "dGVzdAo="
 redis:
   port: 6379
   image: redis:5.0.3
