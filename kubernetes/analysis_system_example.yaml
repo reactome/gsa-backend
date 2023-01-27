@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: bEk3MjE3eHcwY0xxZllpUmpxZmtGS3FXVDJaRnRvcGlhbGtnNFBteFRMMTRTRXRsV0Y=
+          value: MG1xMkFRQXpabmU4ZEZqVHFnRk5SNnhkREFIRFZSZzVoeFFXOENaT1ZoM1NwclZHbXA=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -473,6 +473,13 @@ spec:
         
         imagePullPolicy: "Always"
         
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+            initialDelaySeconds: 30
+            periodSeconds: 10
         ports:
         - containerPort: 9090
           name: "prometheus"
