@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: RmJHQXllSWQ4RjllWTVBWmhuZjZwQ0FQU2tPQ3Z0Z0tRMWtlbzhJUXFya2ZuZHJoWk4=
+          value: RnpnTnJGOFhmYTIzbXA5Wm0xM21oRW1tbXFKT0Z1elZZZklyV2c1c0haVFZjbEhrTW8=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -478,8 +478,8 @@ spec:
             command:
             - cat
             - /tmp/healthy
-            initialDelaySeconds: 30
-            periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 10
         ports:
         - containerPort: 9090
           name: "prometheus"
