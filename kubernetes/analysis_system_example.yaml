@@ -71,7 +71,7 @@ data:
 # 
 ---
 #  redis deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
@@ -196,7 +196,7 @@ data:
 type: Opaque
 ---
 #  rabbit-mq deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -232,7 +232,7 @@ spec:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
         - name: RABBITMQ_ERLANG_COOKIE
-          value: MG1xMkFRQXpabmU4ZEZqVHFnRk5SNnhkREFIRFZSZzVoeFFXOENaT1ZoM1NwclZHbXA=
+          value: RmJHQXllSWQ4RjllWTVBWmhuZjZwQ0FQU2tPQ3Z0Z0tRMWtlbzhJUXFya2ZuZHJoWk4=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -348,7 +348,7 @@ data:
 type: Opaque
 ---
 # REACTOME API deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-api
@@ -449,7 +449,7 @@ spec:
   targetCPUUtilizationPercentage: 75 
 ---
 # REACTOME worker deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-worker
@@ -566,7 +566,7 @@ spec:
   targetCPUUtilizationPercentage: 75 
 ---
 # REACTOME report deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-report
@@ -679,7 +679,7 @@ spec:
   targetCPUUtilizationPercentage: 75 
 ---
 # REACTOME datasets deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-datasets

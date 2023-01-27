@@ -81,7 +81,7 @@ data:
 # 
 ---
 #  redis deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
@@ -212,7 +212,7 @@ data:
 type: Opaque
 ---
 #  rabbit-mq deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -377,7 +377,7 @@ data:
 type: Opaque
 ---
 # REACTOME API deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-api
@@ -482,7 +482,7 @@ spec:
   targetCPUUtilizationPercentage: {{ reactome_api.target_cpu_usage }} 
 ---
 # REACTOME worker deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-worker
@@ -607,7 +607,7 @@ spec:
   targetCPUUtilizationPercentage: {{ reactome_worker.target_cpu_usage }} 
 ---
 # REACTOME report deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-report
@@ -724,7 +724,7 @@ spec:
   targetCPUUtilizationPercentage: {{ reactome_report.target_cpu_usage }} 
 ---
 # REACTOME datasets deployment
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reactome-analysis-datasets
