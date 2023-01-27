@@ -211,7 +211,7 @@ class ReactomeMQ:
         :param signum:
         :param frame:
         """
-        LOGGER.info("Signal receieved. Shutting down.")
+        LOGGER.info(f"Signal receieved ({signum}). Shutting down.")
         self.stop_analysis()
 
     def stop_analysis(self):
