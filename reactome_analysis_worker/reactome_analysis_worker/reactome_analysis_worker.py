@@ -578,7 +578,7 @@ class ReactomeAnalysisWorker:
                 process.join(timeout=0.1)
 
                 # retrieve the result
-                if result_queue.qsize() < 1 or process.exitcode != 0:
+                if result_queue.qsize() < 1:
                     raise util.ConversionException("Failed to retrieve converted data.")
 
                 LOGGER.debug("Fetching converted data...")
