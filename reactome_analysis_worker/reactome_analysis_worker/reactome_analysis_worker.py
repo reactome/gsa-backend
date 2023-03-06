@@ -578,9 +578,10 @@ class ReactomeAnalysisWorker:
                 process.join(timeout=0.1)
 
                 # retrieve the result
-                if result_queue.qsize() < 1:
+                if result_queue.qsize() < 1 or process.exitcode != 0:
                     raise util.ConversionException("Failed to retrieve converted data.")
 
+                LOGGER.debug("Fetching converted data...")
                 result = result_queue.get()
 
                 if isinstance(result, Exception):
@@ -627,6 +628,8 @@ class ReactomeAnalysisWorker:
         :param data: The data to check
         :returns: True if it is ok. Otherwise the error as a string
         """
+        LOGGER.debug("Checking expression matrix...")
+
         # make sure it's a valid expression matrix
         if data.ndim < 1:
             LOGGER.info("Error: Invalid expression matrix")
