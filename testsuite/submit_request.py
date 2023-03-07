@@ -16,7 +16,7 @@ Test Specification:
        {
            'name': Test name,
            'dataset': str,
-           'type': ["pathways", "fold_changes"]
+           'type': ["pathways", "fold_changes", "status", "status_contains", "visualisations"]
            'value': numeric
        }
    ]
@@ -77,7 +77,6 @@ def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
 
     for n_param in range(0, len(request_object["parameters"])):
         if request_object["parameters"][n_param]["name"] == "email":
-            logger.info("Changing e-mail")
             request_object["parameters"][n_param]["value"] = "jgriss@ebi.ac.uk"
 
     # change the reactome server to dev
@@ -94,6 +93,13 @@ def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
             "name": "reactome_server",
             "value": "dev"
         })
+
+    # check if data needs to be loaded
+    if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("E-"):
+        loaded_id = load_expression_atlas(dataset_id=request_object["datasets"][0]["data"], service_url=service_url)
+
+        # replace the data with the id
+        request_object["datasets"][0]["data"] = loaded_id
 
     # submit the request
     print("Submitting request to ReactomeGSA...")
@@ -396,6 +402,7 @@ def load_expression_atlas(dataset_id: str, service_url: str) -> str:
     :param service_url: The ReactomeGSA url
     :returns: The final dataset identifier
     """
+    logger.info(f"Loading dataset {dataset_id}...")
     loading_request = requests.post(service_url + "data/load/ebi_gxa", json=[{"name": "dataset_id", "value": dataset_id}])
 
     if loading_request.status_code != 200:
@@ -405,15 +412,21 @@ def load_expression_atlas(dataset_id: str, service_url: str) -> str:
 
     # get the status
     loading_status = {"status": "running"}
-
-    logger.debug("Waiting for status to change from 'running'...")
+    previous_status = ""
 
     while loading_status["status"] == "running":
         time.sleep(1)
         loading_status = send_request(service_url + "data/status/" + loading_token, "Failed to send status request")
 
+        if loading_status["status"] != previous_status and loading_status["status"] != "complete":
+            logger.debug(loading_status["status"])
+            previous_status = loading_status["status"]
+
     if loading_status["status"] != "complete":
+        print(json.dumps(loading_status, indent=2))
         raise Exception("Failed to load dataset " + dataset_id)
+    
+    logger.debug("Dataset loaded")
 
     return loading_status["dataset_id"]
 

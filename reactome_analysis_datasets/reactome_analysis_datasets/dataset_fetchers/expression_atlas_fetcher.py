@@ -10,6 +10,7 @@ This tool reads the following env parameters:
                            R process.
 """
 
+from typing import Tuple
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 import reactome_analysis_worker
 import reactome_analysis_worker.util
@@ -82,7 +83,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
         Load the specified ExpressionAtlas experiment
         :param parameters: A list of DatasetRequestParameter objects
