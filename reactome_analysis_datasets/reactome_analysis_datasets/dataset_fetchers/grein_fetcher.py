@@ -7,9 +7,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
-
+    """
+    A DatasetFetcher to retrieve data from GREIN
+    """
     def load_dataset(self, parameters: list, reactome_mq: abstract_dataset_fetcher.ReactomeMQ) -> (
             str, abstract_dataset_fetcher.ExternalData):
+        """
+        Load the specified GREIN dataset based on GSE id
+        :param parameters: GSE id from GREIN
+        :param reactome_mq: Not used
+        :returns: (metadata, count_matrix)
+        """
 
         identifier = self._get_parameter("dataset_id", parameters)
 
@@ -45,9 +53,14 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
         except Exception:
             raise abstract_dataset_fetcher.DatasetFetcherException("Failed to load a valid summary for {}".format(identifier))
 
-
         #return data
         return (metadata_obj, count_matrix_tsv)
 
+
     def load_overview(self, no_datasets: int):
+        """
+        Loads overview of GREIN datasets
+        :param no_datasets: Number of datasets loading from GREIN
+        :returns: list of datasets with description
+        """
         return grein_loader.load_overview(no_datasets)
