@@ -10,6 +10,26 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
     """
     A DatasetFetcher to retrieve data from GREIN
     """
+    # URL to retrieve data from GREIN
+    # http://www.ilincs.org/apps/grein/?gse=
+
+    # metadata, description, count matrix are provided via streaming within the grein_loader package
+    # description, metadata, count_matrix = grein_loader.load_dataset(geo_accession)
+    # Example for geo_accesssion GSE112749
+
+    def __int__(self):
+        super().__init__()
+        self.max_timeout = int(os.getenv("LOADING_MAX_TIMEOUT", 60))
+
+
+    def get_dataset_id(self, parameters: list) -> str:
+        """
+        Returns the dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
+        :returns: The dataset identifier
+        """
+        return self._get_parameter(name="dataset_id", parameters=parameters)
+
     def load_dataset(self, parameters: list, reactome_mq: abstract_dataset_fetcher.ReactomeMQ) -> (
             str, abstract_dataset_fetcher.ExternalData):
         """
@@ -19,18 +39,18 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
         :returns: (metadata, count_matrix)
         """
 
-        identifier = self._get_parameter("dataset_id", parameters)
+        # get id parameter
+        identifier = self._get_parameter(name="dataset_id", parameters=parameters)
 
+        # check for identifier
         if not identifier:
             raise abstract_dataset_fetcher.DatasetFetcherException("Missing required parameter 'dataset_id' to load the example dataset.")
 
-        # prevent the injection of "mean" characters
-        identifier = identifier.replace("/", "_")
-        identifier = identifier.replace(".", "_")
-        identifier = identifier.replace("$", "_")
 
-        # build the path
-        data_dir = os.getenv("GREIN", "/data/grein_data")
+        # check for correct format in geo_accession
+        if not identifier[0:3] =="GSE":
+            raise abstract_dataset_fetcher.DatasetFetcherException(f"{identifier} is not a valid geo_accession for GREIN")
+
 
         # load the data
         self._update_status(progress=0.2, message="Requesting data from GREIN")
@@ -49,12 +69,14 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
 
         self._update_status(progress=0.8, message="Converting countmatrix")
         try:
-            count_matrix_tsv = count_matrix.to_csv(data_dir, sep="\t")
+            count_matrix_tsv = count_matrix.to_csv(sep="\t")
         except Exception:
             raise abstract_dataset_fetcher.DatasetFetcherException("Failed to load a valid summary for {}".format(identifier))
 
+        self._update_status(progress=0.8, message="Creating summary data")
+
         #return data
-        return (metadata_obj, count_matrix_tsv)
+        return (count_matrix_tsv, metadata_obj)
 
 
     def load_overview(self, no_datasets: int):
@@ -64,3 +86,4 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
         :returns: list of datasets with description
         """
         return grein_loader.load_overview(no_datasets)
+
