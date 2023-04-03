@@ -1,12 +1,13 @@
 import grein_loader
-import abstract_dataset_fetcher
 import logging
 import os
+
+from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
 LOGGER = logging.getLogger(__name__)
 
 
-class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
+class GreinFetcher(DatasetFetcher):
     """
     A DatasetFetcher to retrieve data from GREIN
     """
@@ -31,8 +32,8 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def load_dataset(self, parameters: list, reactome_mq: abstract_dataset_fetcher.ReactomeMQ) -> (
-            str, abstract_dataset_fetcher.ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq) -> (
+            str, ExternalData):
         """
         Load the specified GREIN dataset based on GSE id
         :param parameters: GSE id from GREIN
@@ -45,13 +46,18 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
 
         # check for identifier
         if not identifier:
-            raise abstract_dataset_fetcher.DatasetFetcherException(
+            raise DatasetFetcherException(
                 "Missing required parameter 'dataset_id' to load the example dataset.")
 
         # check for correct format in geo_accession
         if not identifier[0:3] == "GSE":
-            raise abstract_dataset_fetcher.DatasetFetcherException(
+            raise DatasetFetcherException(
                 f"{identifier} is not a valid geo_accession for GREIN")
+
+        # prevent the injection of "mean" characters
+        identifier = identifier.replace("/", "_")
+        identifier = identifier.replace(".", "_")
+        identifier = identifier.replace("$", "_")
 
         # load the data
         self._update_status(progress=0.2, message="Requesting data from GREIN")
@@ -59,21 +65,21 @@ class GreinFetcher(abstract_dataset_fetcher.DatasetFetcher):
         try:
             description, metadata, count_matrix = grein_loader.load_dataset(identifier)
         except Exception:
-            raise abstract_dataset_fetcher.DatasetFetcherException("Failed to load data for {}".format(identifier))
+            raise DatasetFetcherException("Failed to load data for {}".format(identifier))
 
         self._update_status(progress=0.7, message="Converting metadata")
 
         try:
-            metadata_obj = abstract_dataset_fetcher.ExternalData.from_dict(metadata)
+            metadata_obj = ExternalData.from_dict(metadata)
         except Exception:
-            raise abstract_dataset_fetcher.DatasetFetcherException(
+            raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
 
         self._update_status(progress=0.8, message="Converting countmatrix")
         try:
             count_matrix_tsv = count_matrix.to_csv(sep="\t")
         except Exception:
-            raise abstract_dataset_fetcher.DatasetFetcherException(
+            raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
 
         self._update_status(progress=0.8, message="Creating summary data")
