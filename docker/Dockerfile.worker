@@ -19,20 +19,20 @@ COPY reactome_analysis_api-*.whl /tmp/
 COPY reactome_analysis_worker-*.whl /tmp/
 
 # install the python packages and create the /data directory
-RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
-    pip3 --cache-dir /tmp/pip_cache install wheel && \
-    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_utils-*.whl && \
-    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_api-*.whl && \
-    pip3 --cache-dir /tmp/pip_cache install /tmp/reactome_analysis_worker-*.whl && \
+RUN pip3 --cache-dir /tmp/pip_cache install --break-system-packages setuptools && \
+    pip3 --cache-dir /tmp/pip_cache install --break-system-packages wheel && \
+    pip3 --cache-dir /tmp/pip_cache install --break-system-packages /tmp/reactome_analysis_utils-*.whl && \
+    pip3 --cache-dir /tmp/pip_cache install --break-system-packages /tmp/reactome_analysis_api-*.whl && \
+    pip3 --cache-dir /tmp/pip_cache install --break-system-packages /tmp/reactome_analysis_worker-*.whl && \
     # cleanup
-    pip3 --cache-dir /tmp/pip_cache uninstall -y setuptools && \
+    pip3 --cache-dir /tmp/pip_cache uninstall --break-system-packages -y setuptools && \
     rm -rf /tmp/*
 
 # environment variables that govern some functionality of the image
 ENV REACTOME_STORAGE_PATH /data
 ENV REACTOME_SOURCE /data
 ENV REACTOME_INTERACTOR_FILE /data/interactors.txt
-ENV REACTOME_VERSION 83
+ENV REACTOME_VERSION 84
 
 # Copy the REACTOME related pathway files
 COPY IntAct_Static.txt /data/interactors.txt
