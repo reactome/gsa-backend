@@ -25,7 +25,8 @@ class DatasetFetcherTest(unittest.TestCase):
         util_logger.setLevel(logging.DEBUG)
 
         # delete the datasets from redis
-        this_redis = redis.Redis(host=os.getenv("REDIS_HOST"), port=int(os.getenv("REDIS_PORT")), password=os.getenv("REDIS_PASSWORD"))
+        this_redis = redis.Redis(host=os.getenv("REDIS_HOST"), port=int(os.getenv("REDIS_PORT")),
+                                 password=os.getenv("REDIS_PASSWORD"))
 
         this_redis.delete("request_data:EXAMPLE_1")
         this_redis.delete("request_data:EXAMPLE_MEL_PROT")
@@ -45,10 +46,10 @@ class DatasetFetcherTest(unittest.TestCase):
         storage = reactome_storage.ReactomeStorage()
 
         mq.post_analysis(models.dataset_request.DatasetRequest(
-            loading_id="loading_1", 
-            resource_id="example_datasets", 
+            loading_id="loading_1",
+            resource_id="example_datasets",
             parameters=[models.dataset_request.DatasetRequestParameter(name="dataset_id", value="EXAMPLE_1")])
-            .to_json(), method="test")
+                         .to_json(), method="test")
 
         # process the message
         fetcher.process_single_message()
@@ -77,10 +78,11 @@ class DatasetFetcherTest(unittest.TestCase):
         storage = reactome_storage.ReactomeStorage()
 
         mq.post_analysis(models.dataset_request.DatasetRequest(
-            loading_id="loading_2", 
-            resource_id="example_datasets", 
-            parameters=[models.dataset_request.DatasetRequestParameter(name="dataset_id", value="EXAMPLE_MEL_PROT")]).to_json(),
-            method="test")
+            loading_id="loading_2",
+            resource_id="example_datasets",
+            parameters=[
+                models.dataset_request.DatasetRequestParameter(name="dataset_id", value="EXAMPLE_MEL_PROT")]).to_json(),
+                         method="test")
 
         # process the message
         fetcher.process_single_message()
@@ -100,6 +102,6 @@ class DatasetFetcherTest(unittest.TestCase):
         data_string = storage.get_request_data("EXAMPLE_MEL_PROT")
         self.assertIsNotNone(data_string)
 
+
 if __name__ == '__main__':
     unittest.main()
-
