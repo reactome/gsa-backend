@@ -4,6 +4,8 @@ import os
 
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
+
+
 LOGGER = logging.getLogger(__name__)
 
 
