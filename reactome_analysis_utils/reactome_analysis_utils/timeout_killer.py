@@ -53,11 +53,11 @@ class TimeoutKillerProcess(multiprocessing.Process):
     def run(self) -> None:
         _LOGGER.debug("TimeoutKiller started. Waiting for %d seconds before deleting '%s'", 
                       self._timeout, self._alive_file)
-        start_time = time.time()
+        max_time = time.time() + self._timeout
 
         # check only every 10 seconds
-        while start_time + self._timeout < time.time() and self.is_alive() and not self._cancel_event.is_set():
-            time.sleep(10)
+        while max_time > time.time():
+            time.sleep(1)
 
         # time is up, therefore delete the file
         if not self._cancel_event.is_set():
