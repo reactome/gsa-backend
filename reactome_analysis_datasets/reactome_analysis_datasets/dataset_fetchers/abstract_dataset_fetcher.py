@@ -1,3 +1,4 @@
+import typing
 from reactome_analysis_api.models.external_data import ExternalData
 from reactome_analysis_utils import reactome_mq
 
@@ -9,13 +10,29 @@ class DatasetFetcher:
     """
     Abstract base class of all dataset fetchers
     """
-    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> typing.Tuple[str, ExternalData]:
         """
         Loads the specified dataset.
         :param parameters: A list of DatasetRequestParameter objects.
         :param reactome_mq: The MQ used to process messages.
         :returns: (data, summary) The data as a tab-delimited formatted string, and the summary
                   as a ExternalDataset object
+        """
+        raise NotImplementedError
+    
+    def get_available_datasets(self, n_max_datasets: int = 0) -> list:
+        """Get all available datasets from the dataset fetcher. This is only available
+           for certain resources. Resources that do not support this return an empty list.
+
+        :param n_max_datasets: Maximum number of datasets to return. If set to 0 (default) 
+                               all available datasets are returned, defaults to 0
+        :type n_max_datasets: int, optional
+        :return: The list of available datasets as a list of dicts. Thest must contain the
+                 following keys: "id", "description", "species", "n_samples", 
+                 "loading_params" (this is a JSON encoded string with "name"="value" pairs 
+                 containing all parameters to load the dataset from the resource)
+                 Other keys are allowed but specific to the respective resource.
+        :rtype: list
         """
         raise NotImplementedError
 
