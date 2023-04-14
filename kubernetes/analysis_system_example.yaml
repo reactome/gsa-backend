@@ -246,7 +246,7 @@ spec:
         - name: RABBIT_MAX_QUEUE_LENGTH
           value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
-          value: TUtwbkp5WnZXanJBOUplamNEbTVqdjZKYWhYYnNjZVl1ZXNZOUY3VGVmQk9FYTZMTE8=
+          value: akF1d1hEcnB2dUZpVWFoaTd6dHpoT09MTnptQWt3UlVRcnYwejVFVkhZN0p3MVRVa2E=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -271,6 +271,10 @@ spec:
           limits:
             cpu: 200m
             memory: 500Mi
+      volumes:
+      - name: rabbit-mq-config
+        configMap:
+          name: rabbit-mq-config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

@@ -290,6 +290,10 @@ spec:
           limits:
             cpu: {{ rabbitmq.max_cpu }}
             memory: {{ rabbitmq.max_mem }}
+      volumes:
+      - name: rabbit-mq-config
+        configMap:
+          name: rabbit-mq-config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
