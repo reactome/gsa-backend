@@ -167,12 +167,12 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-name: rabbit-mq-config
-
+  name: rabbit-mq-config
+  
 data:
-11-custom.conf: >
-  # set the high memory watermark
-  vm_memory_high_watermark.absolute = 200Mib
+  11-custom.conf: >
+    # set the high memory watermark
+    vm_memory_high_watermark.absolute = 200Mib
 # 
 ---
 #  rabbit-mq monitoring service
@@ -246,7 +246,7 @@ spec:
         - name: RABBIT_MAX_QUEUE_LENGTH
           value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
-          value: akF1d1hEcnB2dUZpVWFoaTd6dHpoT09MTnptQWt3UlVRcnYwejVFVkhZN0p3MVRVa2E=
+          value: YmxaOGg2RWRmaVRFMGlwbEhGdzltVmFSVzA1U0Z0RFNEUkFkR0xlaHFVWTExdUhsU2s=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
