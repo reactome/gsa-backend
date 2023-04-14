@@ -221,7 +221,7 @@ spec:
     spec:
       containers:
       - name: rabbit-mq
-        image: rabbitmq:3.7-management-alpine
+        image: rabbitmq:3.11-management-alpine
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5672
@@ -231,8 +231,12 @@ spec:
         env:
         - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
           value: 200MiB
+        - name: RABBIT_DELIVERY_LIMIT
+          value: 3
+        - name: RABBIT_MAX_QUEUE_LENGTH
+          value: 10
         - name: RABBITMQ_ERLANG_COOKIE
-          value: YXJjOWhKMUxzbFB0MzRKbjFZSjIwQ1dQNHNhbHZmTGREcTVVOVZEbHpsRHVwNzlZQlU=
+          value: MkpnWkpuYjJBN3VYaFQ3bXFKelR6cEtkZU5oS1NYU1NCYlExVU9DNzdaSGdTdE9xaUY=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:

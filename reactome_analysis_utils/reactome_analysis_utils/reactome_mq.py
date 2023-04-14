@@ -92,6 +92,8 @@ class ReactomeMQ:
         # declare the queue to make sure it exists
         channel.queue_declare(queue=self.queue_name, durable=True,
                               arguments={"x-overflow": "reject-publish",
+                                         "x-queue-type": "quorum",
+                                         "x-delivery-limit": int(os.getenv("RABBIT_DELIVERY_LIMIT", 3)),
                                          "x-max-length": int(os.getenv("RABBIT_MAX_QUEUE_LENGTH", 10))})
 
         # Turn on delivery confirmations
