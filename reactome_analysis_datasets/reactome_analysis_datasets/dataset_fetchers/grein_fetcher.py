@@ -56,11 +56,6 @@ class GreinFetcher(DatasetFetcher):
             raise DatasetFetcherException(
                 f"{identifier} is not a valid geo_accession for GREIN")
 
-        # prevent the injection of "mean" characters
-        identifier = identifier.replace("/", "_")
-        identifier = identifier.replace(".", "_")
-        identifier = identifier.replace("$", "_")
-
         # load the data
         self._update_status(progress=0.2, message="Requesting data from GREIN")
 
