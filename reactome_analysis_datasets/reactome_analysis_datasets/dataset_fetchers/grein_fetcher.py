@@ -72,7 +72,7 @@ class GreinFetcher(DatasetFetcher):
             raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
 
-        self._update_status(progress=0.8, message="Converting countmatrix")
+        self._update_status(progress=0.8, message="Converting count matrix")
         try:
             count_matrix_tsv = count_matrix.to_csv(sep="\t")
         except Exception:
@@ -84,7 +84,7 @@ class GreinFetcher(DatasetFetcher):
         # return data
         return (count_matrix_tsv, metadata_obj)
 
-    def load_overview(self, no_datasets: int):
+    def get_available_datasets(self, no_datasets: int) -> list:
         """
         Loads overview of GREIN datasets
         :param no_datasets: Number of datasets loading from GREIN

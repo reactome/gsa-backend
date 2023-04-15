@@ -34,9 +34,8 @@ class GreinFetcherTest(unittest.TestCase):
         self.assertEqual(len(external_data), 2, "Data missing in return")
 
     def test_overview(self):
-        parameters = [DatasetRequestParameter("no_datasets", "10")]
         fetcher = GreinFetcher()
-        overview = fetcher.load_overview(parameters)
+        overview = fetcher.get_available_datasets(10)
         overview_len = len(overview)
         self.assertIsNotNone(overview)
         self.assertEqual(overview_len, 10)
