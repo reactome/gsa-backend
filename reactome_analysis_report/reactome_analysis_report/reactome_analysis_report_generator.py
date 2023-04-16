@@ -310,7 +310,12 @@ class ReactomeAnalysisReportGenerator:
         msg = EmailMessage()
         msg['Subject'] = "Reactome Analysis Complete"
         msg['From'] = Address("Reactome Analysis Service", addr_spec=os.getenv("FROM_ADDRESS", "no-reply@reactome.org"))
-        msg['To'] = user_address
+
+        try:
+            msg['To'] = user_address
+        except Exception:
+            LOGGER.info(f"Invalid mail address ${user_address}. Not sending reports.")
+            return
 
         # Create the plain-text content
         plain_report_lines = ["  * {vis_name} (Reactome visualization): {vis_link}".format(vis_name=vis_name,
