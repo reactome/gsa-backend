@@ -13,6 +13,7 @@ parameters:
   * RABBIT_USER_SECRETS_FILE
   * RABBIT_PASSWORD_SECRETS_FILE
   * RABBIT_MAX_QUEUE_LENGTH
+  * RABBIT_DELIVERY_LIMIT
 """
 
 import logging
@@ -69,6 +70,17 @@ class ReactomeMQ:
         signal.signal(signal.SIGTERM, self._on_signal)
         signal.signal(signal.SIGINT, self._on_signal)
 
+    def _get_queue_arguments(self) -> dict:
+        """Returns the arguments used to create the queues
+
+        :return: The dict of arguments
+        :rtype: dict
+        """
+        return {"x-overflow": "reject-publish",
+                "x-queue-type": "quorum",
+                "x-delivery-limit": int(os.getenv("RABBIT_DELIVERY_LIMIT", 3)),
+                "x-max-length": int(os.getenv("RABBIT_MAX_QUEUE_LENGTH", 10))}
+
     def close(self):
         """
         Close the connection
@@ -91,10 +103,7 @@ class ReactomeMQ:
 
         # declare the queue to make sure it exists
         channel.queue_declare(queue=self.queue_name, durable=True,
-                              arguments={"x-overflow": "reject-publish",
-                                         "x-queue-type": "quorum",
-                                         "x-delivery-limit": int(os.getenv("RABBIT_DELIVERY_LIMIT", 3)),
-                                         "x-max-length": int(os.getenv("RABBIT_MAX_QUEUE_LENGTH", 10))})
+                              arguments=self._get_queue_arguments())
 
         # Turn on delivery confirmations
         channel.confirm_delivery()
@@ -177,8 +186,7 @@ class ReactomeMQ:
                 self._channel = self._connect().channel()
 
                 self._channel.queue_declare(queue=self.queue_name, durable=True,
-                                            arguments={"x-overflow": "reject-publish",
-                                                       "x-max-length": int(os.getenv("RABBIT_MAX_QUEUE_LENGTH", 10))})
+                                            arguments=self._get_queue_arguments())
 
                 # only allow one message to be posted at a time
                 self._channel.basic_qos(prefetch_count=1)
