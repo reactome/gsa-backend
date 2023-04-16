@@ -56,7 +56,7 @@ class TimeoutKillerProcess(multiprocessing.Process):
         max_time = time.time() + self._timeout
 
         # check only every 10 seconds
-        while max_time > time.time():
+        while max_time > time.time() and not self._cancel_event.is_set():
             time.sleep(1)
 
         # time is up, therefore delete the file
