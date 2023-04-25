@@ -26,7 +26,7 @@ redis:
   # If a redis cluster should be used, this must be set to "True"
   use_cluster: "False"
 rabbitmq:
-  image: rabbitmq:3.7-management-alpine
+  image: rabbitmq:3.11-management-alpine
   min_mem: "300Mi"
   max_mem: "500Mi"
   min_cpu: "100m"

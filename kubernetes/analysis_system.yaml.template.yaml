@@ -177,6 +177,20 @@ spec:
   type: NodePort
   {% endif %}
 ---
+#  rabbit-mq config-map
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbit-mq-config
+  {% if namespace %}
+  namespace: {{ namespace }}
+  {% endif %}
+data:
+  11-custom.conf: >
+    # set the high memory watermark
+    vm_memory_high_watermark.absolute = 200Mib
+# 
+---
 #  rabbit-mq monitoring service
 apiVersion: v1
 kind: Service
@@ -247,8 +261,10 @@ spec:
         - containerPort: 15672
           protocol: TCP
         env:
-        - name: RABBITMQ_VM_MEMORY_HIGH_WATERMARK
-          value: 200MiB
+        - name: RABBIT_DELIVERY_LIMIT
+          value: "3"
+        - name: RABBIT_MAX_QUEUE_LENGTH
+          value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
           value: {{ random_password(length=50, alphanumeric=True) }}
         - name: RABBITMQ_DEFAULT_USER
@@ -261,6 +277,10 @@ spec:
             secretKeyRef:
               key: password
               name: rabbitmq-secret
+        volumeMounts:
+        - mountPath: /etc/rabbitmq/conf.d
+          name: rabbit-mq-config
+          readOnly: true
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         resources:
@@ -270,6 +290,10 @@ spec:
           limits:
             cpu: {{ rabbitmq.max_cpu }}
             memory: {{ rabbitmq.max_mem }}
+      volumes:
+      - name: rabbit-mq-config
+        configMap:
+          name: rabbit-mq-config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

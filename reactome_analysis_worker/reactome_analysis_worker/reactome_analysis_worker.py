@@ -24,6 +24,7 @@ from reactome_analysis_api.models.analysis_status import AnalysisStatus
 from reactome_analysis_utils.models import report_request, analysis_request
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, REPORT_QUEUE
 from reactome_analysis_utils.reactome_storage import ReactomeStorage
+from reactome_analysis_utils.timeout_killer import timeout_killer
 
 from reactome_analysis_worker import result_converter
 from reactome_analysis_worker import util
@@ -582,7 +583,10 @@ class ReactomeAnalysisWorker:
                     raise util.ConversionException("Failed to retrieve converted data.")
 
                 LOGGER.debug("Fetching converted data...")
-                result = result_queue.get()
+
+                # use a Timeoutkiller since this step can sometimes kill the worker
+                with timeout_killer(alive_file='/tmp/healthy', timeout=60):
+                    result = result_queue.get()
 
                 if isinstance(result, Exception):
                     raise result
