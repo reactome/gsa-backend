@@ -1,3 +1,4 @@
+import typing
 from reactome_analysis_api.models.external_data import ExternalData
 from reactome_analysis_utils import reactome_mq
 
@@ -10,7 +11,7 @@ class DatasetFetcher:
     Abstract base class of all dataset fetchers
     """
 
-    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> (str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> typing.Tuple[str, ExternalData]:
         """
         Loads the specified dataset.
         :param parameters: A list of DatasetRequestParameter objects.
