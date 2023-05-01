@@ -24,7 +24,7 @@ DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datase
 def get_examples():  # noqa: E501
     """Lists the available example datasets
 
-     # noqa: E501
+     # noqa: E501#
 
 
     :rtype: ExternalData
@@ -70,7 +70,12 @@ def get_data_sources():  # noqa: E501
                                          type="string", description="Identifier of the dataset", required=True),
             ExternalDatasourceParameters(name="k", type="int", display_name="K",
                                          description="Parameter k used to create the cell clusters", required=True),
-        ])
+        ]),
+        ExternalDatasource(id="grein_data", name="GREIN Data",
+                           description="Public data from GREIN",
+                           parameters=[
+            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                         type="string", description="Identifier of the dataset", required=True)])
     ]
 
 
