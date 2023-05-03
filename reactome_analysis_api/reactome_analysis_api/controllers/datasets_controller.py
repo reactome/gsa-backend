@@ -38,7 +38,9 @@ def get_examples():  # noqa: E501
                      group="GRISS_MELANOMA"),
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
-                     group="SC_EXAMPLES")
+                     group="SC_EXAMPLES"),
+        ExternalData(id="GREIN", title="Public data from GREIN", type="rnaseq_counts",
+                     description="Public dataset from Grein")
     ]
 
 
@@ -63,7 +65,7 @@ def get_data_sources():  # noqa: E501
             ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                          description="Identifier of the dataset", required=True)
         ]),
-        ExternalDatasource(id = "ebi_sc_gxa", name = "Single Cell Expression Atlas", 
+        ExternalDatasource(id="ebi_sc_gxa", name = "Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
                            parameters=[
             ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
