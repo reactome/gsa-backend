@@ -10,6 +10,7 @@ class DatasetFetcher:
     """
     Abstract base class of all dataset fetchers
     """
+
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> typing.Tuple[str, ExternalData]:
         """
         Loads the specified dataset.
@@ -77,6 +78,15 @@ class DatasetFetcher:
         """
         if self._status_callback:
             self._status_callback(progress=progress, message=message)
+
+    def get_available_datasets(self, no_datasets: int) -> list:
+        """
+        Loads overview of datasets based on number of datasets
+        :param no_datasets: number of datasets requested
+        :returns: list of datasets
+        """
+        raise NotImplementedError
+
 
 class DatasetFetcherException(Exception):
     """
