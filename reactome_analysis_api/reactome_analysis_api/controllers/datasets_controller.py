@@ -71,7 +71,7 @@ def get_data_sources():  # noqa: E501
             ExternalDatasourceParameters(name="k", type="int", display_name="K",
                                          description="Parameter k used to create the cell clusters", required=True),
         ]),
-        ExternalDatasource(id="grein_data", name="GREIN Data",
+        ExternalDatasource(id="grein", name="GREIN Data",
                            description="Public data from GREIN",
                            parameters=[
             ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",

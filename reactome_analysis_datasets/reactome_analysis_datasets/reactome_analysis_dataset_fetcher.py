@@ -13,6 +13,7 @@ from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import
 from reactome_analysis_datasets.dataset_fetchers.example_fetcher import ExampleDatasetFetcher
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
 from reactome_analysis_datasets.dataset_fetchers.sc_expression_atlas_fetcher import ScExpressionAtlasFetcher
+from reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
 
 
 LOGGER = logging.getLogger(__name__)
@@ -223,5 +224,8 @@ class ReactomeAnalysisDatasetFetcher:
 
         if resource_id == "ebi_sc_gxa":
             return ScExpressionAtlasFetcher()
+    
+        if resource_id == "grein":
+            return GreinFetcher()
 
         return None
