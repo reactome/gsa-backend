@@ -1,6 +1,7 @@
 import grein_loader
 import logging
 import os
+from typing import Tuple
 
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
@@ -34,8 +35,7 @@ class GreinFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def load_dataset(self, parameters: list, reactome_mq) -> (
-            str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq) -> Tuple[str, ExternalData]:
         """
         Load the specified GREIN dataset based on GSE id
         :param parameters: GSE id from GREIN
