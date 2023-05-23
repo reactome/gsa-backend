@@ -40,7 +40,7 @@ def get_examples():  # noqa: E501
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
         ExternalData(id="GREIN", title="Public data from GREIN", type="rnaseq_counts",
-                     description="Public dataset from Grein")
+                     description="Public dataset from Grein", group="")
     ]
 
 
