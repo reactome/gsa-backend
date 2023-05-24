@@ -4,6 +4,7 @@ import os
 
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
+from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 
 LOGGER = logging.getLogger(__name__)
 
@@ -95,10 +96,9 @@ class GreinFetcher(DatasetFetcher):
                    "title": "grein",
                    "description": "external dataset loaded from GREIN",
                    "sample_ids": "",
-                   "default_parameters": ""
+                   "sample_metadata": list()
                    }
         sample_id_list = []
-        sample_metadata_list = []
 
         for key, value in metadata.items():
             sample_id_list.append(key)
@@ -107,17 +107,26 @@ class GreinFetcher(DatasetFetcher):
                 'name': key,
                 'value': []
             }
-            for key_item, key_value in item_dictionary.items():
+        print(metadata)
+        list_metadata = []
+
+        for key1, nested_dict in metadata.items():
+            for key2, value2 in nested_dict.items():
+                value2 = str(value2)
                 metadata_item_dictionary = {
-                    'name': key_item,
-                    'value': key_value
+                    'name': key2,
+                    'values': list()
                 }
-                data_item_dictionary['value'].append(metadata_item_dictionary)
-            sample_metadata_list.append(data_item_dictionary)
+                value2 = ''.join(value2)
+                metadata_item_dictionary['values'].append(value2)
+                metadata_obj_item = ExternalDataSampleMetadata.from_dict(metadata_item_dictionary)
+                list_metadata.append(metadata_obj_item)
+                #summary['sample_metadata'].append(metadata_obj_item)
 
         summary['sample_ids'] = sample_id_list
-        summary['default_parameters'] = sample_metadata_list
         metadata_obj = ExternalData.from_dict(summary)
+        metadata_obj.sample_metadata = list_metadata
+        print(metadata_obj)
         return metadata_obj
 
     def get_available_datasets(self, no_datasets: int) -> list:
@@ -127,3 +136,5 @@ class GreinFetcher(DatasetFetcher):
         :returns: list of datasets with description
         """
         return grein_loader.load_overview(no_datasets)
+
+    # test here not in testclass some interference happend
