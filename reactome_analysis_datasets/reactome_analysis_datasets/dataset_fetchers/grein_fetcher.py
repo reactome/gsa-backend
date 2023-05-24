@@ -87,30 +87,21 @@ class GreinFetcher(DatasetFetcher):
     def _create_metadata(self, metadata) -> ExternalData:
         """
         fetches the data in ExternalData object
-        :param parameter metadata loaded by the GREIN plugin
+        :param metadata loaded by the GREIN plugin
         :returns ExternalData object
         """
 
         summary = {"type": "rnaseq_counts",
-                   "id": "grein_data",
-                   "title": "grein",
-                   "description": "external dataset loaded from GREIN",
-                   "sample_ids": "",
+                   "id": "GREIN",
+                   "title": "Public data from GREIN",
+                   "description": "Public dataset from Grein",
+                   "sample_ids": list(),
                    "sample_metadata": list()
                    }
-        sample_id_list = []
+        list_metadata = []  # list containing the metadata for further integration
 
-        for key, value in metadata.items():
-            sample_id_list.append(key)
-            item_dictionary = metadata.get(key)
-            data_item_dictionary = {
-                'name': key,
-                'value': []
-            }
-        print(metadata)
-        list_metadata = []
-
-        for key1, nested_dict in metadata.items():
+        for key, nested_dict in metadata.items():  # iteration over nested dictionary of response data
+            summary['sample_ids'].append(key)
             for key2, value2 in nested_dict.items():
                 value2 = str(value2)
                 metadata_item_dictionary = {
@@ -118,14 +109,12 @@ class GreinFetcher(DatasetFetcher):
                     'values': list()
                 }
                 value2 = ''.join(value2)
-                metadata_item_dictionary['values'].append(value2)
+                metadata_item_dictionary['values'].append(value2)  # fetches response data to ExternalDataSampleMetadata
                 metadata_obj_item = ExternalDataSampleMetadata.from_dict(metadata_item_dictionary)
                 list_metadata.append(metadata_obj_item)
-                #summary['sample_metadata'].append(metadata_obj_item)
 
-        summary['sample_ids'] = sample_id_list
         metadata_obj = ExternalData.from_dict(summary)
-        metadata_obj.sample_metadata = list_metadata
+        metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
         print(metadata_obj)
         return metadata_obj
 
@@ -136,5 +125,3 @@ class GreinFetcher(DatasetFetcher):
         :returns: list of datasets with description
         """
         return grein_loader.load_overview(no_datasets)
-
-    # test here not in testclass some interference happend
