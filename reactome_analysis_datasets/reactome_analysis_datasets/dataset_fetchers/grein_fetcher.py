@@ -90,33 +90,42 @@ class GreinFetcher(DatasetFetcher):
         :param metadata loaded by the GREIN plugin
         :returns ExternalData object
         """
-
-        summary = {"type": "rnaseq_counts",
-                   "id": "GREIN",
-                   "title": "Public data from GREIN",
+        summary = {"type": "rnaseq_counts", "id": "GREIN", "title": "Public data from GREIN",
                    "description": "Public dataset from Grein",
-                   "sample_ids": list(),
-                   "sample_metadata": list()
+                   "sample_ids": list()
                    }
-        list_metadata = []  # list containing the metadata for further integration
-
-        for key, nested_dict in metadata.items():  # iteration over nested dictionary of response data
-            summary['sample_ids'].append(key)
-            for key2, value2 in nested_dict.items():
-                value2 = str(value2)
-                metadata_item_dictionary = {
-                    'name': key2,
-                    'values': list()
-                }
-                value2 = ''.join(value2)
-                metadata_item_dictionary['values'].append(value2)  # fetches response data to ExternalDataSampleMetadata
-                metadata_obj_item = ExternalDataSampleMetadata.from_dict(metadata_item_dictionary)
-                list_metadata.append(metadata_obj_item)
-
+        samples = self._get_sample_ids(metadata)
+        summary['sample_ids'].append(samples)
         metadata_obj = ExternalData.from_dict(summary)
+        list_metadata = self._get_metadata(metadata)
         metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
-        print(metadata_obj)
         return metadata_obj
+
+    def _get_metadata(self, list_metadata):
+        """
+        gets metadata for each sample, as dictionary with values and a list of the metadat for each sample
+        :param list_metadata list of the requested metadata provided
+        :returns list of ExternalDataSampleMetadata
+        """
+        merged_dict = {}
+        for dictionary in list_metadata.values():
+            for key, value in dictionary.items():
+                merged_dict.setdefault(key, []).append(value)
+
+        list_new_metadata = [{'name': key, 'values': values} for key, values in merged_dict.items()]
+        list_new_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in list_new_metadata]
+        return list_new_metadata
+
+    def _get_sample_ids(self, list_metadata) -> list:
+        """
+        gets sample ids of the data
+        :param list_metadata list of the requested metadata provided
+        :returns list of the sample id as a string
+        """
+        sample_id_list = []
+        for key, data in list_metadata.items():
+            sample_id_list.append(key)
+        return sample_id_list
 
     def get_available_datasets(self, no_datasets: int) -> list:
         """
