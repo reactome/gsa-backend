@@ -3,9 +3,9 @@ import logging
 import os
 from typing import Tuple
 
-from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
-
-
+from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
+    DatasetFetcherException
+from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 
 LOGGER = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ class GreinFetcher(DatasetFetcher):
         self._update_status(progress=0.7, message="Converting metadata")
 
         try:
-            metadata_obj = ExternalData.from_dict(metadata)
+            metadata_obj = self._create_metadata(metadata)
         except Exception:
             raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
@@ -84,6 +84,49 @@ class GreinFetcher(DatasetFetcher):
         # return data
         return (count_matrix_tsv, metadata_obj)
 
+    def _create_metadata(self, metadata) -> ExternalData:
+        """
+        fetches the data in ExternalData object
+        :param metadata loaded by the GREIN plugin
+        :returns ExternalData object
+        """
+        summary = {"type": "rnaseq_counts", "id": "GREIN", "title": "Public data from GREIN",
+                   "description": "Public dataset from Grein",
+                   "sample_ids": list()
+                   }
+        samples = self._get_sample_ids(metadata)
+        summary['sample_ids'].append(samples)
+        metadata_obj = ExternalData.from_dict(summary)
+        list_metadata = self._get_metadata(metadata)
+        metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
+        return metadata_obj
+
+    def _get_metadata(self, list_metadata):
+        """
+        gets metadata for each sample, as dictionary with values and a list of the metadat for each sample
+        :param list_metadata list of the requested metadata provided
+        :returns list of ExternalDataSampleMetadata
+        """
+        merged_dict = {}
+        for dictionary in list_metadata.values():
+            for key, value in dictionary.items():
+                merged_dict.setdefault(key, []).append(value)
+
+        list_new_metadata = [{'name': key, 'values': values} for key, values in merged_dict.items()]
+        list_new_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in list_new_metadata]
+        return list_new_metadata
+
+    def _get_sample_ids(self, list_metadata) -> list:
+        """
+        gets sample ids of the data
+        :param list_metadata list of the requested metadata provided
+        :returns list of the sample id as a string
+        """
+        sample_id_list = []
+        for key, data in list_metadata.items():
+            sample_id_list.append(key)
+        return sample_id_list
+
     def get_available_datasets(self, no_datasets: int) -> list:
         """
         Loads overview of GREIN datasets
@@ -91,4 +134,3 @@ class GreinFetcher(DatasetFetcher):
         :returns: list of datasets with description
         """
         return grein_loader.load_overview(no_datasets)
-
