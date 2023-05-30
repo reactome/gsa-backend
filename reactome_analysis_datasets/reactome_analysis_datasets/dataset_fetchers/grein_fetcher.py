@@ -67,7 +67,7 @@ class GreinFetcher(DatasetFetcher):
         self._update_status(progress=0.7, message="Converting metadata")
 
         try:
-            metadata_obj = self._create_metadata(metadata)
+            metadata_obj = self._create_metadata(metadata, description=description, identifier=identifier)
         except Exception:
             raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
@@ -84,16 +84,26 @@ class GreinFetcher(DatasetFetcher):
         # return data
         return (count_matrix_tsv, metadata_obj)
 
-    def _create_metadata(self, metadata) -> ExternalData:
+    def _create_metadata(self, metadata, description, identifier: str) -> ExternalData:
         """
         fetches the data in ExternalData object
         :param metadata loaded by the GREIN plugin
+        :param description Dict returned by the GREIN plugin
+        :param identifier The dataset's original identifier
         :returns ExternalData object
         """
-        summary = {"type": "rnaseq_counts", "id": "GREIN", "title": "Public data from GREIN",
+        # initialize the summary
+        summary = {"type": "rnaseq_counts", "id": identifier, "title": "Public data from GREIN",
                    "description": "Public dataset from Grein",
                    "sample_ids": list()
                    }
+        
+        # change to a nice title if available
+        if "Title" in description and description["Title"]:
+            summary["title"] = "GREIN dataset " + identifier + ": " + description["Title"]
+        if "Summary" in description and description["Summary"]:
+            summary["description"] = description["Summary"]
+
         samples = self._get_sample_ids(metadata)
         summary['sample_ids'].append(samples)
         metadata_obj = ExternalData.from_dict(summary)
