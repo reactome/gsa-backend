@@ -113,9 +113,28 @@ class GreinFetcher(DatasetFetcher):
                 merged_dict.setdefault(key, []).append(value)
 
         list_new_metadata = [{'name': key, 'values': values} for key, values in merged_dict.items()]
+        self._format_metadata(list_metadata)  # formats list based on the values
         list_new_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in list_new_metadata]
         return list_new_metadata
 
+    def _format_metadata(self, list_metadata):
+        """
+        formats and filters metadata
+        :param list of metadata dictionary
+        :return filtered list of dictionaries
+        """
+        filtered_list = []
+
+        for item in list_metadata:
+            entry_value = item['name'].split("_")
+            if entry_value[0] == "characteristics":
+                value = item['value'][0]
+                list_value_data = value.split(":")
+                item['name'] = list_value_data[0]
+                original_values = item['value']
+                item['value'] = [item.split(": ")[1] for item in original_values]
+                filtered_list.append(item)
+        return filtered_list
     def _get_sample_ids(self, list_metadata) -> list:
         """
         gets sample ids of the data
