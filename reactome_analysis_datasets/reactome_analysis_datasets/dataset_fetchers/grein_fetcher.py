@@ -1,3 +1,5 @@
+import time
+
 import grein_loader
 import logging
 import os
@@ -5,6 +7,8 @@ import os
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
+
+from reactome_analysis_utils.models.dataset_request import DatasetRequestParameter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,9 +98,9 @@ class GreinFetcher(DatasetFetcher):
                    "description": "Public dataset from Grein",
                    "sample_ids": list()
                    }
-        samples = self._get_sample_ids(metadata)
+        samples = self._get_sample_ids(metadata)  # gets sample ids for dictionary
         summary['sample_ids'].append(samples)
-        metadata_obj = ExternalData.from_dict(summary)
+        metadata_obj = ExternalData.from_dict(summary)  # converts th
         list_metadata = self._get_metadata(metadata)
         metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
         return metadata_obj
@@ -113,9 +117,9 @@ class GreinFetcher(DatasetFetcher):
                 merged_dict.setdefault(key, []).append(value)
 
         list_new_metadata = [{'name': key, 'values': values} for key, values in merged_dict.items()]
-        self._format_metadata(list_metadata)  # formats list based on the values
-        list_new_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in list_new_metadata]
-        return list_new_metadata
+        filtered_metadata = self._format_metadata(list_new_metadata)  # formats list based on the values
+        filtered_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in filtered_metadata]
+        return filtered_metadata
 
     def _format_metadata(self, list_metadata):
         """
@@ -128,13 +132,16 @@ class GreinFetcher(DatasetFetcher):
         for item in list_metadata:
             entry_value = item['name'].split("_")
             if entry_value[0] == "characteristics":
-                value = item['value'][0]
-                list_value_data = value.split(":")
-                item['name'] = list_value_data[0]
-                original_values = item['value']
-                item['value'] = [item.split(": ")[1] for item in original_values]
-                filtered_list.append(item)
+                value = item['values'][0]
+                if value is not None:
+                    list_value_data = value.split(":")
+                    item['name'] = list_value_data[0]
+                    original_values = item['values']
+                    item['values'] = [item.split(":")[1] for item in original_values]
+                    filtered_list.append(item)
+
         return filtered_list
+
     def _get_sample_ids(self, list_metadata) -> list:
         """
         gets sample ids of the data
