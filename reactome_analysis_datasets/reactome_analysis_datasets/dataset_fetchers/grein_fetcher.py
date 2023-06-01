@@ -1,5 +1,3 @@
-import time
-
 import grein_loader
 import logging
 import os
@@ -7,8 +5,6 @@ import os
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
-
-from reactome_analysis_utils.models.dataset_request import DatasetRequestParameter
 
 LOGGER = logging.getLogger(__name__)
 
