@@ -104,9 +104,9 @@ class GreinFetcher(DatasetFetcher):
         if "Summary" in description and description["Summary"]:
             summary["description"] = description["Summary"]
 
-        samples = self._get_sample_ids(metadata)
+        samples = self._get_sample_ids(metadata)  # gets sample ids for dictionary
         summary['sample_ids'].append(samples)
-        metadata_obj = ExternalData.from_dict(summary)
+        metadata_obj = ExternalData.from_dict(summary)  # converts th
         list_metadata = self._get_metadata(metadata)
         metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
         return metadata_obj
@@ -123,8 +123,30 @@ class GreinFetcher(DatasetFetcher):
                 merged_dict.setdefault(key, []).append(value)
 
         list_new_metadata = [{'name': key, 'values': values} for key, values in merged_dict.items()]
-        list_new_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in list_new_metadata]
-        return list_new_metadata
+        filtered_metadata = self._format_metadata(list_new_metadata)  # formats list based on the values
+        filtered_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in filtered_metadata]
+        return filtered_metadata
+
+    def _format_metadata(self, list_metadata):
+        """
+        formats and filters metadata
+        :param list of metadata dictionary
+        :return filtered list of dictionaries
+        """
+        filtered_list = []
+
+        for item in list_metadata:
+            entry_value = item['name'].split("_")
+            if entry_value[0] == "characteristics":
+                value = item['values'][0]
+                if value is not None:
+                    list_value_data = value.split(":")
+                    item['name'] = list_value_data[0]
+                    original_values = item['values']
+                    item['values'] = [item.split(":")[1] for item in original_values]
+                    filtered_list.append(item)
+
+        return filtered_list
 
     def _get_sample_ids(self, list_metadata) -> list:
         """
