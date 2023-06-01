@@ -105,7 +105,7 @@ class GreinFetcher(DatasetFetcher):
             summary["description"] = description["Summary"]
 
         samples = self._get_sample_ids(metadata)  # gets sample ids for dictionary
-        summary['sample_ids'].append(samples)
+        summary['sample_ids'] = samples
         metadata_obj = ExternalData.from_dict(summary)  # converts th
         list_metadata = self._get_metadata(metadata)
         metadata_obj.sample_metadata = list_metadata  # adds metadata via setter in the object
@@ -143,7 +143,7 @@ class GreinFetcher(DatasetFetcher):
                     list_value_data = value.split(":")
                     item['name'] = list_value_data[0]
                     original_values = item['values']
-                    item['values'] = [item.split(":")[1] for item in original_values]
+                    item['values'] = [item.split(":")[1].strip() for item in original_values]
                     filtered_list.append(item)
 
         return filtered_list
