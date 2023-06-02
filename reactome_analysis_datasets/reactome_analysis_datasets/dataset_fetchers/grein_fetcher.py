@@ -76,8 +76,7 @@ class GreinFetcher(DatasetFetcher):
         self._update_status(progress=0.8, message="Converting count matrix")
         count_matrix = count_matrix.drop("gene_symbol", axis=1)
         try:
-            # remove beginning \t
-            count_matrix_tsv = count_matrix.to_csv(sep="\t")[1:]
+            count_matrix_tsv = count_matrix.to_csv(sep="\t", index=False)
         except Exception:
             raise DatasetFetcherException(
                 "Failed to load a valid summary for {}".format(identifier))
