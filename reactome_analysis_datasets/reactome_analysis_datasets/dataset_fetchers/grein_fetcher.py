@@ -6,6 +6,7 @@ from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import
     DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -73,6 +74,7 @@ class GreinFetcher(DatasetFetcher):
                 "Failed to load a valid summary for {}".format(identifier))
 
         self._update_status(progress=0.8, message="Converting count matrix")
+        count_matrix = count_matrix.drop("gene_symbol", axis=1)
         try:
             count_matrix_tsv = count_matrix.to_csv(sep="\t")
         except Exception:
@@ -130,10 +132,10 @@ class GreinFetcher(DatasetFetcher):
             if entry_value[0] == "characteristics":
                 value = item['values'][0]
                 if value is not None:
-                    list_value_data = value.split(":")
+                    list_value_data = value.split(": ")
                     item['name'] = list_value_data[0]
                     original_values = item['values']
-                    item['values'] = [item.split(":")[1] for item in original_values]
+                    item['values'] = [item.split(": ")[1] for item in original_values]
                     filtered_list.append(item)
 
         return filtered_list
