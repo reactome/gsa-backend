@@ -65,7 +65,7 @@
             "name": "Pathways 1",
             "type": "pathways",
             "dataset": "Proteomics",
-            "value": 95
+            "value": 96
         },
         {
             "name": "Fold-changes 1",

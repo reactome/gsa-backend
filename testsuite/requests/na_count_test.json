@@ -117,13 +117,13 @@
             "name": "Pathways 1",
             "type": "pathways",
             "dataset": "PROTEOMICS_SC_1",
-            "value": 380
+            "value": 356
         },
         {
             "name": "Pathways 2",
             "type": "pathways",
             "dataset": "PROTEOMICS_SC_2",
-            "value": 369
+            "value": 354
         },
         {
             "name": "Fold-changes 1",
@@ -135,7 +135,7 @@
             "name": "Fold-changes 2",
             "type": "fold_changes",
             "dataset": "PROTEOMICS_SC_2",
-            "value": 114
+            "value": 113
         }
     ]
 }

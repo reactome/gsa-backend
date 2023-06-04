@@ -1,0 +1,90 @@
+{
+    "methodName": "Camera",
+    "datasets": [
+        {
+            "name": "GSE100040",
+            "type": "microarray_norm",
+            "data": "GSE100040",
+            "design": {
+                "analysisGroup": [
+                    "wildtype",
+                    "wildtype",
+                    "wildtype",
+                    "Cdk7as mutant",
+                    "Cdk7as mutant",
+                    "Cdk7as mutant"
+                ],
+                "samples": [
+                    "GSM2671001",
+                    "GSM2671002",
+                    "GSM2671003",
+                    "GSM2671004",
+                    "GSM2671005",
+                    "GSM2671006"
+                ],
+                "comparison": {
+                    "group1": "wildtype",
+                    "group2": "Cdk7as mutant"
+                }
+            }
+        }
+    ],
+    "parameters": [
+        {
+            "name": "use_interactors",
+            "value": "false"
+        },
+        {
+            "name": "include_disease_pathways",
+            "value": "true"
+        },
+        {
+            "name": "max_missing_values",
+            "value": "0.5"
+        },
+        {
+            "name": "discrete_norm_function",
+            "value": "TMM"
+        },
+        {
+            "name": "continuous_norm_function",
+            "value": "none"
+        },
+        {
+            "name": "create_reactome_visualization",
+            "value": "true"
+        },
+        {
+            "name": "create_reports",
+            "value": "true"
+        },
+        {
+            "name": "email",
+            "value": "jgriss@ebi.ac.uk"
+        },
+        {
+            "name": "reactome_server",
+            "value": "dev"
+        }
+    ],
+    "tests": [
+        {
+            "name": "GSE100040 pathways",
+            "dataset": "GSE100040",
+            "type": "pathways",
+            "value": 2562
+        },
+        {
+            "name": "GSE100040 fold-changes",
+            "dataset": "GSE100040",
+            "type": "fold_changes",
+            "value": 10793
+        },
+        {
+            "name": "GSE100040 Visualizations",
+            "dataset": "GSE100040",
+            "type": "visualisations",
+            "value": 1
+        }
+    ]
+}
