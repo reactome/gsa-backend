@@ -96,7 +96,12 @@ def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
 
     # check if data needs to be loaded
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("E-"):
-        loaded_id = load_expression_atlas(dataset_id=request_object["datasets"][0]["data"], service_url=service_url)
+        loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url)
+
+        # replace the data with the id
+        request_object["datasets"][0]["data"] = loaded_id
+    if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("GSE"):
+        loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url, source="grein")
 
         # replace the data with the id
         request_object["datasets"][0]["data"] = loaded_id
@@ -395,15 +400,16 @@ def send_request(url, error_msg, decode_json=True):
     return data
 
 
-def load_expression_atlas(dataset_id: str, service_url: str) -> str:
+def load_remote_data(dataset_id: str, service_url: str, source: str="ebi_gxa") -> str:
     """
-    Load the specified ExpressionAtlas dataset.
-    :param dataset_id: The ExpressionAtlas dataset id
+    Load the specified dataset.
+    :param dataset_id: The dataset id
     :param service_url: The ReactomeGSA url
+    :param source: The dataset resource to load from
     :returns: The final dataset identifier
     """
     logger.info(f"Loading dataset {dataset_id}...")
-    loading_request = requests.post(service_url + "data/load/ebi_gxa", json=[{"name": "dataset_id", "value": dataset_id}])
+    loading_request = requests.post(service_url + "data/load/" + source, json=[{"name": "dataset_id", "value": dataset_id}])
 
     if loading_request.status_code != 200:
         raise Exception("Failed to send loading request: {}".format(loading_request.content.decode()))
