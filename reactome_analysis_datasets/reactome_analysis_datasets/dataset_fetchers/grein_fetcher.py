@@ -46,6 +46,8 @@ class GreinFetcher(DatasetFetcher):
         # get id parameter
         identifier = self._get_parameter(name="dataset_id", parameters=parameters)
 
+        identifier = identifier.strip()
+
         # check for identifier
         if not identifier:
             raise DatasetFetcherException(
@@ -53,6 +55,7 @@ class GreinFetcher(DatasetFetcher):
 
         # check for correct format in geo_accession
         if not identifier[0:3] == "GSE":
+            self._update_status(progress=0.1, message="Not a valid geo_accession")
             raise DatasetFetcherException(
                 f"{identifier} is not a valid geo_accession for GREIN")
 
