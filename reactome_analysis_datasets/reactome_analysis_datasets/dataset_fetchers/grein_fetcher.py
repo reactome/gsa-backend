@@ -7,7 +7,6 @@ from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import
     DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -67,11 +66,16 @@ class GreinFetcher(DatasetFetcher):
 
         self._update_status(progress=0.7, message="Converting metadata")
 
-        try:
-            metadata_obj = self._create_metadata(metadata, description=description, identifier=identifier)
-        except Exception:
-            raise DatasetFetcherException(
-                "Failed to load a valid summary for {}".format(identifier))
+        if metadata != '':  # in case metadata is not defined by GREIN
+            try:
+                metadata_obj = self._create_metadata(metadata, description=description, identifier=identifier)
+            except Exception:
+                raise DatasetFetcherException(
+                    "Failed to load a valid summary for {}".format(identifier))
+        else:
+            LOGGER.info("No metadata available from GREIN")
+            self._update_status(progress=0.75, message="No metadata found")
+            metadata_obj = None   # in case metadata is not defined count matrix still will be returned
 
         self._update_status(progress=0.8, message="Converting count matrix")
         count_matrix = count_matrix.drop("gene_symbol", axis=1)
