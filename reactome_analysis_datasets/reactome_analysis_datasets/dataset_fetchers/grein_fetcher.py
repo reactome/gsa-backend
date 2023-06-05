@@ -44,7 +44,7 @@ class GreinFetcher(DatasetFetcher):
         """
 
         # get id parameter
-        identifier = self._get_parameter(name="dataset_id", parameters=parameters)
+        identifier = self._get_parameter(name="dataset_id", parameters=parameters).strip()
 
         # check for identifier
         if not identifier:
