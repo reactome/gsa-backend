@@ -62,7 +62,8 @@ class GreinFetcher(DatasetFetcher):
         try:
             description, metadata, count_matrix = grein_loader.load_dataset(identifier)
         except Exception:
-            raise DatasetFetcherException("Failed to load data for {}".format(identifier))
+            LOGGER.error("Failed to load data for {}".format(identifier))
+            raise DatasetFetcherException("Dataset '{}' is not available on GREIN".format(identifier))
 
         self._update_status(progress=0.7, message="Converting metadata")
 
