@@ -82,10 +82,12 @@ class GreinFetcher(DatasetFetcher):
         try:
             count_matrix_tsv = count_matrix.to_csv(sep="\t", index=False)
         except Exception:
-            raise DatasetFetcherException(
-                "Failed to load a valid summary for {}".format(identifier))
+            LOGGER.error("No expression values available on GREIN for {}".format(identifier))
 
-        self._update_status(progress=0.8, message="Creating summary data")
+            raise DatasetFetcherException(
+                "No expression values available on GREIN for {}".format(identifier))
+
+        self._update_status(progress=1, message="Completed loading  {}".format(identifier))
 
         # return data
         return (count_matrix_tsv, metadata_obj)
