@@ -11,7 +11,8 @@ This tool reads the following env parameters:
 """
 
 from typing import Tuple
-from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
+from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
+    DatasetFetcherException
 import reactome_analysis_worker
 import reactome_analysis_worker.util
 from reactome_analysis_worker.analysers import ReactomeRAnalyser
@@ -30,6 +31,7 @@ import logging
 import os
 import time
 import signal
+import requests
 
 LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +50,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
     A DatasetFetcher to retrieve experiments from EBI's
     ExpressionAtlas
     """
+
     # URL to retrieve JSON information about RNA-seq experiments:
     # https://www.ebi.ac.uk/fg/rnaseq/api/json/getStudy/E-GEUV-1
 
@@ -83,6 +86,36 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
+    def get_available_datasets(self, no_datasets: int):
+        """
+        Returns the available datasets
+        :param no_datasets: number of datasets to retrieve
+        :returns: ...
+        """
+        experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"
+        response = requests.get(experiments_url)
+        json_response = response.json()
+        # convert in metadata object
+        # get for each id mor data
+        experiments_list = json_response['experiments']
+
+        for experiment in experiments_list:
+            species = experiment['species']
+            experiment_accession = experiment['experimentAccession']     # TODO define parameters to retrive
+            experiment_data = self.get_dataset_by_id(experiment_accession) # which parameters are required?
+        return json_response
+
+    def get_dataset_by_id(self, dataset_id):
+        """
+        Return a dataset based on id
+        :param dataset_id: experiment Accession for each dataset
+        :returns: ....
+        """
+        experiment_url = f"https://www.ebi.ac.uk/gxa/json/experiments/{dataset_id}"
+        response = requests.get(experiment_url)
+        json_response = response.json()
+        return json_response
+
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
         Load the specified ExpressionAtlas experiment
@@ -94,7 +127,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         identifier = self._get_parameter(name="dataset_id", parameters=parameters)
 
         if not identifier:
-            raise DatasetFetcherException("Missing required parameter 'dataset_id' to load the dataset from ExpressionAtlas.")
+            raise DatasetFetcherException(
+                "Missing required parameter 'dataset_id' to load the dataset from ExpressionAtlas.")
 
         # make sure the identifier matches the pattern
         if not identifier[0:2] == "E-":
@@ -131,7 +165,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         :return: An ExternalData object
         """
         # initialize the summary object
-        summary = {"type": data_type, "id": identifier, 
+        summary = {"type": data_type, "id": identifier,
                    "title": "ExpressionAtlas dataset {}".format(identifier),
                    "description": "External dataset loaded from ExpressionAtlas"}
 
@@ -201,7 +235,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         # process the expression data
         clean_expression_data = self._filter_expression_data(expression_data)
-        
+
         return {"metadata": clean_metadata, "expression_values": clean_expression_data}
 
     def _filter_expression_data(self, expression_data: str) -> str:
@@ -247,7 +281,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         # process as lines
         org_lines = metadata_string.split("\n")
-        
+
         # get the irrelevant columns
         columns_to_ignore = dict()
         header_fields = org_lines[0].split("\t")
@@ -313,7 +347,6 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         return request.data
 
-
     def load_r_data(self, download_files: list, reactome_mq: reactome_mq.ReactomeMQ):
         """
         Load the R-based expression data for the specified dataset
@@ -351,7 +384,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         file_loading_queue = multiprocessing.Queue()
         heartbeat_queue = multiprocessing.Queue()
 
-        loading_process = RLoadingProcess(r_file_path=stored_r_file.name, on_complete=file_loaded_event, result_queue=file_loading_queue,
+        loading_process = RLoadingProcess(r_file_path=stored_r_file.name, on_complete=file_loaded_event,
+                                          result_queue=file_loading_queue,
                                           heartbeat_queue=heartbeat_queue)
         loading_process.start()
 
@@ -451,7 +485,6 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         return None
 
-
     def fetch_available_files(self, identifier: str) -> list:
         """
         Retrieves the available files for the passed ExpressionAtlas experiment
@@ -460,7 +493,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         # get the JSON string of available files
         json_data = self._download_atlas_file("json/experiments/{}/resources/DATA".format(identifier))
-        
+
         # decode the JSON string
         file_list = json.loads(json_data)
 
@@ -469,7 +502,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
 
         for file_item in file_list:
             if "type" not in file_item or "url" not in file_item or "description" not in file_item:
-                raise DatasetFetcherException("Invalid file list retrieved from ExpressionAtlas for {}".format(identifier))
+                raise DatasetFetcherException(
+                    "Invalid file list retrieved from ExpressionAtlas for {}".format(identifier))
 
             available_files.append({"type": file_item["type"], "url": file_item["url"],
                                     "description": file_item["description"]})
@@ -482,7 +516,8 @@ class RLoadingProcess(multiprocessing.Process):
     Class representing a process to load
     the R file and return the required fields
     """
-    def __init__(self, r_file_path: str, on_complete: multiprocessing.Event, result_queue: multiprocessing.Queue, 
+
+    def __init__(self, r_file_path: str, on_complete: multiprocessing.Event, result_queue: multiprocessing.Queue,
                  heartbeat_queue: multiprocessing.Queue):
         super().__init__()
 
@@ -602,12 +637,13 @@ class RLoadingProcess(multiprocessing.Process):
             expression_value_string = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["expression_values"])
             self.heartbeat()
 
-            if self.exit: 
+            if self.exit:
                 return
 
             # save the result and mark the on_complete event
             LOGGER.debug("Returning results through the queue")
-            self.result_queue.put({'data_type': data_type, 'metadata': metadata_string, 'expression_values': expression_value_string})
+            self.result_queue.put(
+                {'data_type': data_type, 'metadata': metadata_string, 'expression_values': expression_value_string})
             self.on_complete.set()
 
         except Exception as e:
