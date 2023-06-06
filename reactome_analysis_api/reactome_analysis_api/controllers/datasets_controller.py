@@ -39,8 +39,6 @@ def get_examples():  # noqa: E501
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
-        ExternalData(id="GREIN", title="Public data from GREIN", type="rnaseq_counts",
-                     description="Public dataset from Grein", group="")
     ]
 
 
@@ -74,7 +72,7 @@ def get_data_sources():  # noqa: E501
                                          description="Parameter k used to create the cell clusters", required=True),
         ]),
         ExternalDatasource(id="grein", name="GREIN Data",
-                           description="Public data from GREIN",
+                           description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
                            parameters=[
             ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                          type="string", description="Identifier of the dataset", required=True)])
