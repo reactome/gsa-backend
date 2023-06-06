@@ -33,6 +33,8 @@ import time
 import signal
 import requests
 
+from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
+
 LOGGER = logging.getLogger(__name__)
 
 # initialize R
@@ -86,24 +88,34 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def get_available_datasets(self, no_datasets: int):
+    def get_available_datasets(self, no_datasets: int):  # TODO
         """
         Returns the available datasets
         :param no_datasets: number of datasets to retrieve
-        :returns: ...
+        :returns: datasets in ExternalData format
         """
-        experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"
+        experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"  # TODO add exception handling
         response = requests.get(experiments_url)
         json_response = response.json()
         # convert in metadata object
         # get for each id mor data
-        experiments_list = json_response['experiments']
+        experiments_list = json_response['experiments'][0:no_datasets]
+
+        experiments_external_data_list = list()
 
         for experiment in experiments_list:
-            species = experiment['species']
-            experiment_accession = experiment['experimentAccession']     # TODO define parameters to retrive
-            experiment_data = self.get_dataset_by_id(experiment_accession) # which parameters are required?
-        return json_response
+            external_data_experiment = ExternalData()
+            experiment_data_dict = {
+                "id": experiment['experimentAccession'],
+                "description": experiment['experimentDescription'],
+                "species": experiment['species']
+            }
+            external_data_experiment.from_dict(experiment_data_dict)
+            experiment_data = self.get_dataset_by_id(experiment['experimentAccession'])  # which parameters are required?
+            external_data_experiment.sample_metadata(experiment_data)
+            experiments_external_data_list.append(external_data_experiment)
+
+        return experiments_external_data_list
 
     def get_dataset_by_id(self, dataset_id):
         """
@@ -114,7 +126,12 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         experiment_url = f"https://www.ebi.ac.uk/gxa/json/experiments/{dataset_id}"
         response = requests.get(experiment_url)
         json_response = response.json()
-        return json_response
+        data_items = json_response['profiles']['rows']
+        id_values = [item['id'] for item in data_items]
+        name_values = [item['name'] for item in data_items]
+        external_sample_metadata = ExternalDataSampleMetadata()
+        return [external_sample_metadata.from_dict({'name': 'id', 'values': id_values}),  external_sample_metadata.from_dict({'name': 'name', 'values': name_values})]
+
 
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
@@ -653,3 +670,7 @@ class RLoadingProcess(multiprocessing.Process):
         finally:
             LOGGER.debug("Setting on_complete")
             self.on_complete.set()
+
+
+fetcher = ExpressionAtlasFetcher()
+print(fetcher.get_available_datasets(3))
