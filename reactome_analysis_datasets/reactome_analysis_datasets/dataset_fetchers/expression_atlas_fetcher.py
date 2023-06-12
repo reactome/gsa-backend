@@ -94,27 +94,21 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         :param no_datasets: number of datasets to retrieve
         :returns: datasets in ExternalData format
         """
-        experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"  # TODO add exception handling
+
+        experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"
         response = requests.get(experiments_url)
         json_response = response.json()
-        # convert in metadata object
-        # get for each id mor data
         experiments_list = json_response['experiments'][0:no_datasets]
-
         experiments_external_data_list = list()
-
         for experiment in experiments_list:
-            external_data_experiment = ExternalData()
             experiment_data_dict = {
                 "id": experiment['experimentAccession'],
-                "description": experiment['experimentDescription'],
-                "species": experiment['species']
+                "title": experiment['experimentDescription'],
+                "species": experiment['species'],
+                "no_samples": experiment['numberOfAssays'],
+                "technology": experiment['technologyType']
             }
-            external_data_experiment.from_dict(experiment_data_dict)
-            experiment_data = self.get_dataset_by_id(experiment['experimentAccession'])  # which parameters are required?
-            external_data_experiment.sample_metadata(experiment_data)
-            experiments_external_data_list.append(external_data_experiment)
-
+            experiments_external_data_list.append(experiment_data_dict)
         return experiments_external_data_list
 
     def get_dataset_by_id(self, dataset_id):
@@ -130,8 +124,8 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         id_values = [item['id'] for item in data_items]
         name_values = [item['name'] for item in data_items]
         external_sample_metadata = ExternalDataSampleMetadata()
-        return [external_sample_metadata.from_dict({'name': 'id', 'values': id_values}),  external_sample_metadata.from_dict({'name': 'name', 'values': name_values})]
-
+        return [external_sample_metadata.from_dict({'name': 'id', 'values': id_values}),
+                external_sample_metadata.from_dict({'name': 'name', 'values': name_values})]
 
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
@@ -670,7 +664,3 @@ class RLoadingProcess(multiprocessing.Process):
         finally:
             LOGGER.debug("Setting on_complete")
             self.on_complete.set()
-
-
-fetcher = ExpressionAtlasFetcher()
-print(fetcher.get_available_datasets(3))
