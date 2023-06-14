@@ -92,7 +92,7 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         :returns: datasets in ExternalData format
         """
         if no_datasets is None:
-            no_datasets = 1000
+            no_datasets = 10000
 
         experiments_external_data_list = list()
         try:
