@@ -18,7 +18,6 @@ import reactome_analysis_worker.util
 from reactome_analysis_worker.analysers import ReactomeRAnalyser
 from reactome_analysis_utils import reactome_mq
 from pkg_resources import resource_string
-import re
 import urllib3
 import json
 import enum
@@ -32,8 +31,6 @@ import os
 import time
 import signal
 import requests
-
-from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 
 LOGGER = logging.getLogger(__name__)
 
@@ -88,12 +85,15 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def get_available_datasets(self, no_datasets: int):
+    def get_available_datasets(self, no_datasets: int = None) -> list:
         """
         Returns the available datasets
         :param no_datasets: number of datasets to retrieve
         :returns: datasets in ExternalData format
         """
+        if no_datasets is None:
+            no_datasets = 1000
+
         experiments_external_data_list = list()
         try:
             experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"
@@ -115,22 +115,6 @@ class ExpressionAtlasFetcher(DatasetFetcher):
             LOGGER.error("Response not available")
 
         return experiments_external_data_list
-
-    def get_dataset_by_id(self, dataset_id):
-        """
-        Return a dataset based on id
-        :param dataset_id: experiment Accession for each dataset
-        :returns: ....
-        """
-        experiment_url = f"https://www.ebi.ac.uk/gxa/json/experiments/{dataset_id}"
-        response = requests.get(experiment_url)
-        json_response = response.json()
-        data_items = json_response['profiles']['rows']
-        id_values = [item['id'] for item in data_items]
-        name_values = [item['name'] for item in data_items]
-        external_sample_metadata = ExternalDataSampleMetadata()
-        return [external_sample_metadata.from_dict({'name': 'id', 'values': id_values}),
-                external_sample_metadata.from_dict({'name': 'name', 'values': name_values})]
 
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
