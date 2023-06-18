@@ -29,6 +29,11 @@ def main():
 
     dataset_worker = ReactomeAnalysisDatasetFetcher()
 
+    """try:  # Approach of setting up the search index 
+        Generate_search_values.setup_search_events()
+    except Exception as e:
+        LOGGER.error("Dataset for search failed: "+str(e))"""
+
     try:
         dataset_worker.start_listening()
     except Exception as e:
