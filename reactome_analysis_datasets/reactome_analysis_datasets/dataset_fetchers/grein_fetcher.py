@@ -168,7 +168,7 @@ class GreinFetcher(DatasetFetcher):
             sample_id_list.append(key)
         return sample_id_list
 
-    def get_available_datasets(self, no_datasets: int) -> list:
+    def get_available_datasets(self, no_datasets: int = None) -> list:
         """
         Loads overview of GREIN datasets
         :param no_datasets: Number of datasets loading from GREIN
