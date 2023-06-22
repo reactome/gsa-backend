@@ -88,7 +88,7 @@ class Searcher():
             return result_dict
 
 
-keyword = "TFIIH kinase"
+keyword = "histone H2A.Z"
 generator = Generate_search_values()
 generator.setup_search_events()
 search = Searcher()
