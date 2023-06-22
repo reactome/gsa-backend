@@ -72,11 +72,11 @@ class Searcher():
         og = qparser.OrGroup.factory(0.9)
         mp = qparser.MultifieldParser(search_fields, schema, group=og)
 
-        description_query = mp.parse(search_field_description + keyword)
-        title_query = mp.parse(search_field_title + keyword)
+        description_query = qparser.QueryParser(search_field_description, schema).parse(keyword)
+        title_query = qparser.QueryParser(search_field_title, schema).parse(keyword)
 
         species_query = Term(search_field_species, species)
-        combined_query = description_query | title_query | species_query
+        combined_query = description_query & title_query & species_query
 
         # keyword_parser = mp.parse(keyword)
 
