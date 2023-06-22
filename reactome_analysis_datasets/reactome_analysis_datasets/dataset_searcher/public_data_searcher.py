@@ -1,4 +1,7 @@
+import json
 import os
+import time
+
 from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
 from whoosh.index import create_in
 from whoosh import index
@@ -11,7 +14,7 @@ from dataclasses import dataclass
 from reactome_analysis_datasets.reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
 from reactome_analysis_datasets.reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
 
-schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=KEYWORD,
+schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
                 description=TEXT(stored=True), no_samples=NUMERIC(stored=True))
 
 @dataclass
@@ -61,36 +64,27 @@ class Searcher():
     def __init__(self):
         self.dirname= "index"
 
-    def index_search(self, search_fields: list, keyword: str, species: str) -> dict:
+
+    def index_search(self, keyword: str, species: str) -> dict:
+        # Open the index directory
         ix = index.open_dir(self.dirname)
-        schema = ix.schema
 
-        search_field_description = "description"
-        search_field_title = "title"
-        search_field_species = "species"
+        with ix.searcher() as searcher:
+            description_parser = qparser.QueryParser("description", schema)
+            title_parser = qparser.QueryParser("title", schema)
+            species_parser = qparser.QueryParser("species", schema)
 
-        og = qparser.OrGroup.factory(0.9)
-        mp = qparser.MultifieldParser(search_fields, schema, group=og)
-
-        description_query = qparser.QueryParser(search_field_description, schema).parse(keyword)
-        title_query = qparser.QueryParser(search_field_title, schema).parse(keyword)
-
-        species_query = Term(search_field_species, species)
-        combined_query = description_query & title_query & species_query
-
-        # keyword_parser = mp.parse(keyword)
-
-        with ix.searcher() as s:
-            results = s.search(combined_query, terms=True, limit=100)
+            description_query = description_parser.parse(keyword)
+            title_query = title_parser.parse(keyword)
+            species_query = species_parser.parse(species)
+            combined_query = (description_query | title_query) & species_query
+            results = searcher.search(combined_query, limit=100)
             result_dict = {}
             for result in results:
-                result_dict[result['id']] = result.fields()
+                result_dict[result["id"]] = {
+                    "description": result["description"],
+                    "title": result["title"],
+                    "species": result["species"]
+                }
+
             return result_dict
-
-
-keyword = "histone H2A.Z"
-generator = Generate_search_values()
-generator.setup_search_events()
-search = Searcher()
-result_dict = search.index_search(['description', 'title', 'species'], keyword, Species.SPECIES_DICT["Mus_musculus"])
-print(result_dict)
