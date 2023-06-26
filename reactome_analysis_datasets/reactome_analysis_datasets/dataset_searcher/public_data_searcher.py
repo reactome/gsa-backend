@@ -112,3 +112,11 @@ class Searcher():
                 }
 
             return result_dict
+
+
+"""example script"""
+generate_search_values = Generate_search_values()
+generate_search_values.setup_search_events()
+searcher = Searcher()
+search_result = searcher.index_search("gene", "Homo_sapiens")
+print(search_result)

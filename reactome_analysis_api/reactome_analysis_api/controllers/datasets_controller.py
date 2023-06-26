@@ -1,3 +1,5 @@
+import json
+
 import connexion
 import six
 import logging
@@ -197,3 +199,12 @@ def load_data(resourceId, parameters):  # noqa: E501
     except (socket.timeout, socket.gaierror) as e:
         LOGGER.error("Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
+
+
+def get_result_by_keywor(keyword: str, species: str):
+    #generate_search_values = Generate_search_values()
+    #generate_search_values.setup_search_events()
+    #searcher = Searcher()
+    #result_dict = searcher.index_search(keyword, species)     #TODO this should be connected to the searcher in the dataset searcher
+    result_dict = ""
+    return Response(response=json.dumps(result_dict), status=200, headers={"content-type": "application/json"})
