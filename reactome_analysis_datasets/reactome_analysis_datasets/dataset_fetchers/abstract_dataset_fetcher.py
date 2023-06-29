@@ -91,6 +91,8 @@ class DatasetFetcher:
           * species
           * no_samples
           * technology
+          * resource_id (ID of the resource used to trigger a dataset loading)
+          * loading_parameters (JSON string holding the required parameters to load the dataset)
 
         :param no_datasets: number of datasets requested
         :returns: list of datasets
