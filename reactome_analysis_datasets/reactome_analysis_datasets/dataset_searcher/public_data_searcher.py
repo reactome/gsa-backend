@@ -23,10 +23,11 @@ class Species:
     }
 
 
-class Generate_search_values():
+class PublicDatasetSearcher():
     """
-    Generator to build the search index based on the overview parameters
+    performs searching based on keyword and species, in previous created index
     """
+
     PATH= "../dataset_fetchers/index"
 
     def setup_search_events(self):
@@ -73,17 +74,6 @@ class Generate_search_values():
         species_values.sort()
         return species_values
 
-
-class Searcher():
-    """
-    performs searching based on keyword and species, in previous created index
-    """
-
-    dirname = ""
-
-    def __init__(self):
-        self.dirname = "index"
-
     def index_search(self, keyword: str, species: str) -> dict:
         """
         :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
@@ -91,7 +81,7 @@ class Searcher():
         :return dictionary of the search results
         """
         LOGGER.info("Searching keyword: ", keyword, "species: ", keyword)
-        ix = index.open_dir(self.dirname)
+        ix = index.open_dir(self.PATH)
 
         with ix.searcher() as searcher:
             description_parser = qparser.QueryParser("description", schema)
@@ -115,8 +105,7 @@ class Searcher():
 
 
 """example script"""
-generate_search_values = Generate_search_values()
-generate_search_values.setup_search_events()
-searcher = Searcher()
+searcher = PublicDatasetSearcher()
+searcher.setup_search_events()
 search_result = searcher.index_search("gene", "Homo_sapiens")
 print(search_result)
