@@ -201,7 +201,7 @@ def load_data(resourceId, parameters):  # noqa: E501
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
 
-def get_result_by_keywor(keyword: str, species: str):
+def get_result_by_keyword(keyword: str, species: str):
     #generate_search_values = Generate_search_values()
     #generate_search_values.setup_search_events()
     #searcher = Searcher()
