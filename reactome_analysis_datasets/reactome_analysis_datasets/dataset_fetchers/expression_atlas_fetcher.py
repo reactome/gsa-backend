@@ -106,9 +106,12 @@ class ExpressionAtlasFetcher(DatasetFetcher):
                 experiment_data_dict = {
                     "id": experiment['experimentAccession'],
                     "title": experiment['experimentDescription'],
+                    "study_summary": "",
                     "species": experiment['species'],
                     "no_samples": experiment['numberOfAssays'],
-                    "technology": experiment['technologyType']
+                    "technology": experiment['technologyType'],
+                    "resource_id": experiment['experimentAccession'],
+                    "loading_parameter": json.dumps({"id": experiment['geo_accession']})
                 }
                 experiments_external_data_list.append(experiment_data_dict)
         except requests.exceptions.RequestException:

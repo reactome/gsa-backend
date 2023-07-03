@@ -8,14 +8,12 @@ from whoosh import qparser
 from itertools import groupby
 from dataclasses import dataclass
 
-from reactome_analysis_datasets.reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
-from reactome_analysis_datasets.reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import \
-    ExpressionAtlasFetcher
+from reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
+from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
 
-schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
-                description=TEXT(stored=True), no_samples=NUMERIC(stored=True))
 
 LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class Species:
@@ -28,7 +26,9 @@ class PublicDatasetSearcher():
     performs searching based on keyword and species, in previous created index
     """
 
-    PATH= "../dataset_fetchers/index"
+    PATH = "../dataset_searcher/index"
+    schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
+                    description=TEXT(stored=True), no_samples=NUMERIC(stored=True))
 
     def setup_search_events(self):
         """
@@ -38,7 +38,7 @@ class PublicDatasetSearcher():
         if not os.path.exists(path=self.PATH):
             os.mkdir(self.PATH)
 
-        ix = create_in("index", schema)
+        ix = create_in(self.PATH, self.schema)
         LOGGER.info("Created index: ", self.PATH)
         writer = ix.writer()
         fetcher_grein = GreinFetcher()
@@ -80,13 +80,13 @@ class PublicDatasetSearcher():
         species of the schema
         :return dictionary of the search results
         """
-        LOGGER.info("Searching keyword: ", keyword, "species: ", keyword)
+        LOGGER.info("Searching keyword: ", keyword, "species: ", species)
         ix = index.open_dir(self.PATH)
 
         with ix.searcher() as searcher:
-            description_parser = qparser.QueryParser("description", schema)
-            title_parser = qparser.QueryParser("title", schema)
-            species_parser = qparser.QueryParser("species", schema)
+            description_parser = qparser.QueryParser("description", self.schema)
+            title_parser = qparser.QueryParser("title", self.schema)
+            species_parser = qparser.QueryParser("species", self.schema)
 
             description_query = description_parser.parse(keyword)
             title_query = title_parser.parse(keyword)
@@ -103,9 +103,11 @@ class PublicDatasetSearcher():
 
             return result_dict
 
+    def _results_export_format(self, results: dict) -> dict:
+        raise NotImplementedError
 
-"""example script"""
-searcher = PublicDatasetSearcher()
-searcher.setup_search_events()
-search_result = searcher.index_search("gene", "Homo_sapiens")
-print(search_result)
+
+publicdatasetsearcher = PublicDatasetSearcher()
+publicdatasetsearcher.setup_search_events()
+result = publicdatasetsearcher.index_search("kinase", "Homo sapiens")
+print(result)
