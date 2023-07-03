@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -10,7 +11,6 @@ from dataclasses import dataclass
 
 from reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +28,8 @@ class PublicDatasetSearcher():
 
     PATH = "../dataset_searcher/index"
     schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
-                    description=TEXT(stored=True), no_samples=NUMERIC(stored=True))
+                    description=TEXT(stored=True), no_samples=NUMERIC(stored=True), technology=TEXT(stored=True),
+                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
 
     def setup_search_events(self):
         """
@@ -45,9 +46,10 @@ class PublicDatasetSearcher():
         LOGGER.info("Fetching available datasets from GREIN")
         grein_datasets = fetcher_grein.get_available_datasets()
         for dataset in grein_datasets:
-            writer.add_document(data_source="grein", id=str(dataset['geo_accession']), title=str(dataset['title']),
+            writer.add_document(data_source="grein", id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
-                                description=str(dataset['study_summary']), no_samples=dataset['no_samples'])
+                                description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']), technology=str(dataset['technology']),
+                                resource_id=str(dataset['resource_id']), loading_parameters=str(dataset['loading_parameters']))
 
         expression_atlas_fetcher = ExpressionAtlasFetcher()
         LOGGER.info("Fetching available datasets from ExpressionAtlas")
@@ -55,7 +57,8 @@ class PublicDatasetSearcher():
         for dataset in expression_atlas_datasets:
             writer.add_document(data_source="ebi_gxa", id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
-                                description=str(''), no_samples=dataset['no_samples'])
+                                description=str(''), no_samples=dataset['no_samples'], technology=str(dataset['technology']),
+                                resource_id=str(dataset['resource_id']), loading_parameters=str(dataset['loading_parameters']))
         writer.commit()
         list_data = grein_datasets + expression_atlas_datasets
         species_in_datasets = self._get_species(list_data)  # gets species based on public datasets
@@ -98,16 +101,9 @@ class PublicDatasetSearcher():
                 result_dict[result["id"]] = {
                     "description": result["description"],
                     "title": result["title"],
-                    "species": result["species"]
+                    "species": result["species"],
+                    "resource_id": result["resource_id"],
+                    "loading_parameters": result["loading_parameters"]
                 }
 
             return result_dict
-
-    def _results_export_format(self, results: dict) -> dict:
-        raise NotImplementedError
-
-
-publicdatasetsearcher = PublicDatasetSearcher()
-publicdatasetsearcher.setup_search_events()
-result = publicdatasetsearcher.index_search("kinase", "Homo sapiens")
-print(result)
