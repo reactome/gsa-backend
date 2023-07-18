@@ -1,7 +1,4 @@
 import json
-
-import connexion
-import six
 import logging
 import prometheus_client
 from flask import abort, Response
@@ -11,12 +8,11 @@ import socket
 from reactome_analysis_api.encoder import JSONEncoder
 from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus  # noqa: E501
 from reactome_analysis_api.models.external_data import ExternalData  # noqa: E501
-from reactome_analysis_api import util
-from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException, DATASET_QUEUE
-from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
-from reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
+from reactome_analysis_utils.reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException, DATASET_QUEUE
+from reactome_analysis_utils.reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
+from reactome_analysis_utils.reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
 from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
-
+from reactome_analysis_utils.reactome_analysis_utils.searcher.public_data_searcher import PublicDatasetSearcher
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
@@ -202,9 +198,6 @@ def load_data(resourceId, parameters):  # noqa: E501
 
 
 def get_result_by_keyword(keyword: str, species: str):
-    #generate_search_values = Generate_search_values()
-    #generate_search_values.setup_search_events()
-    #searcher = Searcher()
-    #result_dict = searcher.index_search(keyword, species)     #TODO this should be connected to the searcher in the dataset searcher
-    result_dict = ""
+    searcher = PublicDatasetSearcher("/")
+    result_dict = searcher.index_search(keyword, species)
     return Response(response=json.dumps(result_dict), status=200, headers={"content-type": "application/json"})
