@@ -12,7 +12,7 @@ from reactome_analysis_utils.reactome_analysis_utils.reactome_mq import Reactome
 from reactome_analysis_utils.reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
 from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
-from reactome_analysis_utils.reactome_analysis_utils.searcher.public_data_searcher import PublicDatasetSearcher
+from reactome_analysis_api.reactome_analysis_api.searcher import PublicDatasetSearcher
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",

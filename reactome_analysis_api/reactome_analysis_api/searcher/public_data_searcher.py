@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 
@@ -9,8 +8,7 @@ from whoosh import qparser
 from itertools import groupby
 from dataclasses import dataclass
 
-from reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
-from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
+from reactome_analysis_api.reactome_analysis_api.searcher.overview_fetcher import fetcher
 
 LOGGER = logging.getLogger(__name__)
 
@@ -45,9 +43,8 @@ class PublicDatasetSearcher():
         ix = create_in(self.PATH, self.schema)
         LOGGER.info("Created index: ", self.PATH)
         writer = ix.writer()
-        fetcher_grein = GreinFetcher()
         LOGGER.info("Fetching available datasets from GREIN")
-        grein_datasets = fetcher_grein.get_available_datasets()
+        grein_datasets = fetcher.get_available_datasets_grein()
         for dataset in grein_datasets:
             writer.add_document(data_source="grein", id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
@@ -56,9 +53,9 @@ class PublicDatasetSearcher():
                                 resource_id=str(dataset['resource_id']),
                                 loading_parameters=str(dataset['loading_parameters']))
 
-        expression_atlas_fetcher = ExpressionAtlasFetcher()
+
         LOGGER.info("Fetching available datasets from ExpressionAtlas")
-        expression_atlas_datasets = expression_atlas_fetcher.get_available_datasets()
+        expression_atlas_datasets = fetcher.get_available_datasets_expression_atlas()
         for dataset in expression_atlas_datasets:
             writer.add_document(data_source="ebi_gxa", id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
@@ -84,7 +81,6 @@ class PublicDatasetSearcher():
         species_values.sort()
         return species_values
 
-    @staticmethod
     def index_search(self, keyword: str, species: str) -> dict:  # static method independent on class
         """
         :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
@@ -118,12 +114,20 @@ class PublicDatasetSearcher():
 
 
 #region Test
-#publicdatasetsearcher = PublicDatasetSearcher("/index")
-#result = PublicDatasetSearcher.index_search("kinase", Species.SPECIES_DICT["Homo_sapiens"])
+import time
+import json
 
-#print(result)
-#j = json.dumps(result)
+start_time = time.time()
+publicdatasetsearcher = PublicDatasetSearcher("../index")
+publicdatasetsearcher.setup_search_events()
+result = publicdatasetsearcher.index_search("kinase", "Homo_sapiens")
+end_time = time.time()
+print(result)
+print("TIME: ", end_time-start_time)
 
-#with open("search_result.json", "w") as out:
-#    out.write(j)
+j = json.dumps(result)
+
+with open("search_result.json", "w") as out:
+    out.write(j)
+
 #endregion
