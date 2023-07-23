@@ -111,23 +111,3 @@ class PublicDatasetSearcher():
                 }
 
             return result_dict
-
-
-#region Test
-import time
-import json
-
-start_time = time.time()
-publicdatasetsearcher = PublicDatasetSearcher("../index")
-publicdatasetsearcher.setup_search_events()
-result = publicdatasetsearcher.index_search("kinase", "Homo_sapiens")
-end_time = time.time()
-print(result)
-print("TIME: ", end_time-start_time)
-
-j = json.dumps(result)
-
-with open("search_result.json", "w") as out:
-    out.write(j)
-
-#endregion
