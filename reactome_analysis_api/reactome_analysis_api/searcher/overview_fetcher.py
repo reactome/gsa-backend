@@ -6,13 +6,13 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 
-class fetcher():
+class Fetcher():
 
     @staticmethod
     def get_available_datasets_grein(no_datasets: int = None) -> list:
         """
         Returns the available datasets, is used exclusively during the index build for the keyword searcher
-        :param no_datasets: number of datasets to retrieve
+        :param no_datasets: number of datasets to retrieve, if set None all datasets are retrieved
         :returns: datasets in ExternalData format
         """
         grein_datasets = grein_loader.load_overview(no_datasets)
@@ -36,7 +36,7 @@ class fetcher():
     def get_available_datasets_expression_atlas(no_datasets: int = None) -> list:
         """
         Returns the available datasets, is used exclusively during the index build for the keyword searcher
-        :param no_datasets: number of datasets to retrieve
+        :param no_datasets: number of datasets to retrieve, if set None all datasets are retrieved
         :returns: datasets in ExternalData format
         """
 
