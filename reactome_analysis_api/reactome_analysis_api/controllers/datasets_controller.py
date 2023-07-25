@@ -197,3 +197,25 @@ def load_data(resourceId, parameters):  # noqa: E501
     except (socket.timeout, socket.gaierror) as e:
         LOGGER.error("Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
+
+
+def get_search_species():  # noqa: E501
+    """Returns the available species presented in the available datasets.
+
+     # noqa: E501
+
+    :rtype: list
+    """
+    raise NotImplementedError()
+
+
+def search_data(keywords, species):  # noqa: E501
+    """Key search for public datasets accross multiple resources. This function supports all
+        resources that are supported by the features to load external datasets.
+
+    :param keywords: The space delimited keywords to search for. Keywords are combined using the logical AND.
+    :type keywords: string
+    :param species: If set, only samples for this species are being returned.
+    :type species: string
+    """
+    raise NotImplementedError()

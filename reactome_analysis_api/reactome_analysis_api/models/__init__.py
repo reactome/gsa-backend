@@ -9,6 +9,7 @@ from reactome_analysis_api.models.analysis_result_mappings import AnalysisResult
 from reactome_analysis_api.models.analysis_result_reactome_links import AnalysisResultReactomeLinks
 from reactome_analysis_api.models.analysis_result_results import AnalysisResultResults
 from reactome_analysis_api.models.analysis_status import AnalysisStatus
+from reactome_analysis_api.models.data_search_result import DataSearchResult
 from reactome_analysis_api.models.data_type import DataType
 from reactome_analysis_api.models.dataset import Dataset
 from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus

@@ -266,6 +266,47 @@ paths:
             $ref: '#/definitions/ExternalData'
         '404':
           description: Unknown identifier passed. This may also be the case if the dataset is not loaded yet.
+  '/data/search/species':
+    get:
+      tags:
+        - Datasets
+      summary: >-
+        Returns the available species presented in the available datasets.
+      operationId: getSearchSpecies
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successfull operation returns a list of the species from the available datasets.
+          schema:
+            type: array
+            items:
+              type: string
+  '/data/search':
+    get:
+      tags:
+        - Datasets
+      summary: >-
+        Key search for public datasets accross multiple resources. This function supports all
+        resources that are supported by the features to load external datasets.
+      operationId: searchData
+      parameters:
+        - in: query
+          name: keywords
+          type: string
+          description: The space delimited keywords to search for. Keywords are combined using the logical AND.
+          required: true
+        - in: query
+          name: species
+          type: string
+          description: If set, only samples for this species are being returned.
+          required: false
+      responses:
+        '200':
+          description: Returns all datasets that contain the respective key words in their description or title.
+          schema:
+            $ref: '#/definitions/DataSearchResult'
+
 definitions:
   Method:
     type: object
@@ -799,4 +840,41 @@ definitions:
             required:
               type: boolean
               description: Indicates whether the parameter has to be supplied.
+  DataSearchResult:
+    type: object
+    description: Represents the summary information of a datasets available in the supported external resources.
+    required:
+      - id
+      - title
+      - species
+      - resource_name
+      - resource_loading_id
+      - loading_parameters
+    properties:
+      id:
+        type: string
+        description: A unique identified for the dataset.
+        example: GSE12345
+      title:
+        type: string
+        description: The dataset's title.
+        example: Study on the stress response of crops.
+      description:
+        type: string
+        description: A more detailed description of the study.
+      species:
+        type: string
+        description: The species investigated in this study.
+        example: Homo sapiens
+      resource_name:
+        type: string
+        description: Name of the original data source.
+        example: ExpressionAtlas
+      resource_loading_id:
+        type: string
+        description: The id of the resource to load the dataset from.
+      loading_parameters:
+        type: array
+        items:
+          $ref: '#/definitions/Parameter'
 
