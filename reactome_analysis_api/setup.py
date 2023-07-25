@@ -27,7 +27,10 @@ setup(
     package_data={'': ['swagger/swagger.yaml']},
     include_package_data=True,
     entry_points={
-        'console_scripts': ['reactome_analysis_api=reactome_analysis_api.__main__:main']},
+        'console_scripts': [
+            'reactome_analysis_api=reactome_analysis_api.__main__:main'
+            'create_search_index=reactome_analysis_api.searcher.public_data_searcher:create_search_index'
+        ]},
     long_description="""\
     This is a REACTOME analysis service. It provides gene set analysis methods whose results can be visualized using the REACTOME pathway browser.
     """

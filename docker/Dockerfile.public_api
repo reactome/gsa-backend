@@ -15,6 +15,9 @@ ENV SEARCH_INDEX_PATH /data/search_index
 RUN pip3 install /usr/apps/reactome_analysis_utils*.whl && \
     pip3 install /usr/apps/reactome_analysis_api-*.whl
 
+# create the search index for the public datasets
+RUN create_search_index
+
 EXPOSE 8080
 
 CMD ["uwsgi", \ 
