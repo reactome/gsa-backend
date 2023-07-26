@@ -281,6 +281,51 @@ paths:
           description: "Unknown identifier passed. This may also be the case if the\
             \ dataset is not loaded yet."
       x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/search/species:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Returns the available species presented in the available datasets."
+      operationId: "get_search_species"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "Successfull operation returns a list of the species from the\
+            \ available datasets."
+          schema:
+            type: "array"
+            items:
+              type: "string"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/search:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Key search for public datasets accross multiple resources. This function\
+        \ supports all resources that are supported by the features to load external\
+        \ datasets."
+      operationId: "search_data"
+      parameters:
+      - name: "keywords"
+        in: "query"
+        description: "The space delimited keywords to search for. Keywords are combined\
+          \ using the logical AND."
+        required: true
+        type: "string"
+      - name: "species"
+        in: "query"
+        description: "If set, only samples for this species are being returned."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Returns all datasets that contain the respective key words\
+            \ in their description or title."
+          schema:
+            $ref: "#/definitions/DataSearchResult"
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
 definitions:
   Method:
     type: "object"
@@ -836,6 +881,56 @@ definitions:
         display_name: "Dataset Id"
         type: "string"
         required: true
+  DataSearchResult:
+    type: "object"
+    required:
+    - "id"
+    - "loading_parameters"
+    - "resource_loading_id"
+    - "resource_name"
+    - "species"
+    - "title"
+    properties:
+      id:
+        type: "string"
+        example: "GSE12345"
+        description: "A unique identified for the dataset."
+      title:
+        type: "string"
+        example: "Study on the stress response of crops."
+        description: "The dataset's title."
+      description:
+        type: "string"
+        description: "A more detailed description of the study."
+      species:
+        type: "string"
+        example: "Homo sapiens"
+        description: "The species investigated in this study."
+      resource_name:
+        type: "string"
+        example: "ExpressionAtlas"
+        description: "Name of the original data source."
+      resource_loading_id:
+        type: "string"
+        description: "The id of the resource to load the dataset from."
+      loading_parameters:
+        type: "array"
+        items:
+          $ref: "#/definitions/Parameter"
+    description: "Represents the summary information of a datasets available in the\
+      \ supported external resources."
+    example:
+      resource_loading_id: "resource_loading_id"
+      species: "Homo sapiens"
+      description: "description"
+      id: "GSE12345"
+      title: "Study on the stress response of crops."
+      resource_name: "ExpressionAtlas"
+      loading_parameters:
+      - name: "permutations"
+        value: "10"
+      - name: "permutations"
+        value: "10"
   Method_parameters:
     required:
     - "name"
