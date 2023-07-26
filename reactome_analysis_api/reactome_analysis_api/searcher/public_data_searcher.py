@@ -5,18 +5,13 @@ from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
 from whoosh.index import create_in
 from whoosh import index
 from whoosh import qparser
+from whoosh.qparser import QueryParser, MultifieldParser
 import pickle
 from dataclasses import dataclass
 
 from reactome_analysis_api.reactome_analysis_api.searcher.overview_fetcher import Fetcher
 
 LOGGER = logging.getLogger(__name__)
-
-
-@dataclass
-class Species:
-    SPECIES_DICT = {
-    }
 
 
 class PublicDatasetSearcher():
@@ -45,7 +40,7 @@ class PublicDatasetSearcher():
         LOGGER.info("Created index: ", self._path)
         writer = ix.writer()
         LOGGER.info("Fetching available datasets from GREIN")
-        grein_datasets = Fetcher.get_available_datasets_grein()
+        grein_datasets = Fetcher.get_available_datasets_grein(10)
         for dataset in grein_datasets:
             writer.add_document(data_source="grein", id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
@@ -65,10 +60,10 @@ class PublicDatasetSearcher():
                                 loading_parameters=str(dataset['loading_parameters']))
         writer.commit()
         list_data = grein_datasets + expression_atlas_datasets
+        print(list_data)
         species_in_datasets = self._get_species(list_data)  # gets species based on public datasets
-        Species.SPECIES_DICT = {item.replace(' ', '_'): item for item in species_in_datasets}
-        with open('species.pickle', 'wb') as f:
-            pickle.dump(Species.SPECIES_DICT, f, pickle.HIGHEST_PROTOCOL)
+        with open(self._path + 'species.pickle', 'wb') as f:
+            pickle.dump(species_in_datasets, f, pickle.HIGHEST_PROTOCOL)
 
     def _get_species(self, datasets) -> set:
         """
@@ -82,31 +77,37 @@ class PublicDatasetSearcher():
         species_values = sorted(values)
         return species_values
 
-    def get_species(self) -> set:
+    @staticmethod
+    def get_species(path: str) -> list:
         """
         returns species stored in binary file
         """
-        with open('species.pickle', 'rb') as f:
+        with open(path + 'species.pickle', 'rb') as f:
             return pickle.load(f)
 
-    def index_search(self, keyword: str, species: str) -> dict:
+    def index_search(self, keyword: list, species: str = None) -> dict:
         """
         :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
-        species of the schema
+        species of the schema,
         :return dictionary of the search results
         """
         LOGGER.info("Searching keyword: ", keyword, "species: ", species)
         ix = index.open_dir(self._path)
 
+        if species is None:
+            species = "Homo sapiens"
+            LOGGER.info("Default species is set with: ", species)
+
         with ix.searcher() as searcher:
-            description_parser = qparser.QueryParser("description", self.schema)
-            title_parser = qparser.QueryParser("title", self.schema)
+            description_parser = MultifieldParser(["description","title"], self.schema)
+            #title_parser = qparser.QueryParser("title", self.schema)
             species_parser = qparser.QueryParser("species", self.schema)
 
-            description_query = description_parser.parse(keyword)
-            title_query = title_parser.parse(keyword)
+            query_string = " AND ".join(keyword)
+            description_title_query = description_parser.parse(query_string)
+            #title_query = title_parser.parse(keyword)
             species_query = species_parser.parse(species)
-            combined_query = (description_query | title_query) & species_query
+            combined_query = description_title_query & species_query
             results = searcher.search(combined_query, limit=100)
             result_dict = {}
             for result in results:
@@ -119,3 +120,8 @@ class PublicDatasetSearcher():
                 }
 
             return result_dict
+
+
+searcher = PublicDatasetSearcher("../")
+# searcher.setup_search_events()
+print(searcher.index_search(["THP-1", "wound", "13", "Arnica"]))

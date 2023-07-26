@@ -25,7 +25,7 @@ class Fetcher():
                 "species": dataset["species"],
                 "no_samples": dataset["no_samples"],
                 "technology": "",
-                "resource_id": dataset["geo_accession"],
+                "resource_id": "grein",
                 "loading_parameters": json.dumps({"id": dataset["geo_accession"]})
             }
             list_overview.append(overview_dict)
@@ -59,7 +59,7 @@ class Fetcher():
                     "species": experiment['species'],
                     "no_samples": experiment['numberOfAssays'],
                     "technology": experiment['technologyType'],
-                    "resource_id": experiment['experimentAccession'],
+                    "resource_id": "ebi_gxa",
                     "loading_parameters": json.dumps({"id": experiment['experimentAccession']})
                 }
                 experiments_external_data_list.append(experiment_data_dict)
