@@ -5,7 +5,7 @@ from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
 from whoosh.index import create_in
 from whoosh import index
 from whoosh import qparser
-from itertools import groupby
+import pickle
 from dataclasses import dataclass
 
 from reactome_analysis_api.reactome_analysis_api.searcher.overview_fetcher import Fetcher
@@ -33,7 +33,7 @@ class PublicDatasetSearcher():
     def __init__(self, path):
         self._path = path
 
-    def setup_search_events(self):
+    def setup_search_events(self):  # top level funktion hinzufpügen create_search_index
         """
         sets up the index for later search process based on schema, sets up species for later filtering
         """
@@ -67,6 +67,8 @@ class PublicDatasetSearcher():
         list_data = grein_datasets + expression_atlas_datasets
         species_in_datasets = self._get_species(list_data)  # gets species based on public datasets
         Species.SPECIES_DICT = {item.replace(' ', '_'): item for item in species_in_datasets}
+        with open('species.pickle', 'wb') as f:
+            pickle.dump(Species.SPECIES_DICT, f, pickle.HIGHEST_PROTOCOL)
 
     def _get_species(self, datasets) -> set:
         """
@@ -79,6 +81,13 @@ class PublicDatasetSearcher():
                 values.add(dictionary['species'])
         species_values = sorted(values)
         return species_values
+
+    def get_species(self) -> set:
+        """
+        returns species stored in binary file
+        """
+        with open('species.pickle', 'rb') as f:
+            return pickle.load(f)
 
     def index_search(self, keyword: str, species: str) -> dict:
         """
@@ -105,7 +114,7 @@ class PublicDatasetSearcher():
                     "description": result["description"],
                     "title": result["title"],
                     "species": result["species"],
-                    "resource_id": result["resource_id"],
+                    "resource_id": result["resource_id"],  # change this to grein or expresion atlas
                     "loading_parameters": result["loading_parameters"]
                 }
 
