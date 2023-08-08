@@ -5,6 +5,7 @@ import prometheus_client
 from flask import abort, Response
 import uuid
 import socket
+import os
 
 from reactome_analysis_api.encoder import JSONEncoder
 from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus  # noqa: E501
@@ -19,6 +20,8 @@ from reactome_analysis_api.reactome_analysis_api.searcher.public_data_searcher i
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
                                                     "External datasets loaded.")
+
+SEARCH_INDEX_PATH = os.getenv("SEARCH_INDEX_PATH")
 
 
 def get_examples():  # noqa: E501
@@ -204,7 +207,7 @@ def get_search_species():  # noqa: E501
      # noqa: E501
     :rtype: list
     """
-    return PublicDatasetSearcher.get_species("../") # change this to the enviroment variable
+    return PublicDatasetSearcher.get_species(SEARCH_INDEX_PATH)
 
 
 
@@ -218,5 +221,5 @@ def search_data(keywords, species):  # noqa: E501
     :param species: If set, only samples for this species are being returned.
     :type species: string
     """
-    searcher = PublicDatasetSearcher("../")  # controller is not defined correctly
+    searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)  # controller is not defined correctly
     searcher.index_search(keywords, species)
