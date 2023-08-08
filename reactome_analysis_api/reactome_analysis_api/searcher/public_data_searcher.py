@@ -5,9 +5,8 @@ from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
 from whoosh.index import create_in
 from whoosh import index
 from whoosh import qparser
-from whoosh.qparser import QueryParser, MultifieldParser
+from whoosh.qparser import MultifieldParser
 import pickle
-from dataclasses import dataclass
 
 from reactome_analysis_api.reactome_analysis_api.searcher.overview_fetcher import Fetcher
 
@@ -100,12 +99,10 @@ class PublicDatasetSearcher():
 
         with ix.searcher() as searcher:
             description_parser = MultifieldParser(["description","title"], self.schema)
-            #title_parser = qparser.QueryParser("title", self.schema)
             species_parser = qparser.QueryParser("species", self.schema)
 
             query_string = " AND ".join(keyword)
             description_title_query = description_parser.parse(query_string)
-            #title_query = title_parser.parse(keyword)
             species_query = species_parser.parse(species)
             combined_query = description_title_query & species_query
             results = searcher.search(combined_query, limit=100)
@@ -120,8 +117,3 @@ class PublicDatasetSearcher():
                 }
 
             return result_dict
-
-
-searcher = PublicDatasetSearcher("../")
-# searcher.setup_search_events()
-print(searcher.index_search(["THP-1", "wound", "13", "Arnica"]))

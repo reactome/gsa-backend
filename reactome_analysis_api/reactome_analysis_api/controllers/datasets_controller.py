@@ -1,5 +1,3 @@
-import connexion
-import six
 import logging
 import prometheus_client
 from flask import abort, Response
