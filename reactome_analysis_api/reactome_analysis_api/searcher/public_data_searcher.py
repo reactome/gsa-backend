@@ -25,6 +25,9 @@ class PublicDatasetSearcher():
                     resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
 
     def __init__(self, path):
+        """
+        The init is used to define the path, the path is set as an enviroment variable
+        """
         self._path = path
 
     def setup_search_events(self):  # top level funktion hinzufpügen create_search_index
