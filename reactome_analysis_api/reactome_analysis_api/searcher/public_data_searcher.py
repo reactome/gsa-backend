@@ -59,7 +59,6 @@ class PublicDatasetSearcher():
                                 loading_parameters=str(dataset['loading_parameters']))
         writer.commit()
         list_data = grein_datasets + expression_atlas_datasets
-        print(list_data)
         species_in_datasets = self._get_species(list_data)  # gets species based on public datasets
         with open(self._path + 'species.pickle', 'wb') as f:
             pickle.dump(species_in_datasets, f, pickle.HIGHEST_PROTOCOL)
@@ -76,13 +75,17 @@ class PublicDatasetSearcher():
         species_values = sorted(values)
         return species_values
 
-    @staticmethod
-    def get_species(path: str) -> list:
+    def get_species(self) -> list:
         """
         returns species stored in binary file
         """
-        with open(path + 'species.pickle', 'rb') as f:
-            return pickle.load(f)
+        try:
+            if os.path.exists(self._path + 'species.pickle'):
+                with open(self._path + 'species.pickle', 'rb') as f:
+                    return pickle.load(f)
+        except FileNotFoundError:
+            logging.error(f"File not found: {self._path}species.pickle")
+            return []
 
     def index_search(self, keyword: list, species: str = None) -> dict:
         """
@@ -95,7 +98,7 @@ class PublicDatasetSearcher():
 
         if species is None:
             species = "Homo sapiens"
-            LOGGER.info("Default species is set with: ", species)
+            LOGGER.debug("Default species is set with: ", species)
 
         with ix.searcher() as searcher:
             description_parser = MultifieldParser(["description","title"], self.schema)

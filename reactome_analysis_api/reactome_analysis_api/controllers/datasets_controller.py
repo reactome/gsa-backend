@@ -19,7 +19,9 @@ LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
                                                     "External datasets loaded.")
 
-SEARCH_INDEX_PATH = os.getenv("SEARCH_INDEX_PATH")
+DATASET_SEARCH_COUNTER = prometheus_client.Counter("reactome_api_dataset_searches", "Number of searches performed.")
+
+SEARCH_INDEX_PATH = os.getenv("SEARCH_INDEX_PATH", "../")
 
 
 def get_examples():  # noqa: E501
@@ -52,31 +54,35 @@ def get_data_sources():  # noqa: E501
     :rtype: ExternalDatasource
     """
     return [
-        ExternalDatasource(id = "example_datasets", name = "Example datasets", 
+        ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id", 
-                                         type="string", description="Identifier of the dataset", required=True)
-        ]),
-        ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", 
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True)
+                           ]),
+        ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
-                                         description="Identifier of the dataset", required=True)
-        ]),
-        ExternalDatasource(id="ebi_sc_gxa", name = "Single Cell Expression Atlas",
+                               ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
+                                                            description="Identifier of the dataset", required=True)
+                           ]),
+        ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
-                                         type="string", description="Identifier of the dataset", required=True),
-            ExternalDatasourceParameters(name="k", type="int", display_name="K",
-                                         description="Parameter k used to create the cell clusters", required=True),
-        ]),
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True),
+                               ExternalDatasourceParameters(name="k", type="int", display_name="K",
+                                                            description="Parameter k used to create the cell clusters",
+                                                            required=True),
+                           ]),
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
-                                         type="string", description="Identifier of the dataset", required=True)])
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True)])
     ]
 
 
@@ -160,7 +166,6 @@ def load_data(resourceId, parameters):  # noqa: E501
         # convert the parameters
         request_parameters = list()
 
-
         for dict_param in parameters:
             request_parameters.append(DatasetRequestParameter(name=dict_param["name"], value=dict_param["value"]))
 
@@ -180,7 +185,7 @@ def load_data(resourceId, parameters):  # noqa: E501
             # update the status
             LOGGER.error("Failed to connect to queuing system: " + str(e))
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
-                                    description="Failed to connect to queuing system.")
+                                          description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
             abort(503, "Failed to connect to queuing system. Please try again in a few seconds.")
@@ -188,7 +193,7 @@ def load_data(resourceId, parameters):  # noqa: E501
             LOGGER.error("Failed to post message to queuing system: " + str(e))
             # update the status
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
-                                    description="Failed to connect to queuing system.")
+                                          description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
             abort(503, "The number of analysis requests is currently too high. Please try again in a few minutes.")
@@ -205,9 +210,11 @@ def get_search_species():  # noqa: E501
      # noqa: E501
     :rtype: list
     """
-    return PublicDatasetSearcher.get_species(SEARCH_INDEX_PATH)
-
-
+    try:
+        searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)
+        searcher.get_species()
+    except FileNotFoundError as e:
+        abort(404, description=f"File not found: {SEARCH_INDEX_PATH}")
 
 
 def search_data(keywords, species):  # noqa: E501
@@ -220,4 +227,6 @@ def search_data(keywords, species):  # noqa: E501
     :type species: string
     """
     searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)  # controller is not defined correctly
-    searcher.index_search(keywords, species)
+    search_response = searcher.index_search(keywords, species)
+    return Response(response=search_response, status=200, headers={"content-type": "application/json"})
+
