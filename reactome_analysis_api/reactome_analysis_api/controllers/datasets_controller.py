@@ -212,7 +212,7 @@ def get_search_species():  # noqa: E501
     """
     try:
         searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)
-        searcher.get_species()
+        Response(response=searcher.get_species(), status=200, headers={"content-type": "application/json"})
     except FileNotFoundError as e:
         abort(404, description=f"File not found: {SEARCH_INDEX_PATH}")
 
