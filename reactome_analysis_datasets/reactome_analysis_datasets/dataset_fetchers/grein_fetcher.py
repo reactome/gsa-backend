@@ -1,3 +1,5 @@
+import json
+
 import grein_loader
 import logging
 import os
@@ -76,7 +78,7 @@ class GreinFetcher(DatasetFetcher):
         else:
             LOGGER.info("No metadata available from GREIN")
             self._update_status(progress=0.75, message="No metadata found")
-            metadata_obj = None   # in case metadata is not defined count matrix still will be returned
+            metadata_obj = None  # in case metadata is not defined count matrix still will be returned
 
         self._update_status(progress=0.8, message="Converting count matrix")
         count_matrix = count_matrix.drop("gene_symbol", axis=1)
@@ -106,7 +108,7 @@ class GreinFetcher(DatasetFetcher):
                    "description": "Public dataset from Grein",
                    "sample_ids": list()
                    }
-        
+
         # change to a nice title if available
         if "Title" in description and description["Title"]:
             summary["title"] = "GREIN dataset " + identifier + ": " + description["Title"]
@@ -167,11 +169,3 @@ class GreinFetcher(DatasetFetcher):
         for key, data in list_metadata.items():
             sample_id_list.append(key)
         return sample_id_list
-
-    def get_available_datasets(self, no_datasets: int) -> list:
-        """
-        Loads overview of GREIN datasets
-        :param no_datasets: Number of datasets loading from GREIN
-        :returns: list of datasets with description
-        """
-        return grein_loader.load_overview(no_datasets)

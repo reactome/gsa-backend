@@ -79,24 +79,6 @@ class DatasetFetcher:
         if self._status_callback:
             self._status_callback(progress=progress, message=message)
 
-    def get_available_datasets(self, no_datasets: int) -> list:
-        """
-        Loads overview of datasets based on number of datasets
-
-        The return value is a list of dicts. Each dict represents one available
-        dataset. Required keys are: 
-          * id
-          * title
-          * study_summary (maybe an empty string)
-          * species
-          * no_samples
-          * technology
-
-        :param no_datasets: number of datasets requested
-        :returns: list of datasets
-        """
-        raise NotImplementedError
-
 
 class DatasetFetcherException(Exception):
     """

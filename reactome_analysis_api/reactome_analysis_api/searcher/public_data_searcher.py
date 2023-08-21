@@ -1,0 +1,136 @@
+import logging
+import os
+
+from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
+from whoosh.index import create_in
+from whoosh import index
+from whoosh import qparser
+from whoosh.qparser import MultifieldParser
+import pickle
+
+from reactome_analysis_api.searcher.overview_fetcher import PublicDataFetcher
+
+LOGGER = logging.getLogger(__name__)
+
+
+class PublicDatasetSearcher():
+    """
+    performs searching based on keyword and species, in previous created index
+    the path for index creation is defined in the constructor!
+    """
+
+    _path = ""
+    _species_list = None
+    _ix = None
+
+    schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
+                    description=TEXT(stored=True), no_samples=NUMERIC(stored=True), technology=TEXT(stored=True),
+                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
+
+    def __init__(self, path: str):
+        """Initialize the public data searcher
+
+        :param path: Path to where the index is stored
+        :type path: str
+        """
+        self._path = path
+
+    def setup_search_events(self):  
+        """
+        sets up the index for later search process based on schema, sets up species for later filtering. Data
+        is stored in the path defined in the constructor.
+        """
+        LOGGER.info("Creating index for searching")
+        if not os.path.exists(path=self._path):
+            os.mkdir(self._path)
+
+        ix = create_in(self._path, self.schema)
+
+        LOGGER.debug("Created index: ", self._path)
+        writer = ix.writer()
+
+        LOGGER.debug("Fetching available datasets")
+        
+        datasets = PublicDataFetcher.get_available_datasets()
+
+        for dataset in datasets:
+            writer.add_document(data_source=str(dataset["resource_id_str"]), id=str(dataset['id']), title=str(dataset['title']),
+                                species=str(dataset['species']),
+                                description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
+                                technology=str(dataset['technology']),
+                                resource_id=str(dataset['resource_id']),
+                                loading_parameters=str(dataset['loading_parameters']))
+
+        writer.commit()
+
+        # gets species based on public datasets
+        species_in_datasets = self._get_species(datasets=datasets) 
+        with open(self._path + 'species.pickle', 'wb') as f:
+            pickle.dump(species_in_datasets, f, pickle.HIGHEST_PROTOCOL)
+
+    def _get_species(self, datasets) -> set:
+        """
+        :param datasets: list of dictionaries from public datasets
+        :return species_values: list of species in public datasets
+        """
+        values = set()
+        for dictionary in datasets:
+            if 'species' in dictionary:
+                values.add(dictionary['species'])
+        species_values = sorted(values)
+        return species_values
+
+    def get_species(self) -> list:
+        """
+        returns species stored in binary file
+        """
+        # only try to load if the species list wasn't loaded before
+        if self._species_list:
+            return self._species_list
+
+        # try to load the list from file
+        try:
+            if os.path.exists(self._path + 'species.pickle'):
+                with open(self._path + 'species.pickle', 'rb') as f:
+                    self._species_list = pickle.load(f)
+        except FileNotFoundError:
+            logging.error(f"File not found: {self._path}species.pickle")
+            self._species_list = []
+
+        return self._species_list
+
+    def index_search(self, keyword: list, species: str = None) -> dict:
+        """
+        :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
+        species of the schema,
+        :return dictionary of the search results
+        """
+        LOGGER.info("Searching keyword: ", keyword, "species: ", species)
+
+        if not self._ix:
+            self._ix = index.open_dir(self._path)
+
+        if species is None:
+            species = "Homo sapiens"
+            LOGGER.debug("Default species is set with: ", species)
+
+        with self._ix.searcher() as searcher:
+            description_parser = MultifieldParser(["description","title"], self.schema)
+            species_parser = qparser.QueryParser("species", self.schema)
+
+            query_string = " AND ".join(keyword)
+            description_title_query = description_parser.parse(query_string)
+            species_query = species_parser.parse(species)
+            combined_query = description_title_query & species_query
+            results = searcher.search(combined_query, limit=100)
+            result_dict = {}
+            for result in results:
+                result_dict[result["id"]] = {
+                    "description": result["description"],
+                    "title": result["title"],
+                    "species": result["species"],
+                    "resource_id": result["resource_id"],  # change this to grein or expresion atlas
+                    "loading_parameters": result["loading_parameters"]
+                }
+
+            return result_dict

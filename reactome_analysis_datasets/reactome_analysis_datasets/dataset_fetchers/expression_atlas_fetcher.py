@@ -85,37 +85,6 @@ class ExpressionAtlasFetcher(DatasetFetcher):
         """
         return self._get_parameter(name="dataset_id", parameters=parameters)
 
-    def get_available_datasets(self, no_datasets: int = None) -> list:
-        """
-        Returns the available datasets
-        :param no_datasets: number of datasets to retrieve
-        :returns: datasets in ExternalData format
-        """
-        if no_datasets is None:
-            no_datasets = 10000
-
-        experiments_external_data_list = list()
-        try:
-            experiments_url = "https://www.ebi.ac.uk/gxa/json/experiments"
-            response = requests.get(experiments_url)
-            response.raise_for_status()
-            json_response = response.json()
-            experiments_list = json_response['experiments'][0:no_datasets]
-
-            for experiment in experiments_list:
-                experiment_data_dict = {
-                    "id": experiment['experimentAccession'],
-                    "title": experiment['experimentDescription'],
-                    "species": experiment['species'],
-                    "no_samples": experiment['numberOfAssays'],
-                    "technology": experiment['technologyType']
-                }
-                experiments_external_data_list.append(experiment_data_dict)
-        except requests.exceptions.RequestException:
-            LOGGER.error("Response not available")
-
-        return experiments_external_data_list
-
     def load_dataset(self, parameters: list, reactome_mq: reactome_mq.ReactomeMQ) -> Tuple[str, ExternalData]:
         """
         Load the specified ExpressionAtlas experiment

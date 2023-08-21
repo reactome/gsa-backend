@@ -1,10 +1,9 @@
-import connexion
-import six
 import logging
 import prometheus_client
-from flask import abort, Response
+from flask import abort, Response, current_app
 import uuid
 import socket
+import os
 
 from reactome_analysis_api.encoder import JSONEncoder
 from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus  # noqa: E501
@@ -14,11 +13,13 @@ from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException,
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
 from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
-
+from reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
                                                     "External datasets loaded.")
+
+DATASET_SEARCH_COUNTER = prometheus_client.Counter("reactome_api_dataset_searches", "Number of searches performed.")
 
 
 def get_examples():  # noqa: E501
@@ -51,31 +52,35 @@ def get_data_sources():  # noqa: E501
     :rtype: ExternalDatasource
     """
     return [
-        ExternalDatasource(id = "example_datasets", name = "Example datasets", 
+        ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id", 
-                                         type="string", description="Identifier of the dataset", required=True)
-        ]),
-        ExternalDatasource(id = "ebi_gxa", name = "Expression Atlas", 
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True)
+                           ]),
+        ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
-                                         description="Identifier of the dataset", required=True)
-        ]),
-        ExternalDatasource(id="ebi_sc_gxa", name = "Single Cell Expression Atlas",
+                               ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
+                                                            description="Identifier of the dataset", required=True)
+                           ]),
+        ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
-                                         type="string", description="Identifier of the dataset", required=True),
-            ExternalDatasourceParameters(name="k", type="int", display_name="K",
-                                         description="Parameter k used to create the cell clusters", required=True),
-        ]),
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True),
+                               ExternalDatasourceParameters(name="k", type="int", display_name="K",
+                                                            description="Parameter k used to create the cell clusters",
+                                                            required=True),
+                           ]),
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
                            parameters=[
-            ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
-                                         type="string", description="Identifier of the dataset", required=True)])
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True)])
     ]
 
 
@@ -159,7 +164,6 @@ def load_data(resourceId, parameters):  # noqa: E501
         # convert the parameters
         request_parameters = list()
 
-
         for dict_param in parameters:
             request_parameters.append(DatasetRequestParameter(name=dict_param["name"], value=dict_param["value"]))
 
@@ -179,7 +183,7 @@ def load_data(resourceId, parameters):  # noqa: E501
             # update the status
             LOGGER.error("Failed to connect to queuing system: " + str(e))
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
-                                    description="Failed to connect to queuing system.")
+                                          description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
             abort(503, "Failed to connect to queuing system. Please try again in a few seconds.")
@@ -187,7 +191,7 @@ def load_data(resourceId, parameters):  # noqa: E501
             LOGGER.error("Failed to post message to queuing system: " + str(e))
             # update the status
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
-                                    description="Failed to connect to queuing system.")
+                                          description="Failed to connect to queuing system.")
             storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
 
             abort(503, "The number of analysis requests is currently too high. Please try again in a few minutes.")
@@ -201,16 +205,21 @@ def load_data(resourceId, parameters):  # noqa: E501
 
 def get_search_species():  # noqa: E501
     """Returns the available species presented in the available datasets.
-
      # noqa: E501
-
     :rtype: list
     """
-    raise NotImplementedError()
+    try:
+        species_list = current_app.public_searcher.get_species()
+
+        Response(response=species_list, status=200, headers={"content-type": "application/json"})
+    except FileNotFoundError as e:
+        LOGGER.error(f"Loading species failed.")
+
+        abort(500, "Failed to load available species.")
 
 
 def search_data(keywords, species):  # noqa: E501
-    """Key search for public datasets accross multiple resources. This function supports all
+    """Key search for public datasets across multiple resources. This function supports all
         resources that are supported by the features to load external datasets.
 
     :param keywords: The space delimited keywords to search for. Keywords are combined using the logical AND.
@@ -218,4 +227,15 @@ def search_data(keywords, species):  # noqa: E501
     :param species: If set, only samples for this species are being returned.
     :type species: string
     """
-    raise NotImplementedError()
+    try:
+        search_response = current_app.public_searcher.index_search(keywords.split(" "), species)
+    except Exception as e:
+        LOGGER.error(f"Search failed: {keywords}")
+        LOGGER.exception(e)
+
+        abort(500, "Internal server error. Search failed.")
+
+    DATASET_SEARCH_COUNTER.inc()
+
+    return Response(response=search_response, status=200, headers={"content-type": "application/json"})
+
