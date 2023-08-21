@@ -29,7 +29,7 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'reactome_analysis_api=reactome_analysis_api.__main__:main'
+            'reactome_analysis_api=reactome_analysis_api.__main__:main',
             'create_search_index=reactome_analysis_api.searcher.public_data_searcher:create_search_index'
         ]},
     long_description="""\
