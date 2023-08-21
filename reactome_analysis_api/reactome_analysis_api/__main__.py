@@ -14,6 +14,7 @@ from reactome_analysis_api import encoder
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
 
 app = connexion.App(__name__, specification_dir='./swagger/')
 app.app.json_encoder = encoder.JSONEncoder
@@ -46,6 +47,9 @@ UPLOAD_ERRORS = Counter("reactome_api_upload_errors",
 
 
 def main():
+    # create the object for the public data searcher
+    app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PATH", "../"))
+
     app.run(port=8080, debug=True)
 
 def custom_abort(code: int, message: str):

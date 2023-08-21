@@ -1,6 +1,6 @@
 import logging
 import prometheus_client
-from flask import abort, Response
+from flask import abort, Response, current_app
 import uuid
 import socket
 import os
@@ -13,15 +13,13 @@ from reactome_analysis_utils.reactome_mq import ReactomeMQ, ReactomeMQException,
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
 from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
-from reactome_analysis_api.reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
+from reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
                                                     "External datasets loaded.")
 
 DATASET_SEARCH_COUNTER = prometheus_client.Counter("reactome_api_dataset_searches", "Number of searches performed.")
-
-SEARCH_INDEX_PATH = os.getenv("SEARCH_INDEX_PATH", "../")
 
 
 def get_examples():  # noqa: E501
@@ -211,10 +209,13 @@ def get_search_species():  # noqa: E501
     :rtype: list
     """
     try:
-        searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)
-        Response(response=searcher.get_species(), status=200, headers={"content-type": "application/json"})
+        species_list = current_app.public_searcher.get_species()
+
+        Response(response=species_list, status=200, headers={"content-type": "application/json"})
     except FileNotFoundError as e:
-        abort(404, description=f"File not found: {SEARCH_INDEX_PATH}")
+        LOGGER.error(f"Loading species failed.")
+
+        abort(500, "Failed to load available species.")
 
 
 def search_data(keywords, species):  # noqa: E501
@@ -226,7 +227,15 @@ def search_data(keywords, species):  # noqa: E501
     :param species: If set, only samples for this species are being returned.
     :type species: string
     """
-    searcher = PublicDatasetSearcher(SEARCH_INDEX_PATH)  # controller is not defined correctly
-    search_response = searcher.index_search(keywords, species)
+    try:
+        search_response = current_app.public_searcher.index_search(keywords.split(" "), species)
+    except Exception as e:
+        LOGGER.error(f"Search failed: {keywords}")
+        LOGGER.exception(e)
+
+        abort(500, "Internal server error. Search failed.")
+
+    DATASET_SEARCH_COUNTER.inc()
+
     return Response(response=search_response, status=200, headers={"content-type": "application/json"})
 

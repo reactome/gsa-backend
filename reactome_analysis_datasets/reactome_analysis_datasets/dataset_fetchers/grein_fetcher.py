@@ -169,30 +169,3 @@ class GreinFetcher(DatasetFetcher):
         for key, data in list_metadata.items():
             sample_id_list.append(key)
         return sample_id_list
-
-    def get_available_datasets(self, no_datasets: int = None) -> list:
-        """
-        Loads overview of GREIN datasets
-        :param no_datasets: Number of datasets loading from GREIN
-        :returns: list of datasets with description
-        """
-        grein_datasets = grein_loader.load_overview(no_datasets)
-        list_overview = []
-        for dataset in grein_datasets:
-            overview_dict = {
-            "id": dataset["geo_accession"],
-            "title": dataset["title"],
-            "study_summary":dataset["study_summary"],
-            "species": dataset["species"],
-            "no_samples": dataset["no_samples"],
-            "technology": "",
-            "resource_id": dataset["geo_accession"],
-            "loading_parameters": json.dumps({"id": dataset["geo_accession"]})
-            }
-            list_overview.append(overview_dict)
-        return list_overview
-
-
-
-
-

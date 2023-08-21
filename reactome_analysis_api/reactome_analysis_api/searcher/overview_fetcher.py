@@ -6,7 +6,17 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 
-class Fetcher():
+class PublicDataFetcher():
+    def get_available_datasets(no_datasets: int = None) -> list:
+        """Get an overview over all available public datasets.
+
+        :param no_datasets: Maximum number of datasets per resource. If not set, all will be returned, defaults to None
+        :type no_datasets: int, optional
+        :return: A list of public datasets
+        :rtype: list
+        """
+        datasets = PublicDataFetcher.get_available_datasets_grein(no_datasets) + PublicDataFetcher.get_available_datasets_expression_atlas(no_datasets)
+
 
     @staticmethod
     def get_available_datasets_grein(no_datasets: int = None) -> list:
@@ -26,6 +36,7 @@ class Fetcher():
                 "no_samples": dataset["no_samples"],
                 "technology": "",
                 "resource_id": "grein",
+                "resource_id_str": "GREIN",
                 "loading_parameters": json.dumps({"id": dataset["geo_accession"]})
             }
             list_overview.append(overview_dict)
@@ -60,6 +71,7 @@ class Fetcher():
                     "no_samples": experiment['numberOfAssays'],
                     "technology": experiment['technologyType'],
                     "resource_id": "ebi_gxa",
+                    "resource_id_str": "EBI Expression Atlas",
                     "loading_parameters": json.dumps({"id": experiment['experimentAccession']})
                 }
                 experiments_external_data_list.append(experiment_data_dict)
