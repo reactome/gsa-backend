@@ -211,14 +211,14 @@ def get_search_species():  # noqa: E501
     try:
         species_list = current_app.public_searcher.get_species()
 
-        Response(response=species_list, status=200, headers={"content-type": "application/json"})
+        return species_list
     except FileNotFoundError as e:
         LOGGER.error(f"Loading species failed.")
 
         abort(500, "Failed to load available species.")
 
 
-def search_data(keywords, species):  # noqa: E501
+def search_data(keywords, species=None):  # noqa: E501
     """Key search for public datasets across multiple resources. This function supports all
         resources that are supported by the features to load external datasets.
 
@@ -237,5 +237,5 @@ def search_data(keywords, species):  # noqa: E501
 
     DATASET_SEARCH_COUNTER.inc()
 
-    return Response(response=search_response, status=200, headers={"content-type": "application/json"})
+    return search_response
 
