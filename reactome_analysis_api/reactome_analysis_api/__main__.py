@@ -26,6 +26,9 @@ app_dispatch = DispatcherMiddleware(app, {
 
 app.add_api('swagger.yaml', arguments={'title': 'REACTOME Analysis Service'})
 
+# create the object for the public data searcher
+app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PATH", "../"))
+
 # log all debug messages to a file
 logging.basicConfig(level=logging.DEBUG, handlers=get_default_logging_handlers())
 
@@ -47,9 +50,6 @@ UPLOAD_ERRORS = Counter("reactome_api_upload_errors",
 
 
 def main():
-    # create the object for the public data searcher
-    app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PATH", "../"))
-
     app.run(port=8080, debug=True)
 
 def custom_abort(code: int, message: str):
