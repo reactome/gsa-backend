@@ -115,6 +115,10 @@ class PublicDatasetSearcher():
             species = "Homo sapiens"
             LOGGER.debug("Default species is set with: ", species)
 
+        # if there's only one keyword passed as string, add it as single item to a list
+        if type(keyword) == str:
+            keyword = [keyword]
+
         with self._ix.searcher() as searcher:
             description_parser = MultifieldParser(["description","title"], self.schema)
             species_parser = qparser.QueryParser("species", self.schema)
@@ -137,7 +141,7 @@ class PublicDatasetSearcher():
             return result_dict
         
 @click.command()
-@click.argument('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")
+@click.option('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")
 def create_search_index(path):
     """Create the initial search index.
     """

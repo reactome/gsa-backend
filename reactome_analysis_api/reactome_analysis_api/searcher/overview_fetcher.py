@@ -15,7 +15,11 @@ class PublicDataFetcher():
         :return: A list of public datasets
         :rtype: list
         """
-        datasets = PublicDataFetcher.get_available_datasets_grein(no_datasets) + PublicDataFetcher.get_available_datasets_expression_atlas(no_datasets)
+        datasets = list()
+        datasets += PublicDataFetcher.get_available_datasets_grein(no_datasets)
+        datasets += PublicDataFetcher.get_available_datasets_expression_atlas(no_datasets)
+
+        return datasets
 
 
     @staticmethod
