@@ -1,12 +1,13 @@
 import logging
 import os
+import pickle
+import click
 
 from whoosh.fields import Schema, TEXT, KEYWORD, NUMERIC
 from whoosh.index import create_in
 from whoosh import index
 from whoosh import qparser
 from whoosh.qparser import MultifieldParser
-import pickle
 
 from reactome_analysis_api.searcher.overview_fetcher import PublicDataFetcher
 
@@ -134,3 +135,20 @@ class PublicDatasetSearcher():
                 }
 
             return result_dict
+        
+@click.command()
+@click.argument('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")
+def create_search_index(path):
+    """Create the initial search index.
+    """
+    # set the logging
+    logging.basicConfig(level=logging.DEBUG)
+
+    # use the environment variable if no arg passed
+    if not path:
+        path = os.getenv("SEARCH_INDEX_PATH", "../")
+
+    # create the search
+    searcher = PublicDatasetSearcher(path=path)
+    searcher.setup_search_events()
+
