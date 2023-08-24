@@ -24,7 +24,7 @@ class PublicDatasetSearcher():
     _species_list = None
     _ix = None
 
-    schema = Schema(data_source=KEYWORD, id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
+    schema = Schema(data_source=TEXT(stored=True), id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
                     description=TEXT(stored=True), no_samples=NUMERIC(stored=True), technology=TEXT(stored=True),
                     resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
 
@@ -47,7 +47,7 @@ class PublicDatasetSearcher():
 
         ix = create_in(self._path, self.schema)
 
-        LOGGER.debug("Created index: ", self._path)
+        LOGGER.debug("Created index: %s", self._path)
         writer = ix.writer()
 
         LOGGER.debug("Fetching available datasets")
@@ -55,7 +55,7 @@ class PublicDatasetSearcher():
         datasets = PublicDataFetcher.get_available_datasets()
 
         for dataset in datasets:
-            writer.add_document(data_source=str(dataset["resource_id_str"]), id=str(dataset['id']), title=str(dataset['title']),
+            writer.add_document(data_source=str(dataset['resource_id_str']), id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
                                 description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
                                 technology=str(dataset['technology']),
@@ -79,6 +79,7 @@ class PublicDatasetSearcher():
             if 'species' in dictionary:
                 values.add(dictionary['species'])
         species_values = sorted(values)
+        if "character(0)" in species_values : species_values.remove("character(0)")
         return species_values
 
     def get_species(self) -> list:
@@ -100,27 +101,31 @@ class PublicDatasetSearcher():
 
         return self._species_list
 
-    def index_search(self, keyword: list, species: str = None) -> dict:
+    def index_search(self, keyword: list, species: str = None, search_in_description: bool= True) -> list:
         """
         :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
-        species of the schema,
+        species of the schema, search_in_description: boolean to switch of description searching
         :return dictionary of the search results
         """
-        LOGGER.info("Searching keyword: ", keyword, "species: ", species)
+        LOGGER.info("Searching keyword: %s, species: %s", keyword,species)
 
         if not self._ix:
             self._ix = index.open_dir(self._path)
 
         if species is None:
             species = "Homo sapiens"
-            LOGGER.debug("Default species is set with: ", species)
+            LOGGER.debug("Default species is set with: %s", species)
 
         # if there's only one keyword passed as string, add it as single item to a list
         if type(keyword) == str:
             keyword = [keyword]
 
         with self._ix.searcher() as searcher:
-            description_parser = MultifieldParser(["description","title"], self.schema)
+
+            if search_in_description == True:
+                description_parser = MultifieldParser(["description","title"], self.schema)
+            else: 
+                description_parser = MultifieldParser(["title"], self.schema)
             species_parser = qparser.QueryParser("species", self.schema)
 
             query_string = " AND ".join(keyword)
@@ -128,17 +133,19 @@ class PublicDatasetSearcher():
             species_query = species_parser.parse(species)
             combined_query = description_title_query & species_query
             results = searcher.search(combined_query, limit=100)
-            result_dict = {}
+            results_list = list()
             for result in results:
-                result_dict[result["id"]] = {
-                    "description": result["description"],
-                    "title": result["title"],
-                    "species": result["species"],
-                    "resource_id": result["resource_id"],  # change this to grein or expresion atlas
-                    "loading_parameters": result["loading_parameters"]
-                }
-
-            return result_dict
+                if result["id"] != '':
+                    results_list.append({
+                        "id": result["id"], 
+                        "description": result["description"],
+                        "title": result["title"],
+                        "species": result["species"],
+                        "resource_id": result["resource_id"], 
+                        "loading_parameters": result["loading_parameters"],
+                        "data_source": result["data_source"]
+                    })
+            return results_list
         
 @click.command()
 @click.option('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")
@@ -155,4 +162,3 @@ def create_search_index(path):
     # create the search
     searcher = PublicDatasetSearcher(path=path)
     searcher.setup_search_events()
-

@@ -14,6 +14,8 @@ from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeSt
 from reactome_analysis_utils.models.dataset_request import DatasetRequest, DatasetRequestParameter
 from reactome_analysis_api.models.external_datasource import ExternalDatasource, ExternalDatasourceParameters
 from reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
+from reactome_analysis_api.models import data_search_result
+from reactome_analysis_api.models import parameter
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
@@ -232,10 +234,14 @@ def search_data(keywords, species=None):  # noqa: E501
     except Exception as e:
         LOGGER.error(f"Search failed: {keywords}")
         LOGGER.exception(e)
-
         abort(500, "Internal server error. Search failed.")
 
     DATASET_SEARCH_COUNTER.inc()
-
-    return search_response
-
+  
+    search_response_list = list()
+    for search_result in search_response:
+        loading_values = parameter.Parameter(name=search_result["id"],value=search_result["loading_parameters"])
+        search_response_result = data_search_result.DataSearchResult(id = search_result["id"], title = search_result["title"],description=search_result["description"], species=search_result["species"], resource_name=search_result["resource_id"], resource_loading_id=search_result["data_source"], loading_parameters=[loading_values])
+        search_response_list.append(search_response_result)
+    
+    return search_response_list
