@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-requirements = ['redis-py-cluster == 2.1.0', 'pika == 1.1.0']
+requirements = ['redis', 'pika']
 
 setup_requirements = [ ]
 

@@ -16,7 +16,6 @@ import logging
 import os
 
 import redis
-import rediscluster
 
 LOGGER = logging.getLogger(__name__)
 
@@ -349,7 +348,7 @@ class ReactomeStorage:
         if use_redis_cluster:
             # add all redis nodes
             startup_nodes = [{"host": "redis-cluster-{}.redis".format(str(n)), "port": redis_port} for n in range(0, 6)]
-            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, 
+            redis_connection = redis.cluster.RedisCluster(startup_nodes=startup_nodes, 
                                                          password=redis_password,
                                                          skip_full_coverage_check=True,
                                                          retry_on_timeout=False, 
