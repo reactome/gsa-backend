@@ -41,7 +41,7 @@ class PublicDataFetcher():
                 "technology": "",
                 "resource_id": "grein",
                 "resource_id_str": "GREIN",
-                "loading_parameters": json.dumps({"id": dataset["geo_accession"]})
+                "loading_parameters": json.dumps({"dataset_id": dataset["geo_accession"]})
             }
             list_overview.append(overview_dict)
         return list_overview
@@ -76,7 +76,7 @@ class PublicDataFetcher():
                     "technology": experiment['technologyType'],
                     "resource_id": "ebi_gxa",
                     "resource_id_str": "EBI Expression Atlas",
-                    "loading_parameters": json.dumps({"id": experiment['experimentAccession']})
+                    "loading_parameters": json.dumps({"dataset_id": experiment['experimentAccession']})
                 }
                 experiments_external_data_list.append(experiment_data_dict)
         except requests.exceptions.RequestException:

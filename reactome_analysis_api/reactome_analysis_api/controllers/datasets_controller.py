@@ -3,7 +3,7 @@ import prometheus_client
 from flask import abort, Response, current_app
 import uuid
 import socket
-import os
+import json
 
 from reactome_analysis_api.encoder import JSONEncoder
 from reactome_analysis_api.models.dataset_loading_status import DatasetLoadingStatus  # noqa: E501
@@ -21,7 +21,8 @@ LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
                                                     "External datasets loaded.")
 
-DATASET_SEARCH_COUNTER = prometheus_client.Counter("reactome_api_dataset_searches", "Number of searches performed.")
+DATASET_SEARCH_COUNTER = prometheus_client.Counter(
+    "reactome_api_dataset_searches", "Number of searches performed.")
 
 
 def get_examples():  # noqa: E501
@@ -99,10 +100,12 @@ def get_data_loading_status(loadingId):  # noqa: E501
     try:
         storage = ReactomeStorage()
 
-        status = storage.get_status(analysis_identifier=loadingId, data_type="dataset")
+        status = storage.get_status(
+            analysis_identifier=loadingId, data_type="dataset")
 
         if status is None:
-            LOGGER.debug("Unknown identifier passed to get_status: " + loadingId)
+            LOGGER.debug(
+                "Unknown identifier passed to get_status: " + loadingId)
             abort(404, "Unknown identifier")
         else:
             # return a Response object to prevent connexion from
@@ -110,7 +113,8 @@ def get_data_loading_status(loadingId):  # noqa: E501
             return Response(response=status, status=200, headers={"content-type": "application/json"})
     except ReactomeStorageException as e:
         LOGGER.error("Failed to connect to redis: " + str(e))
-        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+        abort(
+            503, "Failed to connect to storage system. Please try again in a few minutes.")
 
 
 def get_summary(datasetId):  # noqa: E501
@@ -137,7 +141,8 @@ def get_summary(datasetId):  # noqa: E501
         abort(404, "Unknown identifier passed.")
     except ReactomeStorageException as e:
         LOGGER.error("Failed to connect to redis: " + str(e))
-        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+        abort(
+            503, "Failed to connect to storage system. Please try again in a few minutes.")
 
 
 def load_data(resourceId, parameters):  # noqa: E501
@@ -160,22 +165,28 @@ def load_data(resourceId, parameters):  # noqa: E501
 
         # Set the initial status
         encoder = JSONEncoder()
-        status = DatasetLoadingStatus(id=loading_id, status="running", completed=0, description="Queued")
-        storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+        status = DatasetLoadingStatus(
+            id=loading_id, status="running", completed=0, description="Queued")
+        storage.set_status(loading_id, encoder.encode(
+            status), data_type="dataset")
 
         # convert the parameters
         request_parameters = list()
 
         for dict_param in parameters:
-            request_parameters.append(DatasetRequestParameter(name=dict_param["name"], value=dict_param["value"]))
+            request_parameters.append(DatasetRequestParameter(
+                name=dict_param["name"], value=dict_param["value"]))
 
         # create the request
-        request = DatasetRequest(loading_id=loading_id, resource_id=resourceId, parameters=request_parameters)
+        request = DatasetRequest(
+            loading_id=loading_id, resource_id=resourceId, parameters=request_parameters)
 
         try:
             queue = ReactomeMQ(queue_name=DATASET_QUEUE)
-            queue.post_analysis(analysis=request.to_json(), method="DatasetLoading")
-            LOGGER.debug("Dataset process " + loading_id + " submitted to queue")
+            queue.post_analysis(analysis=request.to_json(),
+                                method="DatasetLoading")
+            LOGGER.debug("Dataset process " +
+                         loading_id + " submitted to queue")
             queue.close()
 
             DATASET_LOADING_COUNTER.inc()
@@ -186,22 +197,28 @@ def load_data(resourceId, parameters):  # noqa: E501
             LOGGER.error("Failed to connect to queuing system: " + str(e))
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
                                           description="Failed to connect to queuing system.")
-            storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+            storage.set_status(loading_id, encoder.encode(
+                status), data_type="dataset")
 
-            abort(503, "Failed to connect to queuing system. Please try again in a few seconds.")
+            abort(
+                503, "Failed to connect to queuing system. Please try again in a few seconds.")
         except ReactomeMQException as e:
             LOGGER.error("Failed to post message to queuing system: " + str(e))
             # update the status
             status = DatasetLoadingStatus(id=loading_id, status="failed", completed=0,
                                           description="Failed to connect to queuing system.")
-            storage.set_status(loading_id, encoder.encode(status), data_type="dataset")
+            storage.set_status(loading_id, encoder.encode(
+                status), data_type="dataset")
 
-            abort(503, "The number of analysis requests is currently too high. Please try again in a few minutes.")
+            abort(
+                503, "The number of analysis requests is currently too high. Please try again in a few minutes.")
     except ReactomeStorageException as e:
         LOGGER.error("Failed to connect to redis: " + str(e))
-        abort(503, "Failed to connect to storage system. Please try again in a few minutes.")
+        abort(
+            503, "Failed to connect to storage system. Please try again in a few minutes.")
     except (socket.timeout, socket.gaierror) as e:
-        LOGGER.error("Socket timeout connecting to storage or queuing system: " + str(e))
+        LOGGER.error(
+            "Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
 
@@ -230,18 +247,35 @@ def search_data(keywords, species=None):  # noqa: E501
     :type species: string
     """
     try:
-        search_response = current_app.public_searcher.index_search(keywords.split(" "), species)
+        search_response = current_app.public_searcher.index_search(
+            keywords.split(" "), species)
     except Exception as e:
         LOGGER.error(f"Search failed: {keywords}")
         LOGGER.exception(e)
         abort(500, "Internal server error. Search failed.")
 
     DATASET_SEARCH_COUNTER.inc()
-  
+
+    # convert to a list of search result objects
     search_response_list = list()
+
     for search_result in search_response:
-        loading_values = parameter.Parameter(name=search_result["id"],value=search_result["loading_parameters"])
-        search_response_result = data_search_result.DataSearchResult(id = search_result["id"], title = search_result["title"],description=search_result["description"], species=search_result["species"], resource_name=search_result["resource_id"], resource_loading_id=search_result["data_source"], loading_parameters=[loading_values])
+        # convert the loading parameters
+        loading_parameters = list()
+
+        original_parameters = json.loads(search_result["loading_parameters"])
+        for param_name in original_parameters.keys():
+            loading_parameters.append(parameter.Parameter(name=param_name, value=original_parameters[param_name]))
+
+        # create the search result object
+        search_response_result = data_search_result.DataSearchResult(id=search_result["id"], 
+                                                                     title=search_result["title"], 
+                                                                     description=search_result["description"], 
+                                                                     species=search_result["species"], 
+                                                                     resource_name=search_result["resource_id"], 
+                                                                     resource_loading_id=search_result["data_source"], 
+                                                                     loading_parameters=loading_parameters)
+        
         search_response_list.append(search_response_result)
-    
+
     return search_response_list
