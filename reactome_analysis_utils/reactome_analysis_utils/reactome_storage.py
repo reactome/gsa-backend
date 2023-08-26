@@ -184,6 +184,20 @@ class ReactomeStorage:
             return data
         except Exception as e:
             raise ReactomeStorageException(e)
+        
+    def del_request_data(self, token: str) -> None:
+        """
+        Removes the request data for the specified token.
+
+        :param token: The token under which the request was stored
+        :type token: str
+        """
+        try:
+            request_key = self._get_request_data_key(token)
+            self.r.delete(request_key)
+        except Exception:
+            # ignore any errors for this command
+            pass
 
     def request_token_exists(self, token: str) -> bool:
         """
@@ -280,6 +294,20 @@ class ReactomeStorage:
                 self.r.expire(request_key, expire)
         except Exception as e:
             raise ReactomeStorageException(e)
+        
+    def del_analysis_request_data(self, token: str) -> None:
+        """
+        Deletes the analysis request object.
+
+        :param token: The token identifying the analysis request
+        :type token: str
+        """
+        try:
+            request_key = self._get_analysis_request_key(token)
+            self.r.delete(request_key)
+        except Exception:
+            # ignore all errors
+            pass
 
     @staticmethod
     def _get_redis():

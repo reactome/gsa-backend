@@ -156,6 +156,9 @@ def start_analysis(body):  # noqa: E501
                 # update the request object
                 analysis_dict["datasets"][n_dataset]["data"] = stored_data.decode("UTF-8")
 
+                # delete the request data
+                storage.del_request_data(data)
+
         # Set the initial status
         encoder = JSONEncoder()
 
