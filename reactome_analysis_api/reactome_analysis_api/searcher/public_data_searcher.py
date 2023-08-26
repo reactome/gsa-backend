@@ -55,6 +55,10 @@ class PublicDatasetSearcher():
         datasets = PublicDataFetcher.get_available_datasets()
 
         for dataset in datasets:
+            # ignore datasets without an id (happens sometimes in GREIN)
+            if not "id" in dataset or type(dataset["id"]) != str or len(dataset["id"].strip()) < 3:
+                continue
+
             writer.add_document(data_source=str(dataset['resource_id_str']), id=str(dataset['id']), title=str(dataset['title']),
                                 species=str(dataset['species']),
                                 description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
