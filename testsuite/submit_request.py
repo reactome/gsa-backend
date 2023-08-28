@@ -30,8 +30,9 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option("-s", "--server", default=None)
 @click.option("-u", "--update-tests", default=False, is_flag=True)
+@click.option("-r", "--reactome-server", default="dev", help="The REACTOME server to use for the requests. Possible values are 'dev' and 'prod'.")
 @click.argument("filenames", nargs=-1, type=click.Path())
-def submit_request(server, update_tests, filenames):
+def submit_request(server, update_tests, filenames, reactome_server="dev"):
     logging.basicConfig(level=logging.DEBUG)
     urllib_logger = logging.getLogger("urllib3")
     urllib_logger.setLevel(logging.ERROR)
@@ -40,7 +41,7 @@ def submit_request(server, update_tests, filenames):
 
     for filename in filenames:
         logger.info("Processing " + filename + "...")
-        all_tests_ok = process_file(server, filename, update_tests) and all_tests_ok
+        all_tests_ok = process_file(server, filename, update_tests, reactome_server=reactome_server) and all_tests_ok
 
     if all_tests_ok:
         print("\nAll tests succeeded.")
@@ -48,13 +49,14 @@ def submit_request(server, update_tests, filenames):
         print("\nError: Some tests failed.")
 
 
-def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
+def process_file(server: str, filename: str, update_tests: bool=False, reactome_server: str="dev") -> bool:
     """
     Process a request file
     :param server: Name of the remote server to use.
     :param filename: Path to the file
     :param update_tests: If set, test values for the number of pathways 
                          and fold-changes are updated.
+    :param reactome_server: The reactome server ("dev" or "prod") to use.
     :return: Returns whether all tests succeeded
     """
     # make sure the file exists
@@ -80,18 +82,18 @@ def process_file(server: str, filename: str, update_tests: bool=False) -> bool:
             request_object["parameters"][n_param]["value"] = "jgriss@ebi.ac.uk"
 
     # change the reactome server to dev
-    print("Using Reactome dev server...")
+    print(f"Using Reactome {reactome_server} server...")
     server_updated = False
 
     for n_param in range(0, len(request_object["parameters"])):
         if request_object["parameters"][n_param]["name"] == "reactome_server":
-            request_object["parameters"][n_param]["value"] = "dev"
+            request_object["parameters"][n_param]["value"] = reactome_server
             server_updated = True
 
     if not server_updated:
         request_object["parameters"].append({
             "name": "reactome_server",
-            "value": "dev"
+            "value": reactome_server
         })
 
     # check if data needs to be loaded
