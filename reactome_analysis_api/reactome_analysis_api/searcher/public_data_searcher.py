@@ -105,7 +105,7 @@ class PublicDatasetSearcher():
 
         return self._species_list
 
-    def index_search(self, keyword: list, species: str = None, search_in_description: bool= True) -> list:
+    def index_search(self, keyword: list, species: str = None, search_in_description: bool= False) -> list:
         """
         :param keyword, species: searches in title and description, species is based on the dictionary defined, searches only in
         species of the schema, search_in_description: boolean to switch of description searching
