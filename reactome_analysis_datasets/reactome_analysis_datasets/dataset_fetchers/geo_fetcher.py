@@ -30,12 +30,29 @@ class GeoFetcher(DatasetFetcher):
         except Exception as e:
             raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: {e}")
 
-        # get metadata
-        metadata = ExternalDataSampleMetadata()
-        metadata.title = gse.metadata["title"]
-        metadata.description = gse.metadata["summary"]
-        metadata.type = gse.metadata["type"]
+        print(gse.metadata)
+
+        #metadata_obj = ExternalData(id=identifier, title=gse.metadata["title"], type=gse.metadata["type"], description=gse.metadata["summary"])
         return None
     
+    def _get_data_type(self, metadata_obj) -> str:
+        if metadata_obj["type"] == "Expression profiling by array":   # make this more generic TODO
+            return "microarray"
+        elif metadata_obj["type"] == "Expression profiling by high throughput sequencing":
+            return "rnaseq"
+        else:
+            return "unknown"
+        
 
+class MockMQ:
+    def get_is_shutdown(self):
+        return False
+    def sleep(self, the_time):
+        time.sleep(the_time)
+from reactome_analysis_utils.models.dataset_request import DatasetRequestParameter
 
+test_dataset = "GSE219121"
+parameters = [DatasetRequestParameter("dataset_id", test_dataset)]
+fetcher = GeoFetcher()
+external_data = ExternalData()
+external_data = fetcher.load_dataset(parameters, MockMQ)
