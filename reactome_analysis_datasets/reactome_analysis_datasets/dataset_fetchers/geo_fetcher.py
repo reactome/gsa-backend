@@ -30,29 +30,44 @@ class GeoFetcher(DatasetFetcher):
         except Exception as e:
             raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: {e}")
 
-        print(gse.metadata)
-
-        #metadata_obj = ExternalData(id=identifier, title=gse.metadata["title"], type=gse.metadata["type"], description=gse.metadata["summary"])
-        return None
+        # create metadata
+        experiment_type = self._get_data_type(gse.metadata)
+        sample_metadata_list = self._create_sample_metadata(gse.metadata["sample_id"])
+        metadata_obj = ExternalData(id=identifier, 
+                                    title=gse.metadata["title"],
+                                    type=experiment_type, 
+                                    description=gse.metadata["summary"],
+                                    group=None,
+                                    sample_ids= gse.metadata["sample_id"], 
+                                    sample_metadata=sample_metadata_list,       #TODO  
+                                    default_parameters=None)
+        return ("", metadata_obj)
     
+    def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:    
+        list_of_sample_metadata = []
+        for sample in sample_list:
+            sample_metadata = geoparser.get_GEO(sample, destdir=".")   
+            LOGGER.info(f"Loading sample metadata {sample} from GEO")
+            #metadata_list = [str(sample_metadata.metadata["title"][0])] #TODO change to tuple
+            metadata_list = [str(sample_metadata.metadata)]
+            external_metadata_dict = {
+                "name": str(sample),
+                "values": metadata_list
+                }
+            #print(external_metadata_dict)
+            external_metadata_object = ExternalDataSampleMetadata.from_dict(external_metadata_dict)
+            #print(external_metadata_object)
+            list_of_sample_metadata.append(external_metadata_object)
+        return list_of_sample_metadata            
+
+
     def _get_data_type(self, metadata_obj) -> str:
-        if metadata_obj["type"] == "Expression profiling by array":   # make this more generic TODO
+        #print(metadata_obj["type"])
+        if metadata_obj["type"][0] == "Expression profiling by array":  
             return "microarray"
-        elif metadata_obj["type"] == "Expression profiling by high throughput sequencing":
+        elif metadata_obj["type"][0] == "Expression profiling by high throughput sequencing":
             return "rnaseq"
         else:
+            LOGGER.warning(f"Unknown {metadata_obj['type'][0]}")
             return "unknown"
         
-
-class MockMQ:
-    def get_is_shutdown(self):
-        return False
-    def sleep(self, the_time):
-        time.sleep(the_time)
-from reactome_analysis_utils.models.dataset_request import DatasetRequestParameter
-
-test_dataset = "GSE219121"
-parameters = [DatasetRequestParameter("dataset_id", test_dataset)]
-fetcher = GeoFetcher()
-external_data = ExternalData()
-external_data = fetcher.load_dataset(parameters, MockMQ)
