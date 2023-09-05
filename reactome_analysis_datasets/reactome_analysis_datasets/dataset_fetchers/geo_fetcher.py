@@ -4,9 +4,6 @@ from typing import Tuple
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata   
 
-
-import time
-
 LOGGER = logging.getLogger(__name__)
 
 class GeoFetcher(DatasetFetcher):
@@ -59,43 +56,28 @@ class GeoFetcher(DatasetFetcher):
         
         return ("", metadata_obj)
     
-    def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:   
+    def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
         """
         Create sample metadata for each sample in the dataset
         :param sample_list: list of samples in the dataset
         :returns: list of sample metadata formatted as ExternalDataSampleMetadata
         """
+        metadata_request_list = [geoparser.get_GEO(sample).metadata for sample in sample_list]
 
-        metadata_request_list = []
-        for sample in sample_list:
-            sample_metadata = geoparser.get_GEO(sample)
-            metadata_request_list.append(sample_metadata.metadata)
-        
-        formatted_metadata_list = []
-        for key in metadata_request_list[0]:
-            print(key)
-            temp_dict = {
-                "name": key,
-                "values": []
-            }
-            formatted_metadata_list.append(temp_dict)
-        
-        key_value = []
-        for item in formatted_metadata_list:
-            key_value.append(item["name"])
-        
-        for key in key_value:
-            list_of_values = []
-            for metadata_request_item in metadata_request_list:
-                list_of_values.append(metadata_request_item[key][0])
-            
-            for format_item in formatted_metadata_list:
-                if format_item["name"] == key:
-                    format_item["values"] = list_of_values
-                    break
-            list_of_values = []           
+        metadata_dict = {}
 
-        filtered_metadata = [ExternalDataSampleMetadata.from_dict(metadata) for metadata in formatted_metadata_list]
+        for sample_metadata in metadata_request_list:
+            for key, values in sample_metadata.items():
+                if key not in metadata_dict:
+                    metadata_dict[key] = []
+                metadata_dict[key].extend(values)
+
+        formatted_metadata_list = [
+            {"name": key, "values": metadata_dict[key]} for key in metadata_dict
+        ]
+        filtered_metadata = [
+            ExternalDataSampleMetadata.from_dict(metadata) for metadata in formatted_metadata_list
+        ]
         return filtered_metadata
 
 
@@ -106,9 +88,12 @@ class GeoFetcher(DatasetFetcher):
         returns: method type as string
         """
         if metadata_obj["type"][0] == "Expression profiling by array":  
+            LOGGER.info("Dataset is microarray")
             return "microarray"
         elif metadata_obj["type"][0] == "Expression profiling by high throughput sequencing":
+            LOGGER.info("Dataset is RNA-seq")
             return "rnaseq"
         else:
             LOGGER.warning(f"Unknown {metadata_obj['type'][0]}")
             return "unknown"
+    
