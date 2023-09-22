@@ -19,7 +19,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "dev"
+            "value": "prod"
         }
     ],
     "datasets": [
@@ -71,13 +71,13 @@
             "name": "Pathways",
             "type": "pathways",
             "dataset": "Seurat",
-            "value": 2401
+            "value": 2417
         },
         {
             "name": "Fold changes",
             "type": "fold_changes",
             "dataset": "Seurat",
-            "value": 11029
+            "value": 11032
         }
     ]
 }
