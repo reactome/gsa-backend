@@ -14,6 +14,7 @@ This script makes use of the following environmental variables (if present):
 
 import logging
 import os
+import zlib
 
 import redis
 
@@ -29,6 +30,11 @@ class ReactomeStorageException(Exception):
 
 
 class ReactomeStorage:
+    """
+    If set, compression is used when retrieving and storing data.
+    """
+    USE_COMPRSSSION = True
+    
     """
     Contains all functions to interact with the storage
     used by the REACTOME Analysis System
@@ -113,6 +119,10 @@ class ReactomeStorage:
             LOGGER.debug("Getting result for {}".format(analysis_identifier))
             result = self.r.get(result_key)
 
+            # the result is the only data that improves with compression
+            if data_type == "analysis" and ReactomeStorage.USE_COMPRSSSION:
+                result = ReactomeStorage._decompress_data(result)
+
             return result
         except Exception as e:
             raise ReactomeStorageException(e)
@@ -131,6 +141,10 @@ class ReactomeStorage:
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
+
+                # the result is the only data that improves with compression
+                if ReactomeStorage.USE_COMPRSSSION:
+                    result = ReactomeStorage._compress_data(result)
             elif data_type == "r_script":
                 result_key = self._get_r_script_result_key(analysis_identifier)
             else:
@@ -161,6 +175,9 @@ class ReactomeStorage:
         :param expire: If not none, the key will be expired in `expire` seconds. Default = 60 Minutes = 3600 seconds.
         """
         try:
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
+
             request_key = self._get_request_data_key(token)
 
             self.r.set(request_key, data)
@@ -179,6 +196,9 @@ class ReactomeStorage:
         try:
             request_key = self._get_request_data_key(token)
             data = self.r.get(request_key)
+
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
 
             return data
         except Exception as e:
@@ -219,6 +239,9 @@ class ReactomeStorage:
         try:
             request_key = self._get_request_data_summary_key(token)
 
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
+
             self.r.set(request_key, data)
 
             if expire is not None and expire > 0:
@@ -235,6 +258,9 @@ class ReactomeStorage:
         try:
             request_key = self._get_request_data_summary_key(token)
             data = self.r.get(request_key)
+
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
 
             return data
         except Exception as e:
@@ -273,6 +299,9 @@ class ReactomeStorage:
             request_key = self._get_analysis_request_key(token)
             data = self.r.get(request_key)
 
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
+
             return data
         except Exception as e:
             raise ReactomeStorageException(e)
@@ -286,6 +315,9 @@ class ReactomeStorage:
         """
         try:
             request_key = self._get_analysis_request_key(token)
+
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
             
             self.r.set(name=request_key, value=data)
 
@@ -473,3 +505,26 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "analysis_request:{}:data".format(token)
+
+    @staticmethod
+    def _compress_data(data: str):
+        """Compress the string data
+
+        :param data: The data to compress
+        :type data: str
+        """
+        compressed = zlib.compress(data.encode("utf-8"), level=9)
+
+        return compressed
+    
+    def _decompress_data(compressed) -> str:
+        """Decompress the passed byte object
+
+        :param compresse: The compressed data
+        :type compresse: A byte object
+        :return: The decompressed string
+        :rtype: str
+        """
+        data = zlib.decompress(compressed).decode("utf-8")
+        
+        return data
