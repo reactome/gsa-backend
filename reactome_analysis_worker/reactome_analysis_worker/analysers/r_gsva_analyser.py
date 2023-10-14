@@ -142,7 +142,7 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
             LOGGER.debug("GSVA analysis completed for {}".format(dataset.name))
 
             self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                complete=previous_progress + (0.6 / len(request.datasets)))
+                                complete=previous_progress + (0.5 / len(request.datasets)))
 
             # convert the data.frame to a string
             r_text_result = ReactomeRAnalyser.data_frame_to_string(result)
@@ -152,7 +152,7 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
                                                           pathways=r_text_result,
                                                           fold_changes=r_fold_change_text))
 
-            previous_progress += 0.7 / len(request.datasets)
+            previous_progress += 0.5 / len(request.datasets)
 
         LOGGER.debug("Returning combined analysis result")
 

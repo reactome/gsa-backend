@@ -156,7 +156,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                                         comparison_group_2=dataset.design.comparison.group2)
 
                 self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                    complete=previous_progress + (0.5 / len(request.datasets)))
+                                    complete=previous_progress + (0.4 / len(request.datasets)))
 
                 LOGGER.debug("Estimating fold changes...")
 
@@ -168,7 +168,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
                                                     comparison_group_2=dataset.design.comparison.group2)
 
                 self._update_status("Analysing dataset '{}' using {}".format(dataset.name, request.method_name),
-                                    complete=previous_progress + (0.7 / len(request.datasets)))
+                                    complete=previous_progress + (0.5 / len(request.datasets)))
 
                 LOGGER.debug("Adding pathway fold changes...")
 
@@ -185,7 +185,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
                 analysis_results.append(analysis_result)
 
-                previous_progress += 0.7 / len(request.datasets)
+                previous_progress += 0.5 / len(request.datasets)
 
                 LOGGER.debug("Dataset analysis complete")
             except Exception as e:
