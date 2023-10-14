@@ -7,7 +7,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         }
     ],
     "datasets": [

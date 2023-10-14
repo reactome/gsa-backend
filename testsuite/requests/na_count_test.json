@@ -103,7 +103,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         }
     ],
     "analysisId": "dffed8b4-8e47-11ea-aabb-e6d0c6159d17",
@@ -117,25 +117,25 @@
             "name": "Pathways 1",
             "type": "pathways",
             "dataset": "PROTEOMICS_SC_1",
-            "value": 370
+            "value": 359
         },
         {
             "name": "Pathways 2",
             "type": "pathways",
             "dataset": "PROTEOMICS_SC_2",
-            "value": 367
+            "value": 353
         },
         {
             "name": "Fold-changes 1",
             "type": "fold_changes",
             "dataset": "PROTEOMICS_SC_1",
-            "value": 112
+            "value": 115
         },
         {
             "name": "Fold-changes 2",
             "type": "fold_changes",
             "dataset": "PROTEOMICS_SC_2",
-            "value": 110
+            "value": 114
         }
     ]
 }
