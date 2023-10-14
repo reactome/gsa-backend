@@ -154,7 +154,7 @@ def start_analysis(body):  # noqa: E501
                 stored_data = storage.get_request_data(data)
 
                 # update the request object
-                analysis_dict["datasets"][n_dataset]["data"] = stored_data.decode("UTF-8")
+                analysis_dict["datasets"][n_dataset]["data"] = stored_data
 
                 # delete the request data
                 storage.del_request_data(data)
