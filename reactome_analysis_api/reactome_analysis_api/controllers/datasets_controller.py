@@ -221,6 +221,50 @@ def load_data(resourceId, parameters):  # noqa: E501
             "Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
+def download_dataset(datasetId, format):
+    """Download a previously loaded dataset
+
+    :param datasetId: The dataset's id to download
+    :type datasetId: string
+    :param format: The format in which the data should be presented (xlsx, meta, expr)
+    :type format: string
+    """
+    try:
+        storage = ReactomeStorage()
+
+        # check if the dataset exists
+        if format == "meta":
+            summary = storage.get_request_data_summary(token=datasetId)
+
+            # convert to TSV
+            summary = json.loads(summary)
+
+            tsv_string = []
+
+            # first column is the samples
+            header_string = "Sample Id\t"
+            header_string += "\t".join( [field["name"] for field in summary["sample_metadata"]] )
+            tsv_string.append(header_string)
+
+            # add the field data
+            for index, sample in enumerate(summary["sample_ids"]):
+                sample_string = sample + "\t"
+
+                # add the fields
+                sample_string += "\t".join( [str(field["values"][index]) for field in summary["sample_metadata"]] )
+
+                tsv_string.append(sample_string)
+
+            return Response(response="\n".join(tsv_string), status=200, headers={"content-type": "text/plain", 
+                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_meta.tsv\""})
+        elif format == "expr":
+            expression_data = storage.get_request_data(token=datasetId)
+            return Response(response=expression_data, status=200, headers={"content-type": "text/plain", 
+                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_expr.tsv\""})
+        else:
+            abort(404, "Unsupported format passed.")
+    except ReactomeStorageException:
+        abort(404, "Failed to retrieve dataset. Make sure the dataset was successfully loaded beforehand.")
 
 def get_search_species():  # noqa: E501
     """Returns the available species presented in the available datasets.

@@ -281,6 +281,35 @@ paths:
           description: "Unknown identifier passed. This may also be the case if the\
             \ dataset is not loaded yet."
       x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
+  /data/download/{datasetId}:
+    get:
+      tags:
+      - "Datasets"
+      summary: "Downloads an already loaded external dataset."
+      operationId: "download_dataset"
+      produces:
+      - "text/plain"
+      parameters:
+      - name: "datasetId"
+        in: "path"
+        description: "The dataset identifier originally used to trigger the download"
+        required: true
+        type: "string"
+      - name: "format"
+        in: "query"
+        description: "The format of the data. Possible values are \"meta\" for the\
+          \ metadata, and \"expr\" for the expression values as TSV file."
+        required: false
+        type: "string"
+        enum:
+        - "meta"
+        - "expr"
+      responses:
+        200:
+          description: "Successful operation returning the respective data."
+        404:
+          description: "The dataset has not yet been loaded."
+      x-swagger-router-controller: "reactome_analysis_api.controllers.datasets_controller"
   /data/search/species:
     get:
       tags:

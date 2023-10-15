@@ -266,6 +266,34 @@ paths:
             $ref: '#/definitions/ExternalData'
         '404':
           description: Unknown identifier passed. This may also be the case if the dataset is not loaded yet.
+  '/data/download/{datasetId}':
+    get:
+      tags:
+        - Datasets
+      summary: >-
+        Downloads an already loaded external dataset.
+      operationId: downloadDataset
+      parameters:
+        - in: path
+          name: datasetId
+          required: true
+          type: string
+          description: The dataset identifier originally used to trigger the download
+        - in: query
+          name: format
+          type: string
+          enum:
+            - meta
+            - expr
+          description: The format of the data. Possible values are "meta" for the metadata,
+                       and "expr" for the expression values as TSV file.
+      produces:
+        - text/plain
+      responses:
+        '200':
+          description: Successful operation returning the respective data.
+        '404':
+          description: The dataset has not yet been loaded.
   '/data/search/species':
     get:
       tags:
