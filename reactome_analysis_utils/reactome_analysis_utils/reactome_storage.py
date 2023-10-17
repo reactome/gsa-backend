@@ -379,7 +379,7 @@ class ReactomeStorage:
 
         if use_redis_cluster:
             # add all redis nodes
-            startup_nodes = [{"host": "redis-cluster-{}.redis".format(str(n)), "port": redis_port} for n in range(0, 6)]
+            startup_nodes = [redis.cluster.ClusterNode("redis-cluster-{}.redis".format(str(n)), redis_port) for n in range(0, 6)]
             redis_connection = redis.cluster.RedisCluster(startup_nodes=startup_nodes, 
                                                          password=redis_password,
                                                          skip_full_coverage_check=True,
