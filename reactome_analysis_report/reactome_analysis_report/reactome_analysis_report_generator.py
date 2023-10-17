@@ -482,7 +482,12 @@ class ReportGenerationProcess(multiprocessing.Process):
     def run(self) -> None:
         try:
             # inject the analysis_result into the R session
-            ri.globalenv["analysis_result_json"] = ri.StrSexpVector([self.analysis_result.decode()])
+            result = self.analysis_result
+
+            if type(result) == bytes:
+                result = result.decode()
+
+            ri.globalenv["analysis_result_json"] = ri.StrSexpVector([result])
 
             # inject the metadata
             ri.globalenv["include_interactors"] = ri.BoolSexpVector([self.report_request.include_interactors])
