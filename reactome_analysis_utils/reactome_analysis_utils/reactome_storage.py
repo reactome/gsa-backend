@@ -389,7 +389,6 @@ class ReactomeStorage:
                                                          socket_connect_timeout=3)
         else:
             # only one startup node
-            startup_nodes = [{"host": redis_host, "port": redis_port}]
             redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
                                            retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
                                            socket_connect_timeout=3)
@@ -525,6 +524,13 @@ class ReactomeStorage:
         :return: The decompressed string
         :rtype: str
         """
-        data = zlib.decompress(compressed).decode("utf-8")
+        try:
+            data = zlib.decompress(compressed).decode("utf-8")
+        except zlib.error as e:
+            # this indicates that the data might not have been compressed
+            if "Error -3 while decompressing data: incorrect header check" in str(e):
+                return compressed
+            
+            raise e
         
         return data
