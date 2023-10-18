@@ -259,6 +259,11 @@ def download_dataset(datasetId, format):
                                                                       "content-disposition": f"attachment; filename=\"{datasetId}_meta.tsv\""})
         elif format == "expr":
             expression_data = storage.get_request_data(token=datasetId)
+
+            # fix special character encoding issue
+            expression_data = expression_data.replace("\\n", "\n")
+            expression_data = expression_data.replace("\\t", "\t")
+
             return Response(response=expression_data, status=200, headers={"content-type": "text/plain", 
                                                                       "content-disposition": f"attachment; filename=\"{datasetId}_expr.tsv\""})
         else:
