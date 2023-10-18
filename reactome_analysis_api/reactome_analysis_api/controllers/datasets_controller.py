@@ -221,7 +221,7 @@ def load_data(resourceId, parameters):  # noqa: E501
             "Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
-def download_dataset(datasetId, format):
+def download_dataset(datasetId, format = None):
     """Download a previously loaded dataset
 
     :param datasetId: The dataset's id to download
@@ -230,6 +230,10 @@ def download_dataset(datasetId, format):
     :type format: string
     """
     try:
+        # make sure the format is set
+        if not format:
+            abort(400, "Missing required paramter 'format'")
+
         storage = ReactomeStorage()
 
         # check if the dataset exists
