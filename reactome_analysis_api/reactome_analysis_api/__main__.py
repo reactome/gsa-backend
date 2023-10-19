@@ -35,7 +35,7 @@ logging.basicConfig(level=logging.DEBUG, handlers=get_default_logging_handlers()
 # only log connexion and pika errors
 logging.getLogger("connexion").setLevel(logging.ERROR)
 logging.getLogger("pika").setLevel(logging.ERROR)
-logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
+logging.getLogger("redis").setLevel(logging.ERROR)
 
 # log INFO from the util package
 logging.getLogger("reactome_analysis_utils").setLevel(logging.INFO)
