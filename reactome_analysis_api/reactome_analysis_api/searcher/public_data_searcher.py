@@ -140,6 +140,7 @@ class PublicDatasetSearcher():
             results_list = list()
             for result in results:
                 if result["id"] != '':
+                    web_link = self._add_link(result["resource_id"], result["id"])
                     results_list.append({
                         "id": result["id"], 
                         "description": result["description"],
@@ -147,9 +148,24 @@ class PublicDatasetSearcher():
                         "species": result["species"],
                         "resource_id": result["resource_id"], 
                         "loading_parameters": result["loading_parameters"],
-                        "data_source": result["data_source"]
+                        "data_source": result["data_source"],
+                        "web_link": web_link
                     })
             return results_list
+        
+    def _add_link(self, ressource_id: str, dataset_id: str) -> str:
+        """
+        :param result: ressource_id and dataset_id
+        :return result: web link to the dataset
+        """
+        web_resource = ""
+        if ressource_id == "grein":
+            return "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc="+dataset_id
+        
+        if ressource_id == "ebi_gxa":
+            return "https://www.ebi.ac.uk/gxa/experiments/"+dataset_id+"/Results"
+
+
         
 @click.command()
 @click.option('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")
