@@ -489,7 +489,7 @@ spec:
             path: password
 ---
 # REACTOME api autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-api
@@ -614,7 +614,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME worker autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-worker
@@ -731,7 +731,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME report autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-report
@@ -847,7 +847,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME datasets autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-datasets
