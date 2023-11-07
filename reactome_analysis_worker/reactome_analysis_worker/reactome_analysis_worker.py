@@ -21,6 +21,7 @@ from reactome_analysis_api.models.analysis_input import AnalysisInput
 from reactome_analysis_api.models.analysis_result import AnalysisResult
 from reactome_analysis_api.models.analysis_result_mappings import AnalysisResultMappings
 from reactome_analysis_api.models.analysis_status import AnalysisStatus
+from reactome_analysis_api.models.report_status import ReportStatus
 from reactome_analysis_utils.models import report_request, analysis_request
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, REPORT_QUEUE
 from reactome_analysis_utils.reactome_storage import ReactomeStorage
@@ -477,6 +478,14 @@ class ReactomeAnalysisWorker:
                                                                     include_interactors=use_interactors,
                                                                     include_disease=include_disease)
                     message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
+
+                    # create an initial report status
+                    self._get_storage().set_status(
+                        analysis_identifier=request.analysis_id, data_type="report",
+                        status=json.dumps(ReportStatus(
+                            id=request.analysis_id, status="Report generation queued", completed=0, description=None, reports=None)
+                                        .to_dict()))
+
                 except Exception:
                     # ignore any report issues for now
                     LOGGER.error("Failed to submit report generation message.")
