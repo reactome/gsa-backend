@@ -1,5 +1,6 @@
 import logging
 import GEOparse as geoparser
+import os
 from typing import Tuple
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata   
@@ -54,6 +55,8 @@ class GeoFetcher(DatasetFetcher):
                                         sample_metadata=sample_metadata_list,   
                                         default_parameters=None)
         
+        os.remove(identifier+"_family.soft.gz")  # clean up supplementary
+        self._clean_up_samples(sample_metadata_list[1].values)  # cleam up of downloaded files
         return ("", metadata_obj)
     
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
@@ -97,3 +100,17 @@ class GeoFetcher(DatasetFetcher):
             LOGGER.warning(f"Unknown {metadata_obj['type'][0]}")
             return "unknown"
     
+    def _clean_up_samples(self, file_list: list = None):
+        """ 
+        removes downloaded files 
+        :param file_list: list of files to be removed
+        """
+        for file in file_list:
+            file = file+".txt"
+            try:
+                os.remove(file)
+            except OSError:
+                LOGGER.warning(f"Error removing file {file}")
+                pass
+        
+        
