@@ -26,7 +26,7 @@ class PublicDatasetSearcher():
 
     schema = Schema(data_source=TEXT(stored=True), id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
                     description=TEXT(stored=True), no_samples=NUMERIC(stored=True), technology=TEXT(stored=True),
-                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
+                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True), link=TEXT(stored=True))
 
     def __init__(self, path: str):
         """Initialize the public data searcher
@@ -64,7 +64,7 @@ class PublicDatasetSearcher():
                                 description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
                                 technology=str(dataset['technology']),
                                 resource_id=str(dataset['resource_id']),
-                                loading_parameters=str(dataset['loading_parameters']))
+                                loading_parameters=str(dataset['loading_parameters']), link=str(dataset['link']))
 
         writer.commit()
 
@@ -140,7 +140,6 @@ class PublicDatasetSearcher():
             results_list = list()
             for result in results:
                 if result["id"] != '':
-                    web_link = self._add_link(result["resource_id"], result["id"])
                     results_list.append({
                         "id": result["id"], 
                         "description": result["description"],
@@ -149,22 +148,9 @@ class PublicDatasetSearcher():
                         "resource_id": result["resource_id"], 
                         "loading_parameters": result["loading_parameters"],
                         "data_source": result["data_source"],
-                        "web_link": web_link
+                        "web_link": result["link"]
                     })
             return results_list
-        
-    def _add_link(self, ressource_id: str, dataset_id: str) -> str:
-        """
-        :param result: ressource_id and dataset_id
-        :return result: web link to the dataset
-        """
-        web_resource = ""
-        if ressource_id == "grein":
-            return "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc="+dataset_id
-        
-        if ressource_id == "ebi_gxa":
-            return "https://www.ebi.ac.uk/gxa/experiments/"+dataset_id+"/Results"
-
 
         
 @click.command()
