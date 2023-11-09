@@ -27,7 +27,7 @@ app_dispatch = DispatcherMiddleware(app, {
 app.add_api('swagger.yaml', arguments={'title': 'REACTOME Analysis Service'})
 
 # create the object for the public data searcher
-app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PATH", "../"), path_whitelist=os.getenv("SEARCH_INDEX_WHITELIST", "../"))
+app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PATH", "../"), path_whitelist=os.getenv("SEARCH_INDEX_WHITELIST", "../whitelist.txt"))
 
 # log all debug messages to a file
 logging.basicConfig(level=logging.DEBUG, handlers=get_default_logging_handlers())
