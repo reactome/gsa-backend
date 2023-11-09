@@ -905,4 +905,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Parameter'
-
+      web_link:
+        type: string
+        description: URL of the source dataset in the respective resource.
+        example: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE222840

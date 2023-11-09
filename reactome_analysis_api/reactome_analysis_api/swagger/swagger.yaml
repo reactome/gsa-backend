@@ -946,6 +946,10 @@ definitions:
         type: "array"
         items:
           $ref: "#/definitions/Parameter"
+      web_link:
+        type: "string"
+        example: "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE222840"
+        description: "URL of the source dataset in the respective resource."
     description: "Represents the summary information of a datasets available in the\
       \ supported external resources."
     example:
@@ -960,6 +964,7 @@ definitions:
         value: "10"
       - name: "permutations"
         value: "10"
+      web_link: "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE222840"
   Method_parameters:
     required:
     - "name"
