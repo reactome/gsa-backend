@@ -26,7 +26,7 @@ class PublicDatasetSearcher():
 
     schema = Schema(data_source=TEXT(stored=True), id=TEXT(stored=True), title=TEXT(stored=True), species=TEXT(stored=True),
                     description=TEXT(stored=True), no_samples=NUMERIC(stored=True), technology=TEXT(stored=True),
-                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True))
+                    resource_id=TEXT(stored=True), loading_parameters=TEXT(stored=True), link=TEXT(stored=True))
 
     def __init__(self, path: str):
         """Initialize the public data searcher
@@ -64,7 +64,7 @@ class PublicDatasetSearcher():
                                 description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
                                 technology=str(dataset['technology']),
                                 resource_id=str(dataset['resource_id']),
-                                loading_parameters=str(dataset['loading_parameters']))
+                                loading_parameters=str(dataset['loading_parameters']), link=str(dataset['link']))
 
         writer.commit()
 
@@ -147,9 +147,11 @@ class PublicDatasetSearcher():
                         "species": result["species"],
                         "resource_id": result["resource_id"], 
                         "loading_parameters": result["loading_parameters"],
-                        "data_source": result["data_source"]
+                        "data_source": result["data_source"],
+                        "web_link": result["link"]
                     })
             return results_list
+
         
 @click.command()
 @click.option('--path', default=None, help="If set, the path to store the search index in. Otherwise the environment variable 'SEARCH_INDEX_PATH' is used.")

@@ -327,7 +327,8 @@ def search_data(keywords, species=None):  # noqa: E501
                                                                      species=search_result["species"], 
                                                                      resource_name=search_result["data_source"],
                                                                      resource_loading_id=search_result["resource_id"], 
-                                                                     loading_parameters=loading_parameters)
+                                                                     loading_parameters=loading_parameters,
+                                                                     web_link=search_result["web_link"])
         
         search_response_list.append(search_response_result)
 
