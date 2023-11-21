@@ -186,7 +186,7 @@ class ReactomeAnalysisReportGenerator:
 
         report_process = ReportGenerationProcess(analysis_result=analysis_result, report_request=request,
                                                  on_complete=on_complete_event, result_queue=report_result_queue, 
-                                                 analysis_id=request.analysis_id)
+                                                 status_function=self._set_status, analysis_id=request.analysis_id)
 
         LOGGER.debug("Starting report generation process...")
         report_process.start()
