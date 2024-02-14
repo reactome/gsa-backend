@@ -8,7 +8,6 @@ from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import
     DatasetFetcherException
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 import pandas as pd
-import urllib.request
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ class GeoFetcher(DatasetFetcher):
         # constructor of abstract super class
         super().__init__()
 
-    def load_dataset(self, parameters: list) -> Tuple[str, ExternalData]:
+    def load_dataset(self, parameters: list, reactome_mq) -> Tuple[str, ExternalData]:
         """
         Load the specified GEO dataset based on GSE id
         :param parameters: GSE id from GEO
@@ -70,7 +69,7 @@ class GeoFetcher(DatasetFetcher):
         filename = self._get_parameter(name="filename", parameters=parameters)
         if not filename:
             LOGGER.warning("No Matrix file give only metadata will be returned")
-            return ("", metadata_obj)
+            return "", metadata_obj
         else:
             geo_url = f"https://www.ncbi.nlm.nih.gov/geo/download/?acc={identifier}&format=file&file={filename}"
             matrix_response = requests.get(geo_url)
@@ -79,8 +78,9 @@ class GeoFetcher(DatasetFetcher):
                 raise DatasetFetcherException(f"Error loading matrix file {filename} from GEO")
             else:
                 matrix = pd.read_csv(geo_url)
+                matrix = matrix.to_string()
 
-        return (matrix, metadata_obj)
+        return matrix, metadata_obj
 
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
         """
