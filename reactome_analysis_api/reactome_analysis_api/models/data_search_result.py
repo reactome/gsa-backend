@@ -16,7 +16,7 @@ class DataSearchResult(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, title: str=None, description: str=None, species: str=None, resource_name: str=None, resource_loading_id: str=None, loading_parameters: List[Parameter]=None):  # noqa: E501
+    def __init__(self, id: str=None, title: str=None, description: str=None, species: str=None, resource_name: str=None, resource_loading_id: str=None, loading_parameters: List[Parameter]=None, web_link: str=None):  # noqa: E501
         """DataSearchResult - a model defined in Swagger
 
         :param id: The id of this DataSearchResult.  # noqa: E501
@@ -33,6 +33,8 @@ class DataSearchResult(Model):
         :type resource_loading_id: str
         :param loading_parameters: The loading_parameters of this DataSearchResult.  # noqa: E501
         :type loading_parameters: List[Parameter]
+        :param web_link: The web_link of this DataSearchResult.  # noqa: E501
+        :type web_link: str
         """
         self.swagger_types = {
             'id': str,
@@ -41,7 +43,8 @@ class DataSearchResult(Model):
             'species': str,
             'resource_name': str,
             'resource_loading_id': str,
-            'loading_parameters': List[Parameter]
+            'loading_parameters': List[Parameter],
+            'web_link': str
         }
 
         self.attribute_map = {
@@ -51,7 +54,8 @@ class DataSearchResult(Model):
             'species': 'species',
             'resource_name': 'resource_name',
             'resource_loading_id': 'resource_loading_id',
-            'loading_parameters': 'loading_parameters'
+            'loading_parameters': 'loading_parameters',
+            'web_link': 'web_link'
         }
 
         self._id = id
@@ -61,6 +65,7 @@ class DataSearchResult(Model):
         self._resource_name = resource_name
         self._resource_loading_id = resource_loading_id
         self._loading_parameters = loading_parameters
+        self._web_link = web_link
 
     @classmethod
     def from_dict(cls, dikt) -> 'DataSearchResult':
@@ -243,3 +248,26 @@ class DataSearchResult(Model):
             raise ValueError("Invalid value for `loading_parameters`, must not be `None`")  # noqa: E501
 
         self._loading_parameters = loading_parameters
+
+    @property
+    def web_link(self) -> str:
+        """Gets the web_link of this DataSearchResult.
+
+        URL of the source dataset in the respective resource.  # noqa: E501
+
+        :return: The web_link of this DataSearchResult.
+        :rtype: str
+        """
+        return self._web_link
+
+    @web_link.setter
+    def web_link(self, web_link: str):
+        """Sets the web_link of this DataSearchResult.
+
+        URL of the source dataset in the respective resource.  # noqa: E501
+
+        :param web_link: The web_link of this DataSearchResult.
+        :type web_link: str
+        """
+
+        self._web_link = web_link

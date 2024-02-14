@@ -19,7 +19,7 @@ from reactome_analysis_api.models import parameter
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
-                                                    "External datasets loaded.")
+                                                    "External datasets loaded.", ["resource"])
 
 DATASET_SEARCH_COUNTER = prometheus_client.Counter(
     "reactome_api_dataset_searches", "Number of searches performed.")
@@ -189,7 +189,7 @@ def load_data(resourceId, parameters):  # noqa: E501
                          loading_id + " submitted to queue")
             queue.close()
 
-            DATASET_LOADING_COUNTER.inc()
+            DATASET_LOADING_COUNTER.labels(resource=resourceId).inc()
 
             return loading_id
         except socket.gaierror as e:
@@ -327,7 +327,8 @@ def search_data(keywords, species=None):  # noqa: E501
                                                                      species=search_result["species"], 
                                                                      resource_name=search_result["data_source"],
                                                                      resource_loading_id=search_result["resource_id"], 
-                                                                     loading_parameters=loading_parameters)
+                                                                     loading_parameters=loading_parameters,
+                                                                     web_link=search_result["web_link"])
         
         search_response_list.append(search_response_result)
 

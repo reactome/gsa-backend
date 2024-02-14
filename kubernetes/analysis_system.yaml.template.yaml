@@ -489,7 +489,7 @@ spec:
             path: password
 ---
 # REACTOME api autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-api
@@ -503,7 +503,13 @@ spec:
     name: reactome-analysis-api
   minReplicas: {{ reactome_api.min_replicas }}
   maxReplicas: {{ reactome_api.max_replicas }}
-  targetCPUUtilizationPercentage: {{ reactome_api.target_cpu_usage }} 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ reactome_api.target_cpu_usage }}
 ---
 # REACTOME worker deployment
 apiVersion: apps/v1
@@ -614,7 +620,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME worker autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-worker
@@ -628,7 +634,13 @@ spec:
     name: reactome-analysis-worker
   minReplicas: {{ reactome_worker.min_replicas }}
   maxReplicas: {{ reactome_worker.max_replicas }}
-  targetCPUUtilizationPercentage: {{ reactome_worker.target_cpu_usage }} 
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ reactome_worker.target_cpu_usage }}
 ---
 # REACTOME report deployment
 apiVersion: apps/v1
@@ -731,7 +743,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME report autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-report
@@ -745,7 +757,13 @@ spec:
     name: reactome-analysis-report
   minReplicas: {{ reactome_report.min_replicas }}
   maxReplicas: {{ reactome_report.max_replicas }}
-  targetCPUUtilizationPercentage: {{ reactome_report.target_cpu_usage }} 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ reactome_report.target_cpu_usage }}
 ---
 # REACTOME datasets deployment
 apiVersion: apps/v1
@@ -847,7 +865,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME datasets autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-datasets
@@ -861,4 +879,10 @@ spec:
     name: reactome-analysis-datasets
   minReplicas: {{ reactome_datasets.min_replicas }}
   maxReplicas: {{ reactome_datasets.max_replicas }}
-  targetCPUUtilizationPercentage: {{ reactome_datasets.target_cpu_usage }} 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ reactome_datasets.target_cpu_usage }}

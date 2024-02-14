@@ -120,7 +120,7 @@ class ReactomeStorage:
             result = self.r.get(result_key)
 
             # the result is the only data that improves with compression
-            if data_type == "analysis" and ReactomeStorage.USE_COMPRSSSION:
+            if data_type == "analysis" and ReactomeStorage.USE_COMPRSSSION and result is not None:
                 result = ReactomeStorage._decompress_data(result)
 
             return result
