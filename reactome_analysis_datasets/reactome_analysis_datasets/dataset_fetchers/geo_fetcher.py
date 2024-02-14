@@ -26,12 +26,10 @@ class GeoFetcher(DatasetFetcher):
         """
         Load the specified GEO dataset based on GSE id
         :param parameters: GSE id from GEO
-        :returns empty string insteda of count matrix, metadata of all datasets
+        :returns empty string insted of count matrix if exists, metadata of all datasets
         """
 
-        #identifier = self._get_parameter(name="dataset_id", parameters=parameters)
-
-        identifier = "GSE171405"
+        identifier = self._get_parameter(name="dataset_id", parameters=parameters)
         if not identifier:
             raise DatasetFetcherException(
                 "Missing required parameter 'dataset_id' to load the example dataset.")
@@ -69,8 +67,7 @@ class GeoFetcher(DatasetFetcher):
         self._clean_up_samples(sample_metadata_list[1].values)  # clean up of downloaded files
 
         # create matrix if parameter exists
-        #filename = self._get_parameter(name="filename", parameters=parameters)
-        filename = "GSE171405_non-normalized.txt.gz"
+        filename = self._get_parameter(name="filename", parameters=parameters)
         if not filename:
             LOGGER.warning("No Matrix file give only metadata will be returned")
             return ("", metadata_obj)
