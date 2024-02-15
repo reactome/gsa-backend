@@ -77,6 +77,7 @@ class GeoFetcher(DatasetFetcher):
                 LOGGER.error(f"Error loading dataset {identifier} from GEO")
                 raise DatasetFetcherException(f"Error loading matrix file {filename} from GEO")
             else:
+                LOGGER.info(f"Expression values with filename: {filename} fetched from GEO")
                 matrix = pd.read_csv(geo_url)
                 matrix = matrix.to_string()
 
@@ -134,3 +135,5 @@ class GeoFetcher(DatasetFetcher):
             except OSError:
                 LOGGER.warning(f"Error removing file {file}")
                 pass
+
+
