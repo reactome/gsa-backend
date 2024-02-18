@@ -83,7 +83,16 @@ def get_data_sources():  # noqa: E501
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
-                                                            required=True)])
+                                                            required=True)]),
+        ExternalDatasource(id="geo", name="GEO expression",
+                           description="Fetching GEO ressources based on GEO id",
+                           parameters=[
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True),
+                               ExternalDatasourceParameters(name="filename", display_name="Filename",
+                                                            type="string", description="File name of expression values",
+                                                            required=False)])
     ]
 
 
@@ -268,14 +277,14 @@ def search_data(keywords, species=None):  # noqa: E501
             loading_parameters.append(parameter.Parameter(name=param_name, value=original_parameters[param_name]))
 
         # create the search result object
-        search_response_result = data_search_result.DataSearchResult(id=search_result["id"], 
-                                                                     title=search_result["title"], 
-                                                                     description=search_result["description"], 
-                                                                     species=search_result["species"], 
+        search_response_result = data_search_result.DataSearchResult(id=search_result["id"],
+                                                                     title=search_result["title"],
+                                                                     description=search_result["description"],
+                                                                     species=search_result["species"],
                                                                      resource_name=search_result["data_source"],
-                                                                     resource_loading_id=search_result["resource_id"], 
+                                                                     resource_loading_id=search_result["resource_id"],
                                                                      loading_parameters=loading_parameters)
-        
+
         search_response_list.append(search_response_result)
 
     return search_response_list
