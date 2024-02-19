@@ -11,6 +11,7 @@ COPY reactome_analysis_api-*.whl /usr/apps/
 RUN mkdir -p /data/search_index
 ENV SEARCH_INDEX_PATH /data/search_index
 ENV SEARCH_INDEX_WHITELIST /data/search_index/whitelist.txt 
+ENV SEARCH_INDEX_BLACKLIST /data/search_index/blacklist.txt
 
 # install the apps
 RUN pip3 install /usr/apps/reactome_analysis_utils*.whl && \
@@ -18,6 +19,9 @@ RUN pip3 install /usr/apps/reactome_analysis_utils*.whl && \
 
 # create the search index for the public datasets
 RUN create_search_index
+
+# update whitelist for valid GREIN datasets
+RUN update_whitelist
 
 EXPOSE 8080
 
