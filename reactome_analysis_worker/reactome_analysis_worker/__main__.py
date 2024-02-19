@@ -28,7 +28,7 @@ def main():
     # set config for other packages
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
-    logging.getLogger("rediscluster").setLevel(logging.CRITICAL)
+    logging.getLogger("redis").setLevel(logging.ERROR)
 
     # tell k8s that we're alive
     Path('/tmp/healthy').touch()

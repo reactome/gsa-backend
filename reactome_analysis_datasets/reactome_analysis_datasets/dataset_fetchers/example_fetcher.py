@@ -8,11 +8,12 @@ follow the pattern [dataset_id].data (text file) and [dataset_id].summary
 
 import os
 import json
+from typing import Tuple
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, DatasetFetcherException
 
 
 class ExampleDatasetFetcher(DatasetFetcher):
-    def load_dataset(self, parameters: list, reactome_mq) -> (str, ExternalData):
+    def load_dataset(self, parameters: list, reactome_mq) -> Tuple[str, ExternalData]:
         """
         Loads the defined example dataset
         :param parameters: A list of DatasetRequestParameter objects.
