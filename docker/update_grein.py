@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 @click.option("--path_blacklist", default=None, help="Path to the blacklist file")
 @click.option("--path_whitelist", default=None, help="Path to the whitelist file")
 def update_lists(path_blacklist, path_whitelist):
+
     if not path_blacklist:
         path_blacklist = os.getenv("SEARCH_INDEX_BLACKLIST", "../")
 
@@ -59,7 +60,7 @@ def update_lists(path_blacklist, path_whitelist):
                 blacklist.write(dataset_id + "\n")
             except grein_loader.exceptions.GreinLoaderException as eg:
                 LOGGER.error("Error fetching data from GREIN via grein_loader", eg)
-                blacklist.write(dataset_id+"\n")
+                blacklist.write(dataset_id + "\n")
     LOGGER.info("Lists updated; Whitelist: " + str(counter_whitelist) + " Blacklist: " + str(counter_blacklist))
     blacklist.close()
     whitelist.close()
