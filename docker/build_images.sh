@@ -59,6 +59,9 @@ read REBUILD_REPORT
 echo -n "Rebuild datasets [version/N]: "
 read REBUILD_DATASETS
 
+echo -n "Update public curated public datasets [Y/N]: "
+read UPDATE_PUBLIC_DATA
+
 # get sudo privileges required to work with docker
 ${SUDO_CMD} echo ""
 
@@ -196,4 +199,8 @@ if [ -n "${REBUILD_DATASETS}" -a "${REBUILD_DATASETS}" != "n" ]; then
 
     # remove the versioned file
     rm Dockerfile.datasets_version	
+fi
+
+if [ "${UPDATE_PUBLIC_DATA}" == "Y" ]; then
+    python update_grein.py
 fi

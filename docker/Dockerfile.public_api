@@ -10,6 +10,8 @@ COPY reactome_analysis_api-*.whl /usr/apps/
 # prepare data structure for the search index
 RUN mkdir -p /data/search_index
 ENV SEARCH_INDEX_PATH /data/search_index
+ENV SEARCH_INDEX_WHITELIST /data/search_index/whitelist.txt 
+ENV SEARCH_INDEX_BLACKLIST /data/search_index/blacklist.txt
 
 # install the apps
 RUN pip3 install /usr/apps/reactome_analysis_utils*.whl && \
