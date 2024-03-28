@@ -152,10 +152,11 @@ class GreinFetcher(DatasetFetcher):
                 value = item['values'][0]
                 if value is not None:
                     list_value_data = value.split(": ")
-                    item['name'] = list_value_data[0]
-                    original_values = item['values']
-                    item['values'] = [item.split(": ")[1] for item in original_values]
-                    filtered_list.append(item)
+                    if '' not in list_value_data:
+                        item['name'] = list_value_data[0]
+                        original_values = item['values']
+                        item['values'] = [item.split(": ")[1] for item in original_values]
+                        filtered_list.append(item)
 
         return filtered_list
 
