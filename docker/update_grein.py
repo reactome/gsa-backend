@@ -4,8 +4,10 @@ import requests
 import grein_loader.exceptions
 import grein_loader as loader
 import logging
+import pathlib
 
 LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 @click.command()
@@ -13,10 +15,16 @@ LOGGER = logging.getLogger(__name__)
 @click.option("--path_whitelist", default=None, help="Path to the whitelist file")
 def update_lists(path_blacklist, path_whitelist):
     if not path_blacklist:
-        path_blacklist = os.getenv("SEARCH_INDEX_BLACKLIST", "../")
+        path_blacklist = os.getenv("SEARCH_INDEX_BLACKLIST", "grein_blacklist.txt")
 
     if not path_whitelist:
-        path_whitelist = os.getenv("SEARCH_INDEX_WHITELIST", "../")
+        path_whitelist = os.getenv("SEARCH_INDEX_WHITELIST", "grein_whitelist.txt")
+
+    # create empty files in case they do not exist
+    if not os.path.isfile(path_blacklist):
+        pathlib.Path(path_blacklist).touch()
+    if not os.path.isfile(path_whitelist):
+        pathlib.Path(path_whitelist).touch()
 
     grein_datasets = loader.load_overview()
     blacklist = open(path_blacklist, "r+")
