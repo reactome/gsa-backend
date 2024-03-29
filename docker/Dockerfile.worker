@@ -33,7 +33,7 @@ RUN rm /usr/lib/python3.11/EXTERNALLY-MANAGED && \
 ENV REACTOME_STORAGE_PATH /data
 ENV REACTOME_SOURCE /data
 ENV REACTOME_INTERACTOR_FILE /data/interactors.txt
-ENV REACTOME_VERSION 86
+ENV REACTOME_VERSION 88
 
 # Copy the REACTOME related pathway files
 COPY IntAct_Static.txt /data/interactors.txt
