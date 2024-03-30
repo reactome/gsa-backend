@@ -68,7 +68,9 @@ ${SUDO_CMD} echo ""
 # update the public dataset list
 if [ "${UPDATE_PUBLIC_DATA}" == "y" ]; then
 	echo "Updating GREIN dataset list..."
-    python3 update_grein.py --path_whitelist ../reactome_analysis_api/reactome_analysis_api/searcher/whitelist.txt
+    python3 update_grein.py \
+		--path_whitelist ../reactome_analysis_api/reactome_analysis_api/searcher/whitelist.txt \
+		--path_blacklist ../reactome_analysis_api/reactome_analysis_api/searcher/blacklist.txt
 fi
 
 # Update the Reactome mappings (if set)
