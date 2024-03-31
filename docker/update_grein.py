@@ -1,5 +1,6 @@
 import click
 import os
+import sys
 import requests
 import grein_loader.exceptions
 import grein_loader as loader
@@ -68,6 +69,13 @@ def update_lists(path_blacklist, path_whitelist):
             except grein_loader.exceptions.GreinLoaderException as eg:
                 LOGGER.error("Error fetching data from GREIN via grein_loader", eg)
                 blacklist.write(dataset_id + "\n")
+            except Exception as e:
+                LOGGER.error(f"Failed to load {dataset_id}: {str(e)}")
+                LOGGER.exception(e)
+
+                # since this is an unknown problem, fail gracefully
+                sys.exit(1)
+                
     LOGGER.info("Lists updated; Whitelist: " + str(counter_whitelist) + " Blacklist: " + str(counter_blacklist))
     blacklist.close()
     whitelist.close()
