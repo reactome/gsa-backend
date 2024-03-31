@@ -71,6 +71,8 @@ if [ "${UPDATE_PUBLIC_DATA}" == "y" ]; then
     python3 update_grein.py \
 		--path_whitelist ../reactome_analysis_api/reactome_analysis_api/searcher/whitelist.txt \
 		--path_blacklist ../reactome_analysis_api/reactome_analysis_api/searcher/blacklist.txt
+
+	check_error $? "Failed to update GREIN mappings."
 fi
 
 # Update the Reactome mappings (if set)
