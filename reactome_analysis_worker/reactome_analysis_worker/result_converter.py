@@ -65,6 +65,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
 
     url = "https://{reactome_url}/AnalysisService/identifiers/projection?interactors={interactors}" \
           "&pageSize=0&page=1&sortBy=ENTITIES_PVALUE&order=ASC&resource=TOTAL&pValue=1&includeDisease={disease}" \
+          "&importableOnly=true" \
           .format(reactome_url=reactome_url,  interactors=str(use_interactors).lower(), disease=str(include_disease).lower())
 
     LOGGER.debug("Performing Reactome GSA analysis with url = " + url)
