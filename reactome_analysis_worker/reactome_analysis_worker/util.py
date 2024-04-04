@@ -88,7 +88,7 @@ def map_identifiers(identifiers: set, return_all: bool = True, reactome_server: 
     LOGGER.debug("Mapping identifiers using REACTOME...")
 
     reactome_url = get_reactome_url(reactome_server)
-    url = "https://{}/AnalysisService/mapping/projection/?interactors=true".format(reactome_url)
+    url = "https://{}/AnalysisService/mapping/projection/?importableOnly=true&interactors=true".format(reactome_url)
     request = http.request("POST", url, body="\n".join(set(identifiers)), headers={"content-type": "text/plain"},
                            timeout=30)
 
