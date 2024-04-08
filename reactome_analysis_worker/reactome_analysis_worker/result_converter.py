@@ -91,7 +91,7 @@ def perform_reactome_gsa(identifiers: typing.Iterable, use_interactors: bool = F
         raise ConversionException(msg)
 
     # get the actual JSON file
-    file_url = "https://{}/AnalysisService/download/{}/result.json".format(reactome_url, token)
+    file_url = "https://{}/AnalysisService/download/{}/result.json&importableOnly=true".format(reactome_url, token)
     download_request = http.request("GET", file_url)
 
     if download_request.status != 200:
