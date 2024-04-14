@@ -59,21 +59,8 @@ read REBUILD_REPORT
 echo -n "Rebuild datasets [version/N]: "
 read REBUILD_DATASETS
 
-echo -n "Update public curated public datasets [y/N]: "
-read UPDATE_PUBLIC_DATA
-
 # get sudo privileges required to work with docker
 ${SUDO_CMD} echo ""
-
-# update the public dataset list
-if [ "${UPDATE_PUBLIC_DATA}" == "y" ]; then
-	echo "Updating GREIN dataset list..."
-    python3 update_grein.py \
-		--path_whitelist ../reactome_analysis_api/reactome_analysis_api/searcher/whitelist.txt \
-		--path_blacklist ../reactome_analysis_api/reactome_analysis_api/searcher/blacklist.txt
-
-	check_error $? "Failed to update GREIN mappings."
-fi
 
 # Update the Reactome mappings (if set)
 # This function downloads all required files from the Reactome
