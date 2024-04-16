@@ -71,13 +71,13 @@
             "name": "Pathways",
             "type": "pathways",
             "dataset": "Seurat",
-            "value": 2424
+            "value": 2457
         },
         {
             "name": "Fold changes",
             "type": "fold_changes",
             "dataset": "Seurat",
-            "value": 11083
+            "value": 11139
         }
     ]
 }
