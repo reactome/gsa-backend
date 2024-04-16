@@ -889,6 +889,10 @@ definitions:
         type: "string"
         example: "The EBI ExpressionAtlas resource (http://www.ebi.ac.uk/gxa)"
         description: "A more detailed description of the resource."
+      url:
+        type: "string"
+        example: "https://www.ebi.ac.uk/gxa"
+        description: "The URL of the respective resource."
       parameters:
         type: "array"
         items:
@@ -910,6 +914,7 @@ definitions:
         display_name: "Dataset Id"
         type: "string"
         required: true
+      url: "https://www.ebi.ac.uk/gxa"
   DataSearchResult:
     type: "object"
     required:

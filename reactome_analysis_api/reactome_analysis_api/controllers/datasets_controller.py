@@ -57,6 +57,7 @@ def get_data_sources():  # noqa: E501
     return [
         ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
+                           url="https://reactome.org/gsa",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -64,12 +65,14 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
+                           url="https://www.ebi.ac.uk/gxa/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                                             description="Identifier of the dataset", required=True)
                            ]),
         ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
+                           url="https://www.ebi.ac.uk/gxa/sc/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -80,6 +83,7 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
+                           url="http://www.ilincs.org/apps/grein/?gse=",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
