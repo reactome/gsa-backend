@@ -68,7 +68,8 @@ class PublicDatasetSearcher():
                                 description=str(dataset['study_summary']), no_samples=str(dataset['no_samples']),
                                 technology=str(dataset['technology']),
                                 resource_id=str(dataset['resource_id']),
-                                loading_parameters=str(dataset['loading_parameters']))
+                                loading_parameters=str(dataset['loading_parameters']),
+                                link=str(dataset['link']))
         writer.commit()
 
         # gets species based on public datasets
