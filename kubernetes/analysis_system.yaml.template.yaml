@@ -816,6 +816,8 @@ spec:
             value: "/etc/mail/password"
           - name: LOADING_MAX_TIMEOUT
             value: "{{ reactome_datasets.max_loading_timeout }}"
+          - name: USE_GREIN_PROXY
+            value: "{{ reactome_datasets.use_grein_proxy }}"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume

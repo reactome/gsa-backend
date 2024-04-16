@@ -246,7 +246,7 @@ spec:
         - name: RABBIT_MAX_QUEUE_LENGTH
           value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
-          value: Zk9QS0h4VkoySnhydm1meDRROEt0ZUp4Q2l5dTlxdEhEMGlXZ0ptMDBUMVRIRzlkZE0=
+          value: M3huMXZWUE9rbU5uVEhpdDRQN3B1WkNqcEVDV3ZpbzRqVWhDNFZmeldGZFJQOUUxdzY=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -767,6 +767,8 @@ spec:
             value: "/etc/mail/password"
           - name: LOADING_MAX_TIMEOUT
             value: "60"
+          - name: USE_GREIN_PROXY
+            value: "false"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume
