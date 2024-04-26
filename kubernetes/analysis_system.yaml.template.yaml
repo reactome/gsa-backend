@@ -710,9 +710,11 @@ spec:
           requests:
             cpu: {{ reactome_report.min_cpu }}
             memory: {{ reactome_report.min_mem }}
+            ephemeral-storage: {{ reactome_report.max_storage }}
           limits:
             cpu: {{ reactome_report.max_cpu }}
             memory: {{ reactome_report.max_mem }}
+            ephemeral-storage: {{ reactome_report.max_storage }}
       volumes:
       - name: redis-secret-volume
         secret:

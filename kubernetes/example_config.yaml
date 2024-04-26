@@ -63,6 +63,7 @@ reactome_report:
   min_replicas: 1
   max_replicas: 1
   target_cpu_usage: 75
+  max_storage: "1Gi"
 reactome_datasets:
   image: jgriss/reactome-analysis_datasets:latest
   min_mem: "100Mi"
