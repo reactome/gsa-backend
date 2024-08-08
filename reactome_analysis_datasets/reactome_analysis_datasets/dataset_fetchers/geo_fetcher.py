@@ -1,10 +1,13 @@
-import logging
-import GEOparse as geoparser
+# import logging
 import os
 from typing import Tuple
+
+import GEOparse as geoparser
+import rpy2.robjects as ro
+from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
-from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
+from rpy2.robjects import pandas2ri
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,9 +60,31 @@ class GeoFetcher(DatasetFetcher):
                                         sample_metadata=sample_metadata_list,
                                         default_parameters=None)
 
+        count_matrix = self._create_count_matrix(identifier)
         os.remove(identifier + "_family.soft.gz")  # clean up supplementary
         self._clean_up_samples(sample_metadata_list[1].values)  # cleam up of downloaded files
-        return ("", metadata_obj)
+        return (count_matrix, metadata_obj)
+
+    def _create_count_matrix(self, gse_identifier: str) -> str:
+        """
+        Create count matrix by fetching data using the R package
+        :param gse_identifier: identifier of the GEO dataset
+        :returns: tab separated count matrix
+        """
+
+        # activate R in Python
+        pandas2ri.activate()
+        # Load R GEOquery library for temporary R code
+        ro.r('library(GEOquery)')
+        ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
+        ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
+
+        # Convert the R count_matrix to a Python pandas DataFrame
+        count_matrix_df = pandas2ri.rpy2py(ro.r('as.data.frame(count_matrix)'))
+
+        pandas2ri.deactivate()
+        count_matrix_tsv = count_matrix_df.to_csv(sep="\t", index=False)
+        return count_matrix_tsv
 
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
         """
