@@ -56,8 +56,10 @@ def list_types():
                  description="Raw spectral-counts of label-free proteomics experiments"),
         DataType(id="microarray_norm",
                  name="Microarray (normalized)",
-                 description="Normalized and log2 transformed microarray-based gene expression values.")
-
+                 description="Normalized and log2 transformed microarray-based gene expression values."),
+        DataType(id="ribo_seq",
+                 name="Ribo-seq",
+                 description="Ribo seq data analysis using RNA-seq data and Ribo-seq data")
     ]
 
     return data_types

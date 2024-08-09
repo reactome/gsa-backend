@@ -50,7 +50,8 @@ def load_r_code_file(filename: str) -> ro.packages.SignatureTranslatedAnonymousP
 
 class ReactomeRAnalyser(ReactomeAnalyser):
     methods = {"camera": load_r_code_file("camera_analyser.R"),
-               "padog": load_r_code_file("padog_analyser.R")}
+               "padog": load_r_code_file("padog_analyser.R"),
+               "riboseq": load_r_code_file("riboseq_analyser.R")}  # TODO call the r file
     preprocess = load_r_code_file("preprocessing_functions.R")
 
     def __init__(self):
@@ -446,3 +447,4 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
 ReactomeAnalyser.register_analyser("camera", ReactomeRAnalyser)
 ReactomeAnalyser.register_analyser("padog", ReactomeRAnalyser)
+ReactomeAnalyser.register_analyser("riboseq", ReactomeRAnalyser)

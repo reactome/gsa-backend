@@ -135,6 +135,37 @@ available_methods = [
                                 description="The maximum pathway size (determined as the number of submitted genes "
                                             "mapped to that pathway) to include a pathway in the analysis.",
                                 default="1000")
+           ]),
+    Method(name="riboSeqAnalyser", description="Allows to analyse riboseq data using RNA-seq and Ribo-seq datat.",
+
+           parameters=[            # TODO evaluate paramters used for ribo sew analysis !!! currently same parameters as PADOG
+               MethodParameters(name="sample_groups",
+                                display_name="Sample Groups",
+                                type="string",
+                                scope="dataset",
+                                description="Specifies the sample property name that holds the sample group information. "
+                                            "This parameter should be used for matched-pair analyses (f.e., the same patients "
+                                            "before and after therapy). If used, every sample must occur exactly twice, once "
+                                            "in each of the analysis groups.",
+                                default=""),
+               MethodParameters(name="discrete_norm_function",
+                                display_name="Discrete normalisation function",
+                                values=["TMM", "RLE", "upperquartile", "none"],
+                                type="string",
+                                scope="dataset",
+                                default="TMM",
+                                description="The normalisation function to use for raw RNA-seq read counts and "
+                                            "raw Proteomics spectral counts. By default, the TMM normalisation "
+                                            "is used."),
+               MethodParameters(name="continuous_norm_function",
+                                display_name="Continuous normalisation function",
+                                values=["none", "scale", "quantile", "cyclicloess"],
+                                type="string",
+                                scope="dataset",
+                                default="none",
+                                description="The normalisation function to use for proteomics intensity data. Note "
+                                            "that it is generally advised that normalisation is performed on the "
+                                            "PSM or peptide level and not on the protein level.")
            ])
 ]
 
