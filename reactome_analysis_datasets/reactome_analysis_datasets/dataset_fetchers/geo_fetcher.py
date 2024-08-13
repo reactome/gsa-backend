@@ -25,7 +25,7 @@ class GeoFetcher(DatasetFetcher):
         """
         Load the specified GEO dataset based on GSE id
         :param parameters: GSE id from GEO
-        :returns empty string insteda of count matrix, metadata of all datasets
+        :returns empty string instead of count matrix, metadata of all datasets
         """
         identifier = self._get_parameter(name="dataset_id", parameters=parameters).strip()
         if not identifier:
@@ -33,7 +33,7 @@ class GeoFetcher(DatasetFetcher):
                 "Missing required parameter 'dataset_id' to load the example dataset.")
         if not identifier[0:3] == "GSE":
             raise DatasetFetcherException(
-                f"{identifier} is not a valid geo_accession for GREIN")
+                f"{identifier} is not a valid geo_accession")
 
         # load the data
         LOGGER.info(f"Loading dataset {identifier} from GEO")

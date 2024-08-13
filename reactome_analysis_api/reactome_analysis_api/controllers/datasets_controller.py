@@ -84,7 +84,7 @@ def get_data_sources():  # noqa: E501
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
                                                             required=True)]),
-        ExternalDatasource(id="geo", name="GEO expression",
+        ExternalDatasource(id="geo_microarray", name="GEO expression microarray",
                            description="Fetching GEO ressources based on GEO id",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
