@@ -21,6 +21,7 @@ from reactome_analysis_api.models.analysis_input import AnalysisInput
 from reactome_analysis_api.models.analysis_result import AnalysisResult
 from reactome_analysis_api.models.analysis_result_mappings import AnalysisResultMappings
 from reactome_analysis_api.models.analysis_status import AnalysisStatus
+from reactome_analysis_api.models.report_status import ReportStatus
 from reactome_analysis_utils.models import report_request, analysis_request
 from reactome_analysis_utils.reactome_mq import ReactomeMQ, REPORT_QUEUE
 from reactome_analysis_utils.reactome_storage import ReactomeStorage
@@ -293,6 +294,7 @@ class ReactomeAnalysisWorker:
             self._set_status(request.analysis_id, status="failed",
                              description="Unsupported method '{}' selected".format(request.method_name),
                              completed=1)
+            self._get_storage().del_analysis_request_data(mq_request.request_id)
             self._acknowledge_message(ch, method)
             return
 
@@ -307,6 +309,7 @@ class ReactomeAnalysisWorker:
 
         # convert the dataset matrices
         if not self._convert_datasets(request):
+            self._get_storage().del_analysis_request_data(mq_request.request_id)
             self._acknowledge_message(ch, method)
             return
 
@@ -319,11 +322,13 @@ class ReactomeAnalysisWorker:
         except Exception as e:
             self._set_status(request.analysis_id, status="failed",
                              description=str(e), completed=1)
+            self._get_storage().del_analysis_request_data(mq_request.request_id)
             self._acknowledge_message(ch, method)
             return
 
         # make sure the experimental design matches the number of samples
         if not self._validate_experimental_design(request.datasets, request.analysis_id):
+            self._get_storage().del_analysis_request_data(mq_request.request_id)
             self._acknowledge_message(ch, method)
             return
 
@@ -348,6 +353,7 @@ class ReactomeAnalysisWorker:
                                  description="Failed to filter dataset {name}. Please ensure "
                                              "that both analysis groups have samples assigned to them."
                                              .format(name=dataset.name), completed=1)
+                self._get_storage().del_analysis_request_data(mq_request.request_id)
                 self._acknowledge_message(ch, method)
                 return
 
@@ -357,6 +363,7 @@ class ReactomeAnalysisWorker:
                 self._set_status(request.analysis_id, status="failed",
                                  description="No identifiers left in dataset {name} after filtering. Please adjust "
                                              "the max_missing_values parameter.".format(name=dataset.name), completed=1)
+                self._get_storage().del_analysis_request_data(mq_request.request_id)
                 self._acknowledge_message(ch, method)
                 return
 
@@ -404,6 +411,7 @@ class ReactomeAnalysisWorker:
                                      description="{} analysis failed.".format(request.method_name),
                                      completed=1)
 
+                self._get_storage().del_analysis_request_data(mq_request.request_id)
                 self._acknowledge_message(ch, method)
                 return
 
@@ -470,6 +478,14 @@ class ReactomeAnalysisWorker:
                                                                     include_interactors=use_interactors,
                                                                     include_disease=include_disease)
                     message_mq.post_analysis(analysis=report_request_obj.to_json(), method="report")
+
+                    # create an initial report status
+                    self._get_storage().set_status(
+                        analysis_identifier=request.analysis_id, data_type="report",
+                        status=json.dumps(ReportStatus(
+                            id=request.analysis_id, status="Report generation queued", completed=0, description=None, reports=None)
+                                        .to_dict()))
+
                 except Exception:
                     # ignore any report issues for now
                     LOGGER.error("Failed to submit report generation message.")
@@ -479,10 +495,16 @@ class ReactomeAnalysisWorker:
 
             # count the complete analysis
             COMPLETED_ANALYSES.labels(method=request.method_name.lower()).inc()
+
+            # delete the request data
+            storage.del_analysis_request_data(mq_request.request_id)
         except Exception as e:
             self._set_status(request.analysis_id, status="failed", description="Failed to analyse dataset: " + str(e),
                              completed=1)
+            
+            self._get_storage().del_analysis_request_data(mq_request.request_id)
             self._acknowledge_message(ch, method)
+            
             if self.debug:
                 raise e
 

@@ -64,7 +64,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         }
     ],
     "tests": [
@@ -72,13 +72,13 @@
             "name": "GSE100040 pathways",
             "dataset": "GSE100040",
             "type": "pathways",
-            "value": 2576
+            "value": 2644
         },
         {
             "name": "GSE100040 fold-changes",
             "dataset": "GSE100040",
             "type": "fold_changes",
-            "value": 10818
+            "value": 10945
         },
         {
             "name": "GSE100040 Visualizations",

@@ -19,7 +19,7 @@ from reactome_analysis_api.models import parameter
 
 LOGGER = logging.getLogger(__name__)
 DATASET_LOADING_COUNTER = prometheus_client.Counter("reactome_api_loading_datasets",
-                                                    "External datasets loaded.")
+                                                    "External datasets loaded.", ["resource"])
 
 DATASET_SEARCH_COUNTER = prometheus_client.Counter(
     "reactome_api_dataset_searches", "Number of searches performed.")
@@ -57,6 +57,7 @@ def get_data_sources():  # noqa: E501
     return [
         ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
+                           url="https://reactome.org/gsa",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -64,12 +65,14 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
+                           url="https://www.ebi.ac.uk/gxa/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                                             description="Identifier of the dataset", required=True)
                            ]),
         ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
+                           url="https://www.ebi.ac.uk/gxa/sc/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -80,6 +83,7 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
+                           url="http://www.ilincs.org/apps/grein/?gse=",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -198,7 +202,7 @@ def load_data(resourceId, parameters):  # noqa: E501
                          loading_id + " submitted to queue")
             queue.close()
 
-            DATASET_LOADING_COUNTER.inc()
+            DATASET_LOADING_COUNTER.labels(resource=resourceId).inc()
 
             return loading_id
         except socket.gaierror as e:
@@ -230,6 +234,59 @@ def load_data(resourceId, parameters):  # noqa: E501
             "Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
+def download_dataset(datasetId, format = None):
+    """Download a previously loaded dataset
+
+    :param datasetId: The dataset's id to download
+    :type datasetId: string
+    :param format: The format in which the data should be presented (xlsx, meta, expr)
+    :type format: string
+    """
+    try:
+        # make sure the format is set
+        if not format:
+            abort(400, "Missing required paramter 'format'")
+
+        storage = ReactomeStorage()
+
+        # check if the dataset exists
+        if format == "meta":
+            summary = storage.get_request_data_summary(token=datasetId)
+
+            # convert to TSV
+            summary = json.loads(summary)
+
+            tsv_string = []
+
+            # first column is the samples
+            header_string = "Sample Id\t"
+            header_string += "\t".join( [field["name"] for field in summary["sample_metadata"]] )
+            tsv_string.append(header_string)
+
+            # add the field data
+            for index, sample in enumerate(summary["sample_ids"]):
+                sample_string = sample + "\t"
+
+                # add the fields
+                sample_string += "\t".join( [str(field["values"][index]) for field in summary["sample_metadata"]] )
+
+                tsv_string.append(sample_string)
+
+            return Response(response="\n".join(tsv_string), status=200, headers={"content-type": "text/plain", 
+                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_meta.tsv\""})
+        elif format == "expr":
+            expression_data = storage.get_request_data(token=datasetId)
+
+            # fix special character encoding issue
+            expression_data = expression_data.replace("\\n", "\n")
+            expression_data = expression_data.replace("\\t", "\t")
+
+            return Response(response=expression_data, status=200, headers={"content-type": "text/plain", 
+                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_expr.tsv\""})
+        else:
+            abort(404, "Unsupported format passed.")
+    except ReactomeStorageException:
+        abort(404, "Failed to retrieve dataset. Make sure the dataset was successfully loaded beforehand.")
 
 def get_search_species():  # noqa: E501
     """Returns the available species presented in the available datasets.
@@ -282,9 +339,9 @@ def search_data(keywords, species=None):  # noqa: E501
                                                                      description=search_result["description"],
                                                                      species=search_result["species"],
                                                                      resource_name=search_result["data_source"],
-                                                                     resource_loading_id=search_result["resource_id"],
-                                                                     loading_parameters=loading_parameters)
-
+                                                                     resource_loading_id=search_result["resource_id"], 
+                                                                     loading_parameters=loading_parameters,
+                                                                     web_link=search_result["web_link"])
         search_response_list.append(search_response_result)
 
     return search_response_list

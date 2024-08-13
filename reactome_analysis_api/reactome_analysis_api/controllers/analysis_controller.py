@@ -153,8 +153,12 @@ def start_analysis(body):  # noqa: E501
                 # load the data
                 stored_data = storage.get_request_data(data)
 
+                # if a bytes object is returned, this still has to be decoded
+                if type(stored_data) == bytes:
+                    stored_data = stored_data.decode("UTF-8")
+
                 # update the request object
-                analysis_dict["datasets"][n_dataset]["data"] = stored_data.decode("UTF-8")
+                analysis_dict["datasets"][n_dataset]["data"] = stored_data
 
         # Set the initial status
         encoder = JSONEncoder()

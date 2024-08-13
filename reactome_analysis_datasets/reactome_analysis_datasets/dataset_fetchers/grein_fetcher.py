@@ -1,6 +1,9 @@
 import json
 
 import grein_loader
+import requests
+import pandas
+import io
 import logging
 import os
 from typing import Tuple
@@ -60,11 +63,19 @@ class GreinFetcher(DatasetFetcher):
 
         # load the data
         self._update_status(progress=0.2, message="Requesting data from GREIN")
-
         try:
-            description, metadata, count_matrix = grein_loader.load_dataset(identifier)
-        except Exception:
+            # if set, try to load the dataset from the grein_proxy
+            use_grein_proxy = os.getenv("USE_GREIN_PROXY", "False")
+
+            if use_grein_proxy.lower() == "true":
+                description, metadata, count_matrix = self._load_dataset_from_proxy(identifier=identifier)
+
+            # in case loading didn't work, try the grein_loader instead
+            if description is None:
+                description, metadata, count_matrix = grein_loader.load_dataset(identifier)
+        except Exception as e:
             LOGGER.error("Failed to load data for {}".format(identifier))
+            LOGGER.exception(e)
             raise DatasetFetcherException("Dataset '{}' is not available on GREIN".format(identifier))
 
         self._update_status(progress=0.7, message="Converting metadata")
@@ -94,6 +105,47 @@ class GreinFetcher(DatasetFetcher):
 
         # return data
         return (count_matrix_tsv, metadata_obj)
+
+    def _load_dataset_from_proxy(self, identifier: str) -> Tuple:
+        """Load the dataset from the internal grein_proxy
+
+        :param identifier: The dataset to load
+        :type identifier: str
+        :return: A tuple containing the dataset's description, metadata, and counts. All None if
+                 the dataset could not be loaded from grein_loader
+        :rtype: Tuple
+        """
+        try:
+            LOGGER.debug("Loading dataset %s from grein-proxy...", identifier)
+
+            # description should contain Title and Summary
+            status_res = requests.get(f"http://grein-proxy/{ identifier }/status")
+            status_res.raise_for_status()
+            status = status_res.json()
+
+            if status["status"] != 1:
+                raise Exception("Unknown dataset")
+
+            # get the metadata
+            meta_res = requests.get(f"http://grein-proxy/{ identifier }/metadata.json")
+            meta_res.raise_for_status()
+
+            metadata = meta_res.json()
+
+            # finally, get the count data
+            count_res = requests.get(f"http://grein-proxy/{ identifier }/raw_counts.tsv")
+            count_res.raise_for_status()
+
+            # create the pandas data.frame
+            counts = pandas.read_csv(io.StringIO(count_res.content.decode()), sep="\t")
+
+            LOGGER.debug("Dataset %s successfully loaded from grein-proxy", identifier)
+
+            return ({"Title": status["title"]}, metadata, counts)
+        except Exception as e:
+            # essentially, ignore all issues
+            LOGGER.debug("Failed to load dataset from grein_proxy: %s", str(e))
+            return (None, None, None)
 
     def _create_metadata(self, metadata, description, identifier: str) -> ExternalData:
         """
@@ -152,10 +204,11 @@ class GreinFetcher(DatasetFetcher):
                 value = item['values'][0]
                 if value is not None:
                     list_value_data = value.split(": ")
-                    item['name'] = list_value_data[0]
-                    original_values = item['values']
-                    item['values'] = [item.split(": ")[1] for item in original_values]
-                    filtered_list.append(item)
+                    if '' not in list_value_data:
+                        item['name'] = list_value_data[0]
+                        original_values = item['values']
+                        item['values'] = [item.split(": ")[1] for item in original_values]
+                        filtered_list.append(item)
 
         return filtered_list
 

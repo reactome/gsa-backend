@@ -56,7 +56,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         },
         {
             "name": "sample_groups",
@@ -85,13 +85,13 @@
             "name": "Pathways",
             "type": "pathways",
             "dataset": "RNASEQ_NORM_1",
-            "value": 1069
+            "value": 1116
         },
         {
             "name": "Fold-changes",
             "type": "fold_changes",
             "dataset": "RNASEQ_NORM_1",
-            "value": 295
+            "value": 293
         }
     ]
 }

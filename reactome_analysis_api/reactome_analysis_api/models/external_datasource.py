@@ -16,7 +16,7 @@ class ExternalDatasource(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, name: str=None, description: str=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
+    def __init__(self, id: str=None, name: str=None, description: str=None, url: str=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
         """ExternalDatasource - a model defined in Swagger
 
         :param id: The id of this ExternalDatasource.  # noqa: E501
@@ -25,6 +25,8 @@ class ExternalDatasource(Model):
         :type name: str
         :param description: The description of this ExternalDatasource.  # noqa: E501
         :type description: str
+        :param url: The url of this ExternalDatasource.  # noqa: E501
+        :type url: str
         :param parameters: The parameters of this ExternalDatasource.  # noqa: E501
         :type parameters: List[ExternalDatasourceParameters]
         """
@@ -32,6 +34,7 @@ class ExternalDatasource(Model):
             'id': str,
             'name': str,
             'description': str,
+            'url': str,
             'parameters': List[ExternalDatasourceParameters]
         }
 
@@ -39,12 +42,14 @@ class ExternalDatasource(Model):
             'id': 'id',
             'name': 'name',
             'description': 'description',
+            'url': 'url',
             'parameters': 'parameters'
         }
 
         self._id = id
         self._name = name
         self._description = description
+        self._url = url
         self._parameters = parameters
 
     @classmethod
@@ -128,6 +133,29 @@ class ExternalDatasource(Model):
         """
 
         self._description = description
+
+    @property
+    def url(self) -> str:
+        """Gets the url of this ExternalDatasource.
+
+        The URL of the respective resource.  # noqa: E501
+
+        :return: The url of this ExternalDatasource.
+        :rtype: str
+        """
+        return self._url
+
+    @url.setter
+    def url(self, url: str):
+        """Sets the url of this ExternalDatasource.
+
+        The URL of the respective resource.  # noqa: E501
+
+        :param url: The url of this ExternalDatasource.
+        :type url: str
+        """
+
+        self._url = url
 
     @property
     def parameters(self) -> List[ExternalDatasourceParameters]:

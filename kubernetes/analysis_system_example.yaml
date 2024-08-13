@@ -246,7 +246,7 @@ spec:
         - name: RABBIT_MAX_QUEUE_LENGTH
           value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
-          value: YmxaOGg2RWRmaVRFMGlwbEhGdzltVmFSVzA1U0Z0RFNEUkFkR0xlaHFVWTExdUhsU2s=
+          value: VUR6VzVYTkJxY3ZnOEt0Y1N3aElIaHNTeTZHS2sxY2V0cVhNN0JybEprb1V1OWtEZTc=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -456,7 +456,7 @@ spec:
             path: password
 ---
 # REACTOME api autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-api
@@ -468,7 +468,13 @@ spec:
     name: reactome-analysis-api
   minReplicas: 1
   maxReplicas: 3
-  targetCPUUtilizationPercentage: 75 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
 ---
 # REACTOME worker deployment
 apiVersion: apps/v1
@@ -573,7 +579,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME worker autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-worker
@@ -585,7 +591,13 @@ spec:
     name: reactome-analysis-worker
   minReplicas: 1
   maxReplicas: 1
-  targetCPUUtilizationPercentage: 75 
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
 ---
 # REACTOME report deployment
 apiVersion: apps/v1
@@ -656,6 +668,7 @@ spec:
           limits:
             cpu: 1
             memory: 1000Mi
+            ephemeral-storage: 1Gi
       volumes:
       - name: redis-secret-volume
         secret:
@@ -686,7 +699,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME report autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-report
@@ -698,7 +711,13 @@ spec:
     name: reactome-analysis-report
   minReplicas: 1
   maxReplicas: 1
-  targetCPUUtilizationPercentage: 75 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
 ---
 # REACTOME datasets deployment
 apiVersion: apps/v1
@@ -749,6 +768,8 @@ spec:
             value: "/etc/mail/password"
           - name: LOADING_MAX_TIMEOUT
             value: "60"
+          - name: USE_GREIN_PROXY
+            value: "false"
         volumeMounts:
         - mountPath: /etc/redis/
           name: redis-secret-volume
@@ -798,7 +819,7 @@ spec:
         effect: "NoSchedule"
 ---
 # REACTOME datasets autoscaler
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: reactome-analysis-datasets
@@ -810,4 +831,10 @@ spec:
     name: reactome-analysis-datasets
   minReplicas: 1
   maxReplicas: 1
-  targetCPUUtilizationPercentage: 75 
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75

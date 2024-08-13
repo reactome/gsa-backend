@@ -19,7 +19,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         }
     ],
     "datasets": [
@@ -227,25 +227,25 @@
             "name": "Proteomics pathways",
             "dataset": "Proteomics",
             "type": "pathways",
-            "value": 1730
+            "value": 1775
         },
         {
             "name": "Proteomics fold-changes",
             "dataset": "Proteomics",
             "type": "fold_changes",
-            "value": 5512
+            "value": 5603
         },
         {
             "name": "RNA-seq pathways",
             "dataset": "RNA-seq",
             "type": "pathways",
-            "value": 1861
+            "value": 1912
         },
         {
             "name": "RNA-seq fold-changes",
             "dataset": "RNA-seq",
             "type": "fold_changes",
-            "value": 7812
+            "value": 7900
         }
     ]
 }

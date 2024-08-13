@@ -185,7 +185,8 @@ class ReactomeAnalysisReportGenerator:
         report_result_queue = multiprocessing.Queue()
 
         report_process = ReportGenerationProcess(analysis_result=analysis_result, report_request=request,
-                                                 on_complete=on_complete_event, result_queue=report_result_queue)
+                                                 on_complete=on_complete_event, result_queue=report_result_queue, 
+                                                 status_function=self._set_status, analysis_id=request.analysis_id)
 
         LOGGER.debug("Starting report generation process...")
         report_process.start()
@@ -464,13 +465,15 @@ class ReportGenerationProcess(multiprocessing.Process):
     in a separate process.
     """
     def __init__(self, analysis_result: str, report_request: report_request.ReportRequest, on_complete: multiprocessing.Event,
-                 result_queue: multiprocessing.Queue):
+                 result_queue: multiprocessing.Queue, status_function, analysis_id: str):
         """
         Initializes a ReportGenerationProcess
         :param analysis_result: The analysis result as a JSON-encoded string
         :param report_request: The report request object
         :param on_complete: Even triggered once the analysis is complete.
         :param result_queue: Queue that will receive the filenames of the result files.
+        :param status_function: A function to call to update the status message
+        :param analysis_id: The analysis id used to update status messages.
         """
         super().__init__()
 
@@ -478,15 +481,25 @@ class ReportGenerationProcess(multiprocessing.Process):
         self.report_request = report_request
         self.on_complete = on_complete
         self.result_queue = result_queue
+        self._set_status = status_function
+        self._analysis_id = analysis_id
 
     def run(self) -> None:
         try:
             # inject the analysis_result into the R session
-            ri.globalenv["analysis_result_json"] = ri.StrSexpVector([self.analysis_result.decode()])
+            result = self.analysis_result
+
+            if type(result) == bytes:
+                result = result.decode()
+
+            ri.globalenv["analysis_result_json"] = ri.StrSexpVector([result])
 
             # inject the metadata
             ri.globalenv["include_interactors"] = ri.BoolSexpVector([self.report_request.include_interactors])
             ri.globalenv["include_disease"] = ri.BoolSexpVector([self.report_request.include_disease])
+
+            self._set_status(analysis_id=self._analysis_id, status="running", description="Converting result",
+                         completion=0.2)
 
             # create the analysis result object
             LOGGER.debug("Creating result R object...")
@@ -500,6 +513,8 @@ class ReportGenerationProcess(multiprocessing.Process):
 
             # create the Excel file
             LOGGER.debug("Creating Excel file ...")
+            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating Excel file",
+                         completion=0.3)
 
             excel_filename = "/tmp/result_" + self.report_request.analysis_id + ".xlsx"
             self.create_excel_file(excel_filename)
@@ -509,6 +524,9 @@ class ReportGenerationProcess(multiprocessing.Process):
             # create the PDF report
             LOGGER.debug("Creating PDF report...")
 
+            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating PDF file",
+                         completion=0.4)
+
             pdf_filename = "/tmp/result_" + self.report_request.analysis_id + ".pdf"
             self.create_pdf_report(pdf_filename)
 
@@ -516,6 +534,8 @@ class ReportGenerationProcess(multiprocessing.Process):
 
             # create the R script
             LOGGER.debug("Creating R script...")
+            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating R script",
+                         completion=0.7)
 
             r_filename = "/tmp/result_" + self.report_request.analysis_id + ".r"
             self.create_r_script(r_filename)
@@ -541,7 +561,7 @@ class ReportGenerationProcess(multiprocessing.Process):
 
         ro.reval("""
             # get the pathways table
-            pathway_result <- pathways(reactome_obj)
+            pathway_result <- pathways(reactome_obj, p = 0.05)
 
             # create the workbook
             library(openxlsx)

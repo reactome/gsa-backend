@@ -63,6 +63,7 @@ reactome_report:
   min_replicas: 1
   max_replicas: 1
   target_cpu_usage: 75
+  max_storage: "1Gi"
 reactome_datasets:
   image: jgriss/reactome-analysis_datasets:latest
   min_mem: "100Mi"
@@ -78,3 +79,6 @@ reactome_datasets:
   # Maximum time in seconds during which any step in the loading
   # process may show no sign of activity.
   max_loading_timeout: "60"
+  # The grein-proxy is a separate application that can be deployed
+  # within the k8s setup
+  use_grein_proxy: "false"

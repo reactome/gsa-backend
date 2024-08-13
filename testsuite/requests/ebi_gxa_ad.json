@@ -264,7 +264,7 @@
         },
         {
             "name": "reactome_server",
-            "value": "prod"
+            "value": "dev"
         }
     ],
     "tests": [
@@ -272,13 +272,13 @@
             "name": "E-GEOD-58558 pathways",
             "dataset": "E-GEOD-58558",
             "type": "pathways",
-            "value": 2560
+            "value": 2627
         },
         {
             "name": "E-GEOD-58558 fold-changes",
             "dataset": "E-GEOD-58558",
             "type": "fold_changes",
-            "value": 9590
+            "value": 9706
         },
         {
             "name": "E-GEOD-58558 Visualizations",

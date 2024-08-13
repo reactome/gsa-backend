@@ -90,7 +90,7 @@ available_methods = [
     ]),
 
     Method(name="Camera", description="A gene set analysis algorithm similar to the classical GSEA algorithm "
-                                      "as implemented in the limma package",
+                                      "as implemented in the limma package.",
            parameters=[
                MethodParameters(name="discrete_norm_function",
                                 display_name="Discrete normalisation function",

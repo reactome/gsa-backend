@@ -9,11 +9,11 @@ from reactome_analysis_utils.reactome_storage import redis
 
 class DatasetFetcherTest(unittest.TestCase):
     def setUp(self):
-        os.environ["REDIS_HOST"] = "192.168.99.100"
-        os.environ["REDIS_PORT"] = "32725"
+        os.environ["REDIS_HOST"] = "127.0.0.1"
+        os.environ["REDIS_PORT"] = "32088"
         os.environ["REDIS_PASSWORD"] = "test"
-        os.environ["RABBIT_HOST"] = "192.168.99.100"
-        os.environ["RABBIT_PORT"] = "30186"
+        os.environ["RABBIT_HOST"] = "127.0.0.1"
+        os.environ["RABBIT_PORT"] = "31809"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
 

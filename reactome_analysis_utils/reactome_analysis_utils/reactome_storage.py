@@ -14,9 +14,9 @@ This script makes use of the following environmental variables (if present):
 
 import logging
 import os
+import zlib
 
 import redis
-import rediscluster
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +30,11 @@ class ReactomeStorageException(Exception):
 
 
 class ReactomeStorage:
+    """
+    If set, compression is used when retrieving and storing data.
+    """
+    USE_COMPRSSSION = True
+    
     """
     Contains all functions to interact with the storage
     used by the REACTOME Analysis System
@@ -114,6 +119,10 @@ class ReactomeStorage:
             LOGGER.debug("Getting result for {}".format(analysis_identifier))
             result = self.r.get(result_key)
 
+            # the result is the only data that improves with compression
+            if data_type == "analysis" and ReactomeStorage.USE_COMPRSSSION and result is not None:
+                result = ReactomeStorage._decompress_data(result)
+
             return result
         except Exception as e:
             raise ReactomeStorageException(e)
@@ -132,6 +141,10 @@ class ReactomeStorage:
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
+
+                # the result is the only data that improves with compression
+                if ReactomeStorage.USE_COMPRSSSION:
+                    result = ReactomeStorage._compress_data(result)
             elif data_type == "r_script":
                 result_key = self._get_r_script_result_key(analysis_identifier)
             else:
@@ -162,6 +175,9 @@ class ReactomeStorage:
         :param expire: If not none, the key will be expired in `expire` seconds. Default = 60 Minutes = 3600 seconds.
         """
         try:
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
+
             request_key = self._get_request_data_key(token)
 
             self.r.set(request_key, data)
@@ -181,9 +197,26 @@ class ReactomeStorage:
             request_key = self._get_request_data_key(token)
             data = self.r.get(request_key)
 
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
+
             return data
         except Exception as e:
             raise ReactomeStorageException(e)
+        
+    def del_request_data(self, token: str) -> None:
+        """
+        Removes the request data for the specified token.
+
+        :param token: The token under which the request was stored
+        :type token: str
+        """
+        try:
+            request_key = self._get_request_data_key(token)
+            self.r.delete(request_key)
+        except Exception:
+            # ignore any errors for this command
+            pass
 
     def request_token_exists(self, token: str) -> bool:
         """
@@ -206,6 +239,9 @@ class ReactomeStorage:
         try:
             request_key = self._get_request_data_summary_key(token)
 
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
+
             self.r.set(request_key, data)
 
             if expire is not None and expire > 0:
@@ -222,6 +258,9 @@ class ReactomeStorage:
         try:
             request_key = self._get_request_data_summary_key(token)
             data = self.r.get(request_key)
+
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
 
             return data
         except Exception as e:
@@ -260,6 +299,9 @@ class ReactomeStorage:
             request_key = self._get_analysis_request_key(token)
             data = self.r.get(request_key)
 
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._decompress_data(data)
+
             return data
         except Exception as e:
             raise ReactomeStorageException(e)
@@ -273,6 +315,9 @@ class ReactomeStorage:
         """
         try:
             request_key = self._get_analysis_request_key(token)
+
+            if ReactomeStorage.USE_COMPRSSSION:
+                data = ReactomeStorage._compress_data(data)
             
             self.r.set(name=request_key, value=data)
 
@@ -280,6 +325,20 @@ class ReactomeStorage:
                 self.r.expire(request_key, expire)
         except Exception as e:
             raise ReactomeStorageException(e)
+        
+    def del_analysis_request_data(self, token: str) -> None:
+        """
+        Deletes the analysis request object.
+
+        :param token: The token identifying the analysis request
+        :type token: str
+        """
+        try:
+            request_key = self._get_analysis_request_key(token)
+            self.r.delete(request_key)
+        except Exception:
+            # ignore all errors
+            pass
 
     @staticmethod
     def _get_redis():
@@ -320,8 +379,8 @@ class ReactomeStorage:
 
         if use_redis_cluster:
             # add all redis nodes
-            startup_nodes = [{"host": "redis-cluster-{}.redis".format(str(n)), "port": redis_port} for n in range(0, 6)]
-            redis_connection = rediscluster.RedisCluster(startup_nodes=startup_nodes, 
+            startup_nodes = [redis.cluster.ClusterNode("redis-cluster-{}.redis".format(str(n)), redis_port) for n in range(0, 6)]
+            redis_connection = redis.cluster.RedisCluster(startup_nodes=startup_nodes, 
                                                          password=redis_password,
                                                          skip_full_coverage_check=True,
                                                          retry_on_timeout=False, 
@@ -330,7 +389,6 @@ class ReactomeStorage:
                                                          socket_connect_timeout=3)
         else:
             # only one startup node
-            startup_nodes = [{"host": redis_host, "port": redis_port}]
             redis_connection = redis.Redis(host=redis_host, port=redis_port, db=redis_database, password=redis_password,
                                            retry_on_timeout=False, socket_keepalive=False, socket_timeout=3,
                                            socket_connect_timeout=3)
@@ -446,3 +504,33 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "analysis_request:{}:data".format(token)
+
+    @staticmethod
+    def _compress_data(data: str):
+        """Compress the string data
+
+        :param data: The data to compress
+        :type data: str
+        """
+        compressed = zlib.compress(data.encode("utf-8"), level=9)
+
+        return compressed
+    
+    def _decompress_data(compressed) -> str:
+        """Decompress the passed byte object
+
+        :param compresse: The compressed data
+        :type compresse: A byte object
+        :return: The decompressed string
+        :rtype: str
+        """
+        try:
+            data = zlib.decompress(compressed).decode("utf-8")
+        except zlib.error as e:
+            # this indicates that the data might not have been compressed
+            if "Error -3 while decompressing data: incorrect header check" in str(e):
+                return compressed
+            
+            raise e
+        
+        return data

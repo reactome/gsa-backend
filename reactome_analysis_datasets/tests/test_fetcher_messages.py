@@ -14,11 +14,11 @@ Therefore, it needs access to a redis and rabbit mq instance.
 
 class FetcherMessageTest(unittest.TestCase):
     def setUp(self):
-        os.environ["REDIS_HOST"] = "192.168.99.100"
-        os.environ["REDIS_PORT"] = "32725"
+        os.environ["REDIS_HOST"] = "localhost"
+        os.environ["REDIS_PORT"] = "32088"
         os.environ["REDIS_PASSWORD"] = "test"
-        os.environ["RABBIT_HOST"] = "192.168.99.100"
-        os.environ["RABBIT_PORT"] = "30186"
+        os.environ["RABBIT_HOST"] = "localhost"
+        os.environ["RABBIT_PORT"] = "31809"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
 
@@ -36,6 +36,10 @@ class FetcherMessageTest(unittest.TestCase):
         this_redis.delete("request_data:EXAMPLE_MEL_PROT")
         this_redis.delete("request_data:E-GEOD-13316")
         this_redis.delete("request_data:E-MTAB-7078_3")
+
+    def test_process_message(self):
+        fetcher = reactome_analysis_dataset_fetcher.ReactomeAnalysisDatasetFetcher()
+        fetcher.process_single_message()
 
     def test_fetch_expression_atlas(self):
         dataset_id = "E-GEOD-13316"
