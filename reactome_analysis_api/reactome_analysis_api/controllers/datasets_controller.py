@@ -42,7 +42,7 @@ def get_examples():  # noqa: E501
                      group="GRISS_MELANOMA"),
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
-                     group="SC_EXAMPLES"),
+                     group="SC_EXAMPLES")
     ]
 
 

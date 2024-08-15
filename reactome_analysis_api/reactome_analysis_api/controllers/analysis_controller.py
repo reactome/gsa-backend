@@ -56,8 +56,10 @@ def list_types():
                  description="Raw spectral-counts of label-free proteomics experiments"),
         DataType(id="microarray_norm",
                  name="Microarray (normalized)",
-                 description="Normalized and log2 transformed microarray-based gene expression values.")
-
+                 description="Normalized and log2 transformed microarray-based gene expression values."),
+        DataType(id="metabolomics",
+                 name="Metabolomics",
+                 description="Metabolomics data")
     ]
 
     return data_types
