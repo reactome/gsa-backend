@@ -43,9 +43,9 @@ def get_examples():  # noqa: E501
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
-        ExternalData(id="EXAMPLE_METABOLOMICS", title="Individual variability in human blood metabolites identifies age-related differences.", type="metabolomics",
-                     description="MTBLS263: Individual variability in human blood metabolites identifies age-related differences - determination of coefficients of variation for each metabolite (3 injections of same sample, 3 independent sample preparations)",
-                     group="METABOLOMICS_EXAMPLE")
+        ExternalData(id="EXAMPLE_METABOLOMICS", title="Metabolomic analysis of liver cirrhosis", type="metabolomics",
+                     description="MTBLS5665: transcriptome and metabolome sequencing in liver cirrhosis",
+                    group="METABOLOMICS_EXAMPLE")
     ]
 
 
