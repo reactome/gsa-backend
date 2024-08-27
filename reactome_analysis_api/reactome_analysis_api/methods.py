@@ -59,7 +59,7 @@ global_parameters = [
 
 available_methods = [
     Method(name="PADOG", description="Weighted gene set analysis method that down-weighs genes that are present in many"
-                                     " pathways.", parameters=[
+                                     " pathways. Supports multiple Omics data sources including Ribo-Seq data", parameters=[
         MethodParameters(name="sample_groups",
                          display_name="Sample Groups",
                          type="string",
