@@ -43,6 +43,9 @@ def get_examples():  # noqa: E501
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
+        ExternalData(id="EXAMPLE_METABOLOMICS", title="Liver cirrhosis metabolomics example", type="metabolomics",
+                     description="MTBLS5665: Transcriptomic and metabolomic analysis of liver cirrhosis",
+                     group="METABOLOMICS_EXAMPLE")
     ]
 
 
@@ -225,7 +228,8 @@ def load_data(resourceId, parameters):  # noqa: E501
             "Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
 
-def download_dataset(datasetId, format = None):
+
+def download_dataset(datasetId, format=None):
     """Download a previously loaded dataset
 
     :param datasetId: The dataset's id to download
@@ -251,7 +255,7 @@ def download_dataset(datasetId, format = None):
 
             # first column is the samples
             header_string = "Sample Id\t"
-            header_string += "\t".join( [field["name"] for field in summary["sample_metadata"]] )
+            header_string += "\t".join([field["name"] for field in summary["sample_metadata"]])
             tsv_string.append(header_string)
 
             # add the field data
@@ -259,12 +263,12 @@ def download_dataset(datasetId, format = None):
                 sample_string = sample + "\t"
 
                 # add the fields
-                sample_string += "\t".join( [str(field["values"][index]) for field in summary["sample_metadata"]] )
+                sample_string += "\t".join([str(field["values"][index]) for field in summary["sample_metadata"]])
 
                 tsv_string.append(sample_string)
 
-            return Response(response="\n".join(tsv_string), status=200, headers={"content-type": "text/plain", 
-                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_meta.tsv\""})
+            return Response(response="\n".join(tsv_string), status=200, headers={"content-type": "text/plain",
+                                                                                 "content-disposition": f"attachment; filename=\"{datasetId}_meta.tsv\""})
         elif format == "expr":
             expression_data = storage.get_request_data(token=datasetId)
 
@@ -272,12 +276,13 @@ def download_dataset(datasetId, format = None):
             expression_data = expression_data.replace("\\n", "\n")
             expression_data = expression_data.replace("\\t", "\t")
 
-            return Response(response=expression_data, status=200, headers={"content-type": "text/plain", 
-                                                                      "content-disposition": f"attachment; filename=\"{datasetId}_expr.tsv\""})
+            return Response(response=expression_data, status=200, headers={"content-type": "text/plain",
+                                                                           "content-disposition": f"attachment; filename=\"{datasetId}_expr.tsv\""})
         else:
             abort(404, "Unsupported format passed.")
     except ReactomeStorageException:
         abort(404, "Failed to retrieve dataset. Make sure the dataset was successfully loaded beforehand.")
+
 
 def get_search_species():  # noqa: E501
     """Returns the available species presented in the available datasets.
@@ -325,15 +330,15 @@ def search_data(keywords, species=None):  # noqa: E501
             loading_parameters.append(parameter.Parameter(name=param_name, value=original_parameters[param_name]))
 
         # create the search result object
-        search_response_result = data_search_result.DataSearchResult(id=search_result["id"], 
-                                                                     title=search_result["title"], 
-                                                                     description=search_result["description"], 
-                                                                     species=search_result["species"], 
+        search_response_result = data_search_result.DataSearchResult(id=search_result["id"],
+                                                                     title=search_result["title"],
+                                                                     description=search_result["description"],
+                                                                     species=search_result["species"],
                                                                      resource_name=search_result["data_source"],
-                                                                     resource_loading_id=search_result["resource_id"], 
+                                                                     resource_loading_id=search_result["resource_id"],
                                                                      loading_parameters=loading_parameters,
                                                                      web_link=search_result["web_link"])
-        
+
         search_response_list.append(search_response_result)
 
     return search_response_list

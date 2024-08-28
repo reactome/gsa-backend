@@ -513,6 +513,7 @@ definitions:
         - "proteomics_int"
         - "proteomics_sc"
         - "microarray_norm"
+        - "metabolomics"
       data:
         type: "string"
         example: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\n\
@@ -820,6 +821,7 @@ definitions:
         - "proteomics_int"
         - "proteomics_sc"
         - "microarray_norm"
+        - "metabolomics"
       description:
         type: "string"
         example: "RNA-seq analysis of human melanoma induced B cells."
