@@ -65,13 +65,13 @@ class GreinFetcher(DatasetFetcher):
         self._update_status(progress=0.2, message="Requesting data from GREIN")
         try:
             # if set, try to load the dataset from the grein_proxy
-            use_grein_proxy = os.getenv("USE_GREIN_PROXY", "False")
+            use_grein_proxy = os.getenv("USE_GREIN_PROXY", "False").lower() == "true"
 
-            if use_grein_proxy.lower() == "true":
+            if use_grein_proxy:
                 description, metadata, count_matrix = self._load_dataset_from_proxy(identifier=identifier)
 
             # in case loading didn't work, try the grein_loader instead
-            if description is None:
+            if not use_grein_proxy or description is None:
                 description, metadata, count_matrix = grein_loader.load_dataset(identifier)
         except Exception as e:
             LOGGER.error("Failed to load data for {}".format(identifier))
