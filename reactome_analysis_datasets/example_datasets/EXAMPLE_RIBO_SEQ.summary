@@ -70,15 +70,21 @@ ID	Sample5_RIBO	Sample10_RIBO	Sample15_RIBO	Sample20_RIBO	Sample1_RIBO	Sample6_R
       ]
     },
     {
-      "name": "condition",
+      "name": "condition_id",
       "values": [
-        1,1,2,2,1,1,2,2
+        "2","2","2","2","1","1","1","1"
       ]
     },
-        {
+    {
+      "name": "condition",
+      "values": [
+        "untreated","untreated","untreated","untreated","treated","treated","treated","treated"
+      ]
+    },
+    {
       "name": "batch",
       "values": [
-        1,2,1,2,1,2,1,2
+        "1","2","3","4","1","2","3","4"
       ]
     }
   ],
@@ -89,15 +95,11 @@ ID	Sample5_RIBO	Sample10_RIBO	Sample15_RIBO	Sample20_RIBO	Sample1_RIBO	Sample6_R
     },
     {
       "name": "comparison_group_1",
-      "value": "MOCK"
+      "value": "1"
     },
     {
       "name": "comparison_group_2",
-      "value": "MCM"
-    },
-    {
-      "name": "covariates",
-      "value": "patient.id,cell.type"
+      "value": "2"
     }
   ]
 }
