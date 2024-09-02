@@ -285,9 +285,6 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
     # Adds to the dataframe info on the Group for each couple of indices
     grouped_indexes$Group <- exp_de_ordered[exp_de_ordered$SeqType != "RIBO", ]$Group
 
-    # Adds to the dataframe info on the block (for paired experimental designs)
-    save(grouped_indexes, file = "grouped_indexes.RData")
-
     block <- NULL
     if (paired) {
         # Retrieves the info for paired samples from the dataframe
