@@ -148,6 +148,10 @@ class ReactomeRAnalyser(ReactomeAnalyser):
 
                 LOGGER.debug("Starting GSA...")
 
+                if dataset.type == "ribo_seq":
+                    self._update_status("RiboSeq data analysis can take up to 10 mins")
+
+
                 result = self._perform_gsa(method=request.method_name,
                                         parameters=getattr(dataset, "parameter_dict", dict()),
                                         expression_data=expression_data, sample_data=sample_data, design=design,
@@ -223,6 +227,7 @@ class ReactomeRAnalyser(ReactomeAnalyser):
         :param dataset:
         :param method:
         :param parameters:
+        :param data_type: is not used in riboseq analysis
         :return:
         """
         # parameters are currently stored in globalenv
