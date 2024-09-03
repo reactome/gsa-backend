@@ -35,9 +35,11 @@ process <- function(expression.data, gene.indices, data.type, min.sz, max.sz, pa
     # change gene names to indexes to match the pathway mapping result
     rownames(expression.data) <- 1:nrow(expression.data)
 
+    # create the parameter object
+    gsva_params <- gsvaParam(exprData = expression.data, geneSets = gene.indices, minSize = min.sz, maxSize = max.sz, kcdf = kcdf)
+
     # perform the GSVA analysis - set to verbose in order to send heartbeats
-    res <- gsva(as.matrix(expression.data), gene.indices, method="ssgsea", parallel.sz = 1,
-                kcdf = kcdf, min.sz = min.sz, max.sz = max.sz, verbose = TRUE)
+    res <- gsva(gsva_params, verbose = FALSE)
 
     res <- data.frame(res, stringsAsFactors = FALSE)
 
