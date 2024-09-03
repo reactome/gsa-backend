@@ -9,7 +9,7 @@
 #' @param design model.matrix specifying the experimental design
 #' @param data.type type of data submitted (ie. rnaseq, proteomics-sc, proteomics-int)
 prepareData <- function(expression.data, sample.data, design, data.type) {
-    if (data.type %in% c("rnaseq_counts", "proteomics_sc")) {
+    if (data.type %in% c("rnaseq_counts", "proteomics_sc", "metabolomics")) {
         expression.data <- DGEList(counts=expression.data, samples = sample.data, group = sample.data$analysis_group)
 
         # normalize using edgeR's function
