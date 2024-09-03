@@ -77,7 +77,6 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
     # Remove NA samples from expression.data
     expression.data <- expression.data[, !colnames(expression.data) %in% na_samples, drop = FALSE]
 
-
     # convert the gene.indices back to the identifiers (not sure what THIS does)
     gene_identifier_set <- lapply(gene.indices, function(gene_ids) {
         rownames(expression.data)[gene_ids]
