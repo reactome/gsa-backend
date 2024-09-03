@@ -36,7 +36,7 @@ process <- function(expression.data, gene.indices, data.type, min.sz, max.sz, pa
     rownames(expression.data) <- 1:nrow(expression.data)
 
     # create the parameter object
-    gsva_params <- gsvaParam(exprData = expression.data, geneSets = gene.indices, minSize = min.sz, maxSize = max.sz, kcdf = kcdf)
+    gsva_params <- gsvaParam(exprData = as.matrix(expression.data), geneSets = gene.indices, minSize = min.sz, maxSize = max.sz, kcdf = kcdf)
 
     # perform the GSVA analysis - set to verbose in order to send heartbeats
     res <- gsva(gsva_params, verbose = FALSE)
