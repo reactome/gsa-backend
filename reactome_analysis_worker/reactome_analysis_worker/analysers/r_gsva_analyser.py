@@ -60,7 +60,8 @@ class ReactomeGSVARAnalyser(ReactomeRAnalyser):
             # HDF5Array recently started having issues if the tmp directory already exists
             # as a workaround, /tmp directories are deleted before the library is loaded
             hdf5_tmp_dirs = [dirname for dirname in os.listdir("/tmp")
-                                if os.path.exists(os.path.join("/tmp", dirname, "HDF5Array_dump_files_global_counter"))]
+                                if os.path.exists(os.path.join("/tmp", dirname, "HDF5Array_dump_files_global_counter")) or
+                                   os.path.exists(os.path.join("/tmp", dirname, "HDF5Array_dump_log"))]
 
             LOGGER.debug("Deleting hdf5 tmp files in %s...", str(hdf5_tmp_dirs))
 
