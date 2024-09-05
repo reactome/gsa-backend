@@ -44,7 +44,7 @@ def get_examples():  # noqa: E501
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
         ExternalData(id="EXAMPLE_METABOLOMICS", title="Liver cirrhosis metabolomics example", type="metabolomics",
-                     description="MTBLS5665: Transcriptomic and metabolomic analysis of liver cirrhosis",
+                     description="Transcriptomic and metabolomic analysis of liver cirrhosis. Metabolights study identifier: MTBLS5665",
                      group="METABOLOMICS_EXAMPLE")
     ]
 
