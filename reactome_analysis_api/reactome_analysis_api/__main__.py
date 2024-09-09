@@ -6,6 +6,8 @@ import logging
 import uuid
 import sys
 import os
+from io import StringIO
+import pandas as pd
 
 import connexion
 from flask import redirect, request, abort, make_response
@@ -45,12 +47,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 # count upload errors
-UPLOAD_ERRORS = Counter("reactome_api_upload_errors", 
+UPLOAD_ERRORS = Counter("reactome_api_upload_errors",
                         "Invalid file uploads", labelnames=["extension"])
 
 
 def main():
     app.run(port=8080, debug=True)
+
 
 def custom_abort(code: int, message: str):
     """Creates a custom error response. This is needed as
@@ -79,6 +82,135 @@ def custom_abort(code: int, message: str):
 @app.route("/")
 def show_mainpage():
     return redirect("/0.1/ui")
+
+
+@app.route("/uploadRibo", methods=["POST"])
+def upload_ribo():
+    store_file = request.args.get('store', 'true').lower() == "true"
+    store_file = True
+
+    if 'fileRibo' not in request.files or 'fileRNA' not in request.files:
+        return custom_abort(400, "Incorrect number of uploaded files. Function requires two files.")
+
+    if "fileRibo" not in request.files or "fileRNA" not in request.files:
+        return custom_abort(400, "File must be uploaded as 'file' in the form.")
+
+    # get the uploaded file
+    file_rna = request.files['fileRNA']
+    user_file_rna = file_rna.filename
+
+    file_ribo = request.files['fileRibo']
+    user_file_ribo = file_ribo.filename
+
+    # initialize the return object
+    return_object = {"sample_names": None, "top_identifiers": list(), "n_lines": None}
+    return_lines = list()
+    n_samples = -1
+
+    # read the file
+    try:
+        all_lines_rna = [line.decode("UTF-8") for line in file_rna.readlines()]
+        all_lines_ribo = [line.decode("UTF-8") for line in file_ribo.readlines()]
+    except Exception as e:
+        # get the extension
+        (name, rna_extension) = os.path.splitext(user_file_rna)
+        (name, ribo_extension) = os.path.splitext(user_file_ribo)
+
+        if rna_extension == ".xlsx" or ribo_extension == ".xlsx":
+            UPLOAD_ERRORS.labels(extension=rna_extension + ribo_extension).inc()
+            LOGGER.debug("Excel file upload")
+            return custom_abort(400, "MS Excel files are not supported. Please save as a text file (txt, csv, or tsv).")
+        else:
+            LOGGER.info(
+                "Invalid file {name} uploaded: {error}".format(name=user_file_rna + user_file_ribo, error=str(e)))
+            UPLOAD_ERRORS.labels(extension="other").inc()
+            return custom_abort(400, "Uploaded file is not a text file.")
+
+    # make sure the file is not empty
+    if len(all_lines_ribo) < 1 or len(all_lines_rna) < 1:
+        LOGGER.info("Empty file uploaded.")
+        return custom_abort(400, "The uploaded file seems to be empty.")
+
+    # guess the delimiter
+    delimiter_rna = None
+    if "\t" in all_lines_rna[0]:
+        delimiter_rna = "\t"
+    elif ";" in all_lines_rna[0]:
+        delimiter_rna = ";"
+    elif "," in all_lines_rna[0]:
+        delimiter_rna = ","
+
+    delimiter_ribo = None
+    if "\t" in all_lines_ribo[0]:
+        delimiter_ribo = "\t"
+    elif ";" in all_lines_ribo[0]:
+        delimiter_ribo = ";"
+    elif "," in all_lines_ribo[0]:
+        delimiter_ribo = ","
+
+    if not delimiter_ribo:
+        return custom_abort(500, "Failed to detect used delimiter for Ribo Seq File")
+
+    if not delimiter_rna:
+        return custom_abort(500, "Failed to detect used delimiter for RNA Seq File")
+
+    if all_lines_ribo[0] != all_lines_rna[0]:
+        LOGGER.info("RNA Seq and Ribo Seq are not equal")
+        return custom_abort(400, "The RNA-Seq and Ribo-Seq have not matching columns")
+
+    # prepare expression data
+    csv_data_rna = ''.join(all_lines_rna)
+    csv_data_ribo = ''.join(all_lines_ribo)
+
+    df_rna = pd.read_csv(StringIO(''.join(csv_data_rna)))
+    df_rna.columns = [col + '_RNA' for col in df_rna.columns]
+    df_ribo = pd.read_csv(StringIO(''.join(csv_data_ribo)))
+    df_ribo.columns = [col + '_RIBO' for col in df_ribo.columns]
+
+    df_rna.set_index(df_rna.columns[0], inplace=True)
+    df_ribo.set_index(df_ribo.columns[0], inplace=True)
+    merged_ribo_seq_data = pd.merge(df_rna, df_ribo, left_index=True, right_index=True)
+
+    # only return sample name of one dataset for annotation
+    samples_id = all_lines_rna[0].split(delimiter_rna)
+    samples_id = samples_id[:0] + samples_id[1:]
+    samples_id[-1] = samples_id[-1].strip()
+
+    return_object["sample_names"] = samples_id
+    return_object["top_identifiers"] = merged_ribo_seq_data.head(8).index.to_list()
+    return_object["n_lines"] = len(merged_ribo_seq_data.index)
+
+    merged_ribo_seq_data = merged_ribo_seq_data.to_csv(index=True)
+    merged_ribo_seq_data = merged_ribo_seq_data.replace(',', '\t')
+    merged_ribo_seq_data = merged_ribo_seq_data.replace('\n', '\n')
+
+
+    if not store_file:
+        return_object["data"] = merged_ribo_seq_data
+    else:
+        # store file
+        try:
+            storage = ReactomeStorage()
+            # create an identifier
+            token = "rqu_" + str(uuid.uuid1())
+
+            while storage.request_token_exists(token):
+                token = "rqu_" + str(uuid.uuid1())
+
+            # save the data - expire after 6 hours
+            storage.set_request_data(token=token, data=result_string, expire=60 * 60 * 6)
+
+            return_object["data_token"] = token
+        except ReactomeStorageException as e:
+            LOGGER.error("Failed to store request data: " + str(e))
+            return custom_abort(500, "Failed to store request data. Please try again later.")
+
+    # return JSON
+    response_object = make_response(json.dumps(return_object))
+    response_object.headers["Content-Type"] = "text/html"
+
+    return response_object
+
 
 @app.route("/upload", methods=["POST"])
 def process_file_upload():
@@ -113,7 +245,7 @@ def process_file_upload():
             LOGGER.debug("Excel file upload")
             return custom_abort(400, "MS Excel files are not supported. Please save as a text file (txt, csv, or tsv).")
         else:
-            LOGGER.info("Invalid file {name} uploaded: {error}".format(name = user_filename, error=str(e)))
+            LOGGER.info("Invalid file {name} uploaded: {error}".format(name=user_filename, error=str(e)))
             UPLOAD_ERRORS.labels(extension="other").inc()
             return custom_abort(400, "Uploaded file is not a text file.")
 
@@ -169,8 +301,9 @@ def process_file_upload():
 
                 # make sure the sample names are unique
                 if len(sample_names) != len(set(sample_names)):
-                    return custom_abort(400, "Duplicate sample names detected. All sample names (labels in the first line) "
-                                "must be unique")
+                    return custom_abort(400,
+                                        "Duplicate sample names detected. All sample names (labels in the first line) "
+                                        "must be unique")
 
                 # save the sample names
                 return_object["sample_names"] = sample_names
@@ -184,8 +317,9 @@ def process_file_upload():
 
         # make sure the number of samples is OK
         if len(line) - 1 < n_samples:
-            return custom_abort(400, "Different number of entries in line {}. File contains {} columns but line {} contains {}"
-                  .format(str(current_line), str(n_samples), str(current_line), str(len(line))))
+            return custom_abort(400,
+                                "Different number of entries in line {}. File contains {} columns but line {} contains {}"
+                                .format(str(current_line), str(n_samples), str(current_line), str(len(line))))
 
         # make sure the line (= gene / protein id) is not empty
         if len(line[0].strip()) == 0:
@@ -199,7 +333,7 @@ def process_file_upload():
             return_object["top_identifiers"].append(line[0])
 
         # save the line
-        return_lines.append("\t".join(line[0:n_samples+1]))
+        return_lines.append("\t".join(line[0:n_samples + 1]))
 
     # make sure the gene's are unqiue
     if len(gene_ids) != len(set(gene_ids)):
@@ -226,7 +360,7 @@ def process_file_upload():
                 token = "rqu_" + str(uuid.uuid1())
 
             # save the data - expire after 6 hours
-            storage.set_request_data(token=token, data=result_string, expire=60*60*6)
+            storage.set_request_data(token=token, data=result_string, expire=60 * 60 * 6)
 
             return_object["data_token"] = token
         except ReactomeStorageException as e:
