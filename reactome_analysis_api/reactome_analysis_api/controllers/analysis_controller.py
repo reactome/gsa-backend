@@ -147,7 +147,7 @@ def start_analysis(body):  # noqa: E501
             data = analysis_dict["datasets"][n_dataset]["data"]
 
             # check if dataset is riboseq data and process metadata accordingly
-            if analysis_dict["datasets"][n_dataset]["type"] == "rnaseq_counts":
+            if analysis_dict["datasets"][n_dataset]["type"] == "ribo_seq":
                 analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] = analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] + analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]
                 analysis_dict["datasets"][n_dataset]["design"]["samples"] = analysis_dict["datasets"][n_dataset]["design"]["samples"] + analysis_dict["datasets"][n_dataset]["design"]["samples"]
                 
