@@ -150,7 +150,7 @@ def start_analysis(body):  # noqa: E501
             if analysis_dict["datasets"][n_dataset]["type"] == "rnaseq_counts":
                 analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] = analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] + analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]
                 analysis_dict["datasets"][n_dataset]["design"]["samples"] = analysis_dict["datasets"][n_dataset]["design"]["samples"] + analysis_dict["datasets"][n_dataset]["design"]["samples"]
-
+                
                 if len(analysis_dict["datasets"][n_dataset]["design"]["samples"]) != analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]:
                     abort(500, "Samples and analysis groups do not match.")
 
