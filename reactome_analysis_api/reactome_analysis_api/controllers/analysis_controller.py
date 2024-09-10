@@ -131,6 +131,7 @@ def start_analysis(body):  # noqa: E501
             LOGGER.debug("Analysis request misses design comparison")
             abort(406, "Invalid request. Dataset '{name}' misses the required comparison specification.".format(name=analysis_request.datasets[n_dataset].name))
 
+
     # generate an analysis id
     analysis_id = str(uuid.uuid1())
 
@@ -144,6 +145,14 @@ def start_analysis(body):  # noqa: E501
         # Load request data from storage
         for n_dataset in range(0, len(analysis_dict["datasets"])):
             data = analysis_dict["datasets"][n_dataset]["data"]
+
+            # check if dataset is riboseq data and process metadata accordingly
+            if analysis_dict["datasets"][n_dataset]["type"] == "rnaseq_counts":
+                analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] = analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] + analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]
+                analysis_dict["datasets"][n_dataset]["design"]["samples"] = analysis_dict["datasets"][n_dataset]["design"]["samples"] + analysis_dict["datasets"][n_dataset]["design"]["samples"]
+
+                if len(analysis_dict["datasets"][n_dataset]["design"]["samples"]) != analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]:
+                    abort(500, "Samples and analysis groups do not match.")
 
             # Update for external datasets
             if data[0:4] == "rqu_" or len(data) < 20:
