@@ -2,18 +2,18 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
  # Copy sample.data to the exp_de dataframe
     exp_de <- sample.data
 
-    # Adds a column with the comparison groups =, as defined in the design
+    # Adds a column with the comparison groups, as defined in the design
     exp_de$Group <- NA
     exp_de$Group[design[, analysis.group.1] == 1] <- "c"
     exp_de$Group[design[, analysis.group.2] == 1] <- "d"
 
-    # Debug Check: controls that nrow(exp_de) == ncol(expression.data)
+    # Checks that the number of samples matches in the data matches the one in the metadata
     if (nrow(exp_de) != ncol(expression.data)) {
         stop("Error Number of samples in submitted data (columns) do not match the metadata (rows in sample.data)")
     }
-
+    # Checks that the metadata has the required info
     if (length(setdiff(c("SampleID", "SeqType", "SampleName"), colnames(exp_de))) > 0) {
-        stop("Error: column SampleID and/or SeqType missing from sample.data")
+        stop("Error: column SampleID, SampleName and/or SeqType missing from sample.data")
     }
 
     # It is important to ensure all columns are converted to factors!
@@ -22,11 +22,11 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
 
     # sample.groups is a global variable (string) defined in another script (needed for paired studies).
     # Checks if the column corresponding to the string "sample.groups" is among the sample.data columns
-    # If so, it renames it to "Block" (used below to define paired structure in analysis).
+    # If so, it renames it to "Block" (used below to define paired-sample structure in analysis).
 
     if (exists("sample.groups") && sample.groups %in% colnames(sample.data)) {
         colnames(exp_de)[colnames(exp_de) == sample.groups] <- "Block"
-        # This ensures the Block column is a factor. levels are not specified though. How to?
+        # This ensures the Block column is a factor.
         exp_de$Block <- factor(exp_de$Block)
     }
 
@@ -50,11 +50,11 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
 
 load_libraries <- function() {
     suppressPackageStartupMessages(library(edgeR))
-    suppressPackageStartupMessages(library(limma))   # maybe not needed
+    suppressPackageStartupMessages(library(limma)) # maybe not needed
     suppressPackageStartupMessages(library(DESeq2))
-    suppressPackageStartupMessages(library(dplyr)) # Needed
-    suppressPackageStartupMessages(library(plyr)) # Needed
-    suppressPackageStartupMessages(library(apeglm)) # Needed
+    suppressPackageStartupMessages(library(dplyr))
+    suppressPackageStartupMessages(library(plyr))
+    suppressPackageStartupMessages(library(apeglm))
 }
 
 
@@ -65,22 +65,22 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
     exp_de <- prepared_data$exp_de
     expression.data <- prepared_data$expression.data
 
-    # Creates a contrast vector (padog_group) where samples are categorised between "c" and "d" for the comparison.
+    # Creates a contrast vector where samples are categorised between "c" and "d" for the comparison.
     padog_group <- exp_de$Group
 
-    # Creates a filter for samples that are not in any comparison group: a vector with all SampleIDs were Group == NA
+    # Creates a filter for samples that are not in any comparison group: a vector with all SampleIDs were Group == NA.
     na_samples <- exp_de$SampleID[is.na(exp_de$Group)]
 
     # Remove the NA samples from exp_de
     exp_de <- exp_de[!exp_de$SampleID %in% na_samples, ]
 
-    # Remove the NA samples from sample_data as well (same logic, here just to make sure to bring changes across both dfs.
+    # Remove the NA samples from sample_data as well.
     sample.data <- sample.data[!sample.data$SampleID  %in% na_samples, ]
 
     # Remove NA samples from expression.data
     expression.data <- expression.data[, !colnames(expression.data) %in% na_samples, drop = FALSE]
 
-    # convert the gene.indices back to the identifiers (not sure what THIS does)
+    # Retrieves list of gene IDs from expression.data matching the ones in gene.indices
     gene_identifier_set <- lapply(gene.indices, function(gene_ids) {
         rownames(expression.data)[gene_ids]
     })
@@ -90,7 +90,7 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
 
     # The following is needed for PAIRED samples.
     # NB. It calls it "sample.groups" but is a different thing from the comparison groups ("c", "d").
-    # This just defines the paired structure int he data submitted.
+    # This just defines the paired structure in the data submitted.
     if (exists("sample.groups")) {
         if (!sample.groups %in% colnames(sample.data)) {
             stop("Error: Failed to find defined sample.groups '", sample.groups, "' in the sample metadata. ",
@@ -139,15 +139,16 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
     exp_de <- prepared_data$exp_de
     expression.data <- prepared_data$expression.data
 
-    # DeltaTE cannot manage NA among the levels of a factor, so I need to remove them! (code same as above)
+    # DeltaTE cannot manage NA among the levels of a factor, so I need to remove them (code same as above)
     na_samples <- exp_de$SampleID[is.na(exp_de$Group)]
     # Remove the NA samples from exp_de
     exp_de <- exp_de[!exp_de$SampleID %in% na_samples, ]
     # Remove NA samples from expression.data
     expression.data <- expression.data[, !colnames(expression.data) %in% na_samples, drop = FALSE]
 
-
+    # Similarly to above, pired
     paired <- FALSE
+
     if (exists("sample.groups")) {
         if (!sample.groups %in% colnames(sample.data)) {
             stop("Error: Failed to find defined sample.groups '", sample.groups, "' in the sample metadata. ",
@@ -197,7 +198,9 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
         design = design_R)
 
     ddsMat_rna <- DESeq(ddsMat_rna)
-    res_rna <- results(ddsMat_rna, name="Group_d_vs_c") # Check name of result! we encode it as "d" and "c"
+
+    # Extract results from the ddsMat object
+    res_rna <- results(ddsMat_rna, name="Group_d_vs_c")
     res_rna <- lfcShrink(ddsMat_rna,coef="Group_d_vs_c", res=res_rna)
 
 
@@ -220,26 +223,32 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
         design = design_R)
 
     ddsMat_ribo <- DESeq(ddsMat_ribo)
+
+    # Extract results from the ddsMat object
     res_ribo <- results(ddsMat_ribo,name="Group_d_vs_c")
     res_ribo <- lfcShrink(ddsMat_ribo,coef="Group_d_vs_c", res=res_ribo)
 
-    # convert results to dataframe
+    # Converts results for Translational Efficiency changes (TE) to dataframe
     res$Identifier <- rownames(res)
     res_combined <- as.data.frame(res)
 
+    # Extracts info from RNA results (res_rna)
     res_rna_slim <- as.data.frame(res_rna) %>%
       select(RNA_FC = log2FoldChange, RNA_padj = padj)
 
+    # Extracts info from RIBO results (res_ribo)
     res_ribo_slim <- as.data.frame(res_ribo) %>%
       select(RIBO_FC = log2FoldChange, RIBO_padj = padj)
 
     res_rna_slim$Identifier <- rownames(res_rna_slim)
     res_ribo_slim$Identifier <- rownames(res_ribo_slim)
 
+    # Combines the results into a single dataframe
     res_combined <- res_combined %>%
       left_join(res_ribo_slim, by = "Identifier") %>%
       left_join(res_rna_slim, by = "Identifier")
 
+    # Assignes the Regulatory Mode to each gene in the results df
     res_combined <- assign_Regmode(res_combined)
 
     # Rename and reorder columns
@@ -260,7 +269,6 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
     gs.names = NULL, NI = 1000, Nmin = 3, verbose = TRUE, parallel = FALSE, dseed = NULL,
     ncr = NULL) {
 
-    # validity checks of the data
     # Initial checks on the data (as PADOG would do). Some have been modified/removed to fit new kind of data.
     if (length(gslist) == 1 && gslist == "KEGGRESTpathway") {
         stopifnot(nchar(organism) == 3)
@@ -342,17 +350,17 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
 
     # Here starts what was modified more heavily.
 
-    # This section groups matching RNA and RIBO samples under a single index
-    # (to keep the pair together during permutations).
+    # This section groups matching RNA and RIBO samples under a single index, to keep the matching samples together
+    # during the group label shuffling step.
 
-    # Orders matching RIBO and RNA samples by the SampleName value (which is provided by the user when submitting data)
+    # Orders matching RIBO and RNA samples by the SampleName value (provided by the user when submitting data)
     exp_de_ordered <- exp_de[do.call(order, exp_de["SampleName"]),]
 
     # Retrieves the indexes (from exp_de) for each RNA and matching RIBO Sample.
     ordered_indexes <- rownames(exp_de_ordered)
     grouped_indexes <- as.data.frame(matrix(ordered_indexes, ncol = 2, byrow = TRUE))
 
-    # Adds to the dataframe info on the Group for each couple of indices
+    # Adds to the dataframe info on the Group (c or d) for each couple of indices
     grouped_indexes$Group <- exp_de_ordered[exp_de_ordered$SeqType != "RIBO", ]$Group
 
     block <- NULL
@@ -375,9 +383,7 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
     minGSZ <- tab[idx] # retrieves number of samples assigned to it
     bigG <- rep(setdiff(levels(G), minG), length(G))
 
-    # topSigNum <- dim(esetm)[1]
-
-    # Creates all the possible "group" label permutations for the given data.
+    # Creates all the possible "Group" label permutations (c or d) for the given data.
     combFun <- function(gi, countn = TRUE) {
         g <- G[gi]
         tab <- table(g)
@@ -454,10 +460,10 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
         force(G) # Forces evaluation of G
         force(block) # Forces evaluation of block
 
-        # This bit re-assigns the "group" label to the samples according to the combidx matrix, if past the first iteration
+        # This bit re-assigns the "Group" label to the samples according to the combidx matrix, if past the first iteration
 
         if (ite > 1) {
-            G <- bigG # Need to check the original PADOG for bigG
+            G <- bigG
             G[combidx[, ite - 1]] <- minG
             G <- factor(G)
 
@@ -556,9 +562,9 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
     MSabsT <- scale(MSabsT)
     MSTop <- scale(MSTop)
 
-    # mff is what checks the real score against the iterative ones.
+    # mff is what checks the real score against the ones obtained by iteratively shuffling the "Group" labels.
     # Originally, PADOG compares t-scores (the bigger, the more significant).
-    # Since we are using p-value, the smaller the more significant, so the comparison sign was changed.
+    # Since we are using adjusted p-values, the smaller the more significant, so the comparison sign was changed.
 
     mff <- function(x) {
         mean(x[-1] < x[1], na.rm = TRUE) # Original mean(x[-1] > x[1], na.rm = TRUE)
