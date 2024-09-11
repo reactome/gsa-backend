@@ -87,7 +87,6 @@ def show_mainpage():
 @app.route("/uploadRibo", methods=["POST"])
 def upload_ribo():
     store_file = request.args.get('store', 'true').lower() == "true"
-    store_file = True
 
     if 'fileRibo' not in request.files or 'fileRNA' not in request.files:
         return custom_abort(400, "Incorrect number of uploaded files. Function requires two files.")
@@ -184,7 +183,6 @@ def upload_ribo():
     merged_ribo_seq_data = merged_ribo_seq_data.replace(',', '\t')
     merged_ribo_seq_data = merged_ribo_seq_data.replace('\n', '\n')
 
-
     if not store_file:
         return_object["data"] = merged_ribo_seq_data
     else:
@@ -198,7 +196,7 @@ def upload_ribo():
                 token = "rqu_" + str(uuid.uuid1())
 
             # save the data - expire after 6 hours
-            storage.set_request_data(token=token, data=result_string, expire=60 * 60 * 6)
+            storage.set_request_data(token=token, data=merged_ribo_seq_data, expire=60 * 60 * 6)
 
             return_object["data_token"] = token
         except ReactomeStorageException as e:
@@ -346,6 +344,7 @@ def process_file_upload():
     result_string = "\n".join(return_lines)
 
     # add the file if it shouldn't be saved
+    store_file = False  # remove when merging
     if not store_file:
         return_object["data"] = result_string
     else:
