@@ -480,17 +480,17 @@ terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
         }
 
         if (paired) {
-            design <- ~ Block + Group + SeqType+ Group:SeqType # Paired designs do not have batch effect correction!
+            design_TE <- ~ Block + Group + SeqType+ Group:SeqType # Paired designs do not have batch effect correction!
         }
         else { # Add if statement, if there is batch, then do this, else do not
-            design <- ~ Group + SeqType+ Group:SeqType
+            design_TE <- ~ Group + SeqType+ Group:SeqType
         }
 
         # Setup the ddsMat object
         ddsMat <- DESeqDataSetFromMatrix(
         countData = esetm,
         colData = exp_de,
-        design = design
+        design = design_TE
         )
 
         # Calculate results (without printing messages on console)
