@@ -21,6 +21,14 @@ class GeoFetcher(DatasetFetcher):
         # constructor of abstract super class
         super().__init__()
 
+    def get_dataset_id(self, parameters: list) -> str:
+        """
+        Returns the dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
+        :returns: The dataset identifier
+        """
+        return self._get_parameter(name="dataset_id", parameters=parameters)
+
     def load_dataset(self, parameters: list, reactome_mq) -> Tuple[str, ExternalData]:
         """
         Load the specified GEO dataset based on GSE id
