@@ -3,13 +3,13 @@ import os
 from typing import Tuple
 
 import GEOparse as geoparser
+import pandas as pd
 import rpy2.robjects as ro
 import rpy2.rinterface as ri
 from rpy2.robjects import pandas2ri
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
-from reactome_analysis_worker.analysers import ReactomeRAnalyser
 
 LOGGER = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ class GeoFetcher(DatasetFetcher):
 
         count_matrix = self._create_count_matrix(identifier)
         os.remove(identifier + "_family.soft.gz")  # clean up supplementary
-        self._clean_up_samples(sample_metadata_list[1].values)  # cleam up of downloaded files
+        self._clean_up_samples(sample_metadata_list[1].values)  # clean up of downloaded files
         return (count_matrix, metadata_obj)
 
     def _create_count_matrix(self, gse_identifier: str) -> str:
@@ -89,10 +89,10 @@ class GeoFetcher(DatasetFetcher):
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
         ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
 
-        # Convert the R count_matrix to a Python pandas DataFrame
-        count_matrix_tsv = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["count_matrix"])
-
-        pandas2ri.deactivate()
+        # Convert the R count_matrix to string with seperation
+        count_matrix = ri.globalenv["count_matrix"]
+        count_matrix_tsv = pd.DataFrame(pandas2ri.ri2py_vector(count_matrix))
+        count_matrix_tsv = count_matrix_tsv.to_csv(sep='\t', index=False)
         return count_matrix_tsv
 
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
