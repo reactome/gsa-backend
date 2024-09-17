@@ -77,7 +77,12 @@ data:
     maxmemory-policy allkeys-lru
 
     # backup the data every 60 sec if at least 1 key changed
-    save 60 1
+    # save 60 1
+    # disable any backup of the data - this means we may loose data
+    save ""
+
+    # disable the appendonly file as well
+    appendonly no
 # 
 ---
 #  redis deployment
