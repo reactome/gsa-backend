@@ -89,7 +89,7 @@ class GeoFetcher(DatasetFetcher):
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
         ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
 
-        # Convert the R count_matrix to a Python pandas DataFrame
+        # Convert the R count_matrix to string with seperation
         count_matrix = ri.globalenv["count_matrix"]
         count_matrix_tsv = pd.DataFrame(pandas2ri.ri2py_vector(count_matrix))
         count_matrix_tsv = count_matrix_tsv.to_csv(sep='\t', index=False)
