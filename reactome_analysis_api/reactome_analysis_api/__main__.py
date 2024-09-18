@@ -307,7 +307,6 @@ def process_file_upload():
     result_string = "\n".join(return_lines)
 
     # add the file if it shouldn't be saved
-    store_file = False  # remove when merging
     if not store_file:
         return_object["data"] = result_string
     else:
