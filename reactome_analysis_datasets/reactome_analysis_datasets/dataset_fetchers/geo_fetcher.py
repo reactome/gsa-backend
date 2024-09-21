@@ -53,7 +53,7 @@ class GeoFetcher(DatasetFetcher):
 
         # load the data
         self._update_status(progress=0.8, message="Extracting count matrix...")
-        count_matrix = self._create_count_matrix(identifier)
+        count_matrix = self._create_count_matrix(gse_object)
 
         return (count_matrix, metadata_obj)
 
