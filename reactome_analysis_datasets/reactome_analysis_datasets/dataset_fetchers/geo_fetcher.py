@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Tuple
 
-import GEOparse as geoparser
 import rpy2.robjects as ro
 import rpy2.rinterface as ri
 from rpy2.robjects import pandas2ri
@@ -44,109 +43,145 @@ class GeoFetcher(DatasetFetcher):
         if not identifier[0:3] == "GSE":
             raise DatasetFetcherException(
                 f"{identifier} is not a valid geo_accession")
+        
+        # download the R GSE object
+        self._update_status(progress=0.2, message="Downloading data from GEO...")
+        gse_object = self._download_gse(identifier)
+
+        self._update_status(progress=0.7, message="Extracting metadata...")
+        metadata_obj = self._get_metadata(identifier, gse_object)
 
         # load the data
-        LOGGER.info(f"Loading dataset {identifier} from GEO")
-        try:
-            self._update_status(progress=0.2, message="Fetching metadata files...")
-            gse = geoparser.get_GEO(identifier)  # fetching data from Geo via geo parser
-        except Exception as e:
-            LOGGER.error(f"Error loading dataset {identifier} from GEO: {e}")
-            raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: {e}")
+        self._update_status(progress=0.8, message="Extracting count matrix...")
+        count_matrix = self._create_count_matrix(gse_object)
 
-        # create metadata
-        if not gse.metadata:
-            LOGGER.error(f"Error loading dataset {identifier} from GEO: No metadata found")
-            raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: No metadata found")
-        else:
-            LOGGER.info(f"Creating metadata for dataset {identifier}")
-            self._update_status(progress=0.4, message="Downloading detailed metadata...")
-            experiment_type = self._get_data_type(gse.metadata)
-            sample_metadata_list = self._create_sample_metadata(gse.metadata["sample_id"])
-            metadata_obj = ExternalData(id=identifier,
-                                        title=gse.metadata["title"],
-                                        type=experiment_type,
-                                        description=gse.metadata["summary"],
-                                        group=None,
-                                        sample_ids=gse.metadata["sample_id"],
-                                        sample_metadata=sample_metadata_list,
-                                        default_parameters=None)
-
-        self._update_status(progress=0.7, message="Downloading expression data...")
-        count_matrix = self._create_count_matrix(identifier)
-        os.remove(identifier + "_family.soft.gz")  # clean up supplementary
-        self._clean_up_samples(sample_metadata_list[1].values)  # clean up of downloaded files
         return (count_matrix, metadata_obj)
 
-    def _create_count_matrix(self, gse_identifier: str) -> str:
-        """
-        Create count matrix by fetching data using the R package
-        :param gse_identifier: identifier of the GEO dataset
-        :returns: tab separated count matrix
-        """
+    def _download_gse(self, gse_identifier: str):
+        """Downloads the GSE object using the R package GEOquery
 
+        :param gse_identifier: The identifier of the dataset to download
+        :type gse_identifier: str
+        """
         # activate R in Python
         pandas2ri.activate()
         # Load R GEOquery library for temporary R code
         ro.r('library(GEOquery)')
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
-        ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
-        ro.r(f'count_matrix <- data.frame(count_matrix)')
+
+        return ri.globalenv["gse"][0]
+    
+    def _get_metadata(self, gse_identifier: str, gse_object) -> ExternalData:
+        """Extract the sample metadata from the GSE object
+
+        :param gse_object: _description_
+        :type gse_object: _type_
+        :return: The metadata of the dataset as an ExternalData object
+        :rtype: ExternalData
+        """
+        ri.globalenv["gse"] = gse_object
+
+        ro.r("""
+             # get the pheno data
+             pheno_data <- pData(phenoData(gse))
+
+             # remove all contact columns
+             pheno_data <- pheno_data[, !grepl("contact_.*", colnames(pheno_data))]
+
+             # remove all supplementary file columns
+             pheno_data <- pheno_data[, !grepl("supplementary_file.*", colnames(pheno_data))]
+
+             # remove keyword columns
+             pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
+
+             # remove specific columns
+             cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
+             pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
+
+             # make some column names nicer
+             colnames(pheno_data) <- gsub("_ch1", "", colnames(pheno_data))
+
+             # add the sample_id as first column and remove the rownames
+             org_colnames <- colnames(pheno_data)
+             pheno_data$sample_id <- rownames(pheno_data)
+             pheno_data <- pheno_data[, c("sample_id", org_colnames)]
+             rownames(pheno_data) <- NULL
+
+             # change the description columns
+             descr_cols <- colnames(pheno_data)[grepl("description.*", colnames(pheno_data))]
+
+             for (descr_col in descr_cols) {
+                # get the real name
+                nice_name <- gsub(":.*", "", pheno_data[1, descr_col])
+             
+                # replace with nice data
+                pheno_data[, nice_name] <- gsub(".*:", "", pheno_data[, descr_col])
+             
+                # delete the old one
+                pheno_data[, descr_col] <- NULL
+             }
+
+             # get the other metadata fields
+             title <- experimentData(gse)@title
+             geo_accession <- experimentData(gse)@other$geo_accession
+             abstract <- abstract(gse)
+             type <- experimentData(gse)@other$type
+
+             # finally, save the colnames
+             pheno_cols <- colnames(pheno_data)
+
+             # save the sample ids
+             sample_ids <- pheno_data$sample_id
+        """)
+
+        # sample-level metadata
+        sample_metadata = list()
+
+        for index, sample_field in enumerate(ri.globalenv["pheno_cols"]):
+            field_metadata = {
+                "name": sample_field,
+                "values": [str(value) for value in ri.globalenv["pheno_data"][index]]
+            }
+
+            sample_metadata.append(field_metadata)
+
+        # get the experiment type
+        stored_type = ri.globalenv["type"][0]
+
+        if stored_type == "Expression profiling by array":
+            LOGGER.info("Dataset is microarray")
+            experiment_type = "microarray_norm"
+        elif stored_type == "Expression profiling by high throughput sequencing":
+            LOGGER.info("Dataset is RNA-seq")
+            experiment_type = "rnaseq_counts"
+        else:
+            LOGGER.warning(f"Unknown experiment type {stored_type}")
+            # use microarray data as default
+            experiment_type = "microarray_norm"
+
+        metadata_obj = ExternalData(id=gse_identifier,
+                                    title=ri.globalenv["title"][0],
+                                    type=experiment_type,
+                                    description=ri.globalenv["abstract"][0],
+                                    group=None,
+                                    sample_ids=[i for i in ri.globalenv["sample_ids"]],
+                                    sample_metadata=sample_metadata,
+                                    default_parameters=None)
+        
+        return metadata_obj
+
+
+    def _create_count_matrix(self, gse_object) -> str:
+        """
+        Create count matrix based on the gse_object
+
+        :param gse_object: The R gse object
+        :returns: A string containing the count matrix as a tab delimited table.
+        """
+        ri.globalenv["gse"] = gse_object
+        ro.r(f'count_matrix <- data.frame( exprs(gse) )')
 
         # Convert the R count_matrix to string with seperation
         count_matrix = ri.globalenv["count_matrix"]
         count_matrix_tsv = ReactomeRAnalyser.data_frame_to_string(count_matrix, add_rownames=True)
         return count_matrix_tsv
-
-    def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
-        """
-        Create sample metadata for each sample in the dataset
-        :param sample_list: list of samples in the dataset
-        :returns: list of sample metadata formatted as ExternalDataSampleMetadata
-        """
-        metadata_request_list = [geoparser.get_GEO(sample).metadata for sample in sample_list]
-
-        metadata_dict = {}
-
-        for sample_metadata in metadata_request_list:
-            for key, values in sample_metadata.items():
-                if key not in metadata_dict:
-                    metadata_dict[key] = []
-                metadata_dict[key].extend(values)
-
-        formatted_metadata_list = [
-            {"name": key, "values": metadata_dict[key]} for key in metadata_dict
-        ]
-        filtered_metadata = [
-            ExternalDataSampleMetadata.from_dict(metadata) for metadata in formatted_metadata_list
-        ]
-        return filtered_metadata
-
-    def _get_data_type(self, metadata_obj) -> str:
-        """
-        filters method type from metadata
-        :param metadata_obj: metadata of the dataset
-        returns: method type as string
-        """
-        if metadata_obj["type"][0] == "Expression profiling by array":
-            LOGGER.info("Dataset is microarray")
-            return "microarray"
-        elif metadata_obj["type"][0] == "Expression profiling by high throughput sequencing":
-            LOGGER.info("Dataset is RNA-seq")
-            return "rnaseq"
-        else:
-            LOGGER.warning(f"Unknown {metadata_obj['type'][0]}")
-            return "unknown"
-
-    def _clean_up_samples(self, file_list: list = None):
-        """
-        removes downloaded files
-        :param file_list: list of files to be removed
-        """
-        for file in file_list:
-            file = file + ".txt"
-            try:
-                os.remove(file)
-            except OSError:
-                LOGGER.warning(f"Error removing file {file}")
-                pass
