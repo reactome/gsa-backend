@@ -79,7 +79,7 @@ class GeoFetcher(DatasetFetcher):
         :return: The metadata of the dataset as an ExternalData object
         :rtype: ExternalData
         """
-        ri.globalenv["gse"] <- gse_object
+        ri.globalenv["gse"] = gse_object
 
         ro.r("""
              # get the pheno data
@@ -146,7 +146,7 @@ class GeoFetcher(DatasetFetcher):
             sample_metadata.append(field_metadata)
 
         # get the experiment type
-        stored_type <- ri.globalenv["type"][0]
+        stored_type = ri.globalenv["type"][0]
 
         if stored_type == "Expression profiling by array":
             LOGGER.info("Dataset is microarray")
@@ -179,8 +179,8 @@ class GeoFetcher(DatasetFetcher):
         :param gse_identifier: The identified of the object
         :returns: A string containing the count matrix as a tab delimited table.
         """
-        ri.globalenv["gse"] <- gse_object
-        ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
+        ri.globalenv["gse"] = gse_object
+        ro.r(f'count_matrix <- gse@assayData[["exprs"]]')
         ro.r(f'count_matrix <- data.frame(count_matrix)')
 
         # Convert the R count_matrix to string with seperation
