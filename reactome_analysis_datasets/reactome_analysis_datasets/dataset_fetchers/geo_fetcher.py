@@ -48,6 +48,7 @@ class GeoFetcher(DatasetFetcher):
         # load the data
         LOGGER.info(f"Loading dataset {identifier} from GEO")
         try:
+            self._update_status(progress=0.1, message="Fetching metadata files...")
             gse = geoparser.get_GEO(identifier)  # fetching data from Geo via geo parser
         except Exception as e:
             LOGGER.error(f"Error loading dataset {identifier} from GEO: {e}")
@@ -59,6 +60,7 @@ class GeoFetcher(DatasetFetcher):
             raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: No metadata found")
         else:
             LOGGER.info(f"Creating metadata for dataset {identifier}")
+            self._update_status(progress=0.3, message="Creating metadata object...")
             experiment_type = self._get_data_type(gse.metadata)
             sample_metadata_list = self._create_sample_metadata(gse.metadata["sample_id"])
             metadata_obj = ExternalData(id=identifier,
@@ -70,6 +72,7 @@ class GeoFetcher(DatasetFetcher):
                                         sample_metadata=sample_metadata_list,
                                         default_parameters=None)
 
+        self._update_status(progress=0.6, message="Downloading expression data...")
         count_matrix = self._create_count_matrix(identifier)
         os.remove(identifier + "_family.soft.gz")  # clean up supplementary
         self._clean_up_samples(sample_metadata_list[1].values)  # clean up of downloaded files
