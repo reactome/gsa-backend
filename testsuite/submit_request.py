@@ -108,6 +108,13 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
         # replace the data with the id
         request_object["datasets"][0]["data"] = loaded_id
 
+    if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("geo_GSE"):
+        dataset_id = request_object["datasets"][0]["data"][4:]
+        loaded_id = load_remote_data(dataset_id=dataset_id, service_url=service_url, source="geo_microarray")
+
+        # replace the data with the id
+        request_object["datasets"][0]["data"] = loaded_id
+
     # submit the request
     print("Submitting request to ReactomeGSA...")
 
