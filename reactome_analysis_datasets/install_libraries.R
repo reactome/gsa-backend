@@ -6,7 +6,7 @@
 # set the CRAN mirror to use
 options(repos=structure(c(CRAN = 'http://cran.ma.imperial.ac.uk')))
 
-required_libraries <- c("SummarizedExperiment")
+required_libraries <- c("SummarizedExperiment", "GEOquery")
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
 	install.packages("BiocManager")

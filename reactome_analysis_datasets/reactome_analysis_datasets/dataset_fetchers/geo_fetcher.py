@@ -4,10 +4,12 @@ from typing import Tuple
 
 import GEOparse as geoparser
 import rpy2.robjects as ro
+import rpy2.rinterface as ri
+from rpy2.robjects import pandas2ri
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
+from reactome_analysis_worker.analysers import ReactomeRAnalyser
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
-from rpy2.robjects import pandas2ri
 
 LOGGER = logging.getLogger(__name__)
 
@@ -20,6 +22,14 @@ class GeoFetcher(DatasetFetcher):
     def __init__(self):
         # constructor of abstract super class
         super().__init__()
+
+    def get_dataset_id(self, parameters: list) -> str:
+        """
+        Returns the dataset identifier
+        :param parameters: A list of DatasetRequestParameter objects.
+        :returns: The dataset identifier
+        """
+        return self._get_parameter(name="dataset_id", parameters=parameters)
 
     def load_dataset(self, parameters: list, reactome_mq) -> Tuple[str, ExternalData]:
         """
@@ -38,6 +48,7 @@ class GeoFetcher(DatasetFetcher):
         # load the data
         LOGGER.info(f"Loading dataset {identifier} from GEO")
         try:
+            self._update_status(progress=0.2, message="Fetching metadata files...")
             gse = geoparser.get_GEO(identifier)  # fetching data from Geo via geo parser
         except Exception as e:
             LOGGER.error(f"Error loading dataset {identifier} from GEO: {e}")
@@ -49,6 +60,7 @@ class GeoFetcher(DatasetFetcher):
             raise DatasetFetcherException(f"Error loading dataset {identifier} from GEO: No metadata found")
         else:
             LOGGER.info(f"Creating metadata for dataset {identifier}")
+            self._update_status(progress=0.4, message="Downloading detailed metadata...")
             experiment_type = self._get_data_type(gse.metadata)
             sample_metadata_list = self._create_sample_metadata(gse.metadata["sample_id"])
             metadata_obj = ExternalData(id=identifier,
@@ -60,9 +72,10 @@ class GeoFetcher(DatasetFetcher):
                                         sample_metadata=sample_metadata_list,
                                         default_parameters=None)
 
+        self._update_status(progress=0.7, message="Downloading expression data...")
         count_matrix = self._create_count_matrix(identifier)
         os.remove(identifier + "_family.soft.gz")  # clean up supplementary
-        self._clean_up_samples(sample_metadata_list[1].values)  # cleam up of downloaded files
+        self._clean_up_samples(sample_metadata_list[1].values)  # clean up of downloaded files
         return (count_matrix, metadata_obj)
 
     def _create_count_matrix(self, gse_identifier: str) -> str:
@@ -78,12 +91,11 @@ class GeoFetcher(DatasetFetcher):
         ro.r('library(GEOquery)')
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
         ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
+        ro.r(f'count_matrix <- data.frame(count_matrix)')
 
-        # Convert the R count_matrix to a Python pandas DataFrame
-        count_matrix_df = pandas2ri.rpy2py(ro.r('as.data.frame(count_matrix)'))
-
-        pandas2ri.deactivate()
-        count_matrix_tsv = count_matrix_df.to_csv(sep="\t", index=False)
+        # Convert the R count_matrix to string with seperation
+        count_matrix = ri.globalenv["count_matrix"]
+        count_matrix_tsv = ReactomeRAnalyser.data_frame_to_string(count_matrix, add_rownames=True)
         return count_matrix_tsv
 
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:

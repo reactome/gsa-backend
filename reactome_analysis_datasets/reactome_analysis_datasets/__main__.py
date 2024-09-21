@@ -26,6 +26,8 @@ def main():
     pika_logger = logging.getLogger("pika")
     pika_logger.setLevel(level=logging.ERROR)
     logging.getLogger("redis").setLevel(logging.ERROR)
+    logging.getLogger("urllib3").setLevel(logging.ERROR)
+    logging.getLogger("GEOparse").setLevel(logging.ERROR)
 
     dataset_worker = ReactomeAnalysisDatasetFetcher()
 
