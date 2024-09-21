@@ -3,11 +3,11 @@ import os
 from typing import Tuple
 
 import GEOparse as geoparser
-import pandas as pd
 import rpy2.robjects as ro
 import rpy2.rinterface as ri
 from rpy2.robjects import pandas2ri
 from reactome_analysis_api.models.external_data_sample_metadata import ExternalDataSampleMetadata
+from reactome_analysis_worker.analysers import ReactomeRAnalyser
 from reactome_analysis_datasets.dataset_fetchers.abstract_dataset_fetcher import DatasetFetcher, ExternalData, \
     DatasetFetcherException
 
@@ -88,11 +88,11 @@ class GeoFetcher(DatasetFetcher):
         ro.r('library(GEOquery)')
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
         ro.r(f'count_matrix <- gse[["{gse_identifier}_series_matrix.txt.gz"]]@assayData[["exprs"]]')
+        ro.r(f'count_matrix <- data.frame(count_matrix)')
 
         # Convert the R count_matrix to string with seperation
         count_matrix = ri.globalenv["count_matrix"]
-        count_matrix_tsv = pd.DataFrame(pandas2ri.ri2py_vector(count_matrix))
-        count_matrix_tsv = count_matrix_tsv.to_csv(sep='\t', index=False)
+        count_matrix_tsv = ReactomeRAnalyser.data_frame_to_string(count_matrix, add_rownames=True)
         return count_matrix_tsv
 
     def _create_sample_metadata(self, sample_list) -> list[ExternalDataSampleMetadata]:
