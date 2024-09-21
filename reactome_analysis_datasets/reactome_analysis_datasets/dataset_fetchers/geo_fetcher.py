@@ -171,17 +171,15 @@ class GeoFetcher(DatasetFetcher):
         return metadata_obj
 
 
-    def _create_count_matrix(self, gse_object, gse_identifier: str) -> str:
+    def _create_count_matrix(self, gse_object) -> str:
         """
         Create count matrix based on the gse_object
 
         :param gse_object: The R gse object
-        :param gse_identifier: The identified of the object
         :returns: A string containing the count matrix as a tab delimited table.
         """
         ri.globalenv["gse"] = gse_object
-        ro.r(f'count_matrix <- gse@assayData[["exprs"]]')
-        ro.r(f'count_matrix <- data.frame(count_matrix)')
+        ro.r(f'count_matrix <- data.frame( exprs(gse) )')
 
         # Convert the R count_matrix to string with seperation
         count_matrix = ri.globalenv["count_matrix"]
