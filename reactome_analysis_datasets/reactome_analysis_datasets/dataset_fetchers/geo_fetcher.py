@@ -46,10 +46,10 @@ class GeoFetcher(DatasetFetcher):
         
         # download the R GSE object
         self._update_status(progress=0.2, message="Downloading data from GEO...")
-        gse_object <- self._download_gse(identifier)
+        gse_object = self._download_gse(identifier)
 
         self._update_status(progress=0.7, message="Extracting metadata...")
-        metadata_obj <- self._get_metadata(identifier, gse_object)
+        metadata_obj = self._get_metadata(identifier, gse_object)
 
         # load the data
         self._update_status(progress=0.8, message="Extracting count matrix...")
