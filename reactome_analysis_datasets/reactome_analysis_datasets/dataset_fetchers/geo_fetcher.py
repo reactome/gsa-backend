@@ -95,16 +95,29 @@ class GeoFetcher(DatasetFetcher):
              cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
              pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
 
+             # make some column names nicer
+             colnames(pheno_data) <- gsub("[:._]ch1", "", colnames(pheno_data))
+
              # add the sample_id as dedicated column
              pheno_data$sample_id <- rownames(pheno_data)
              rownames(pheno_data) <- NULL
 
              # change the description columns
-             descr_cols <- colnames(pheno_data)[grepl("description.*", colnames(pheno_data))]
+             descr_cols_index <- grepl("description.*", colnames(pheno_data)) | 
+                                 grepl("characteristics.*", colnames(pheno_data))
+             descr_cols <- colnames(pheno_data)[descr_cols_index]
 
              for (descr_col in descr_cols) {
+                message("Processing ", descr_col, "...")
+
                 # get the real name
                 nice_name <- gsub(":.*", "", pheno_data[1, descr_col])
+             
+                # ignore if it already exists - but still delete it
+                if (nice_name %in% colnames(pheno_data)) {
+                    pheno_data[, descr_col] <- NULL
+                    next
+                }
              
                 # replace with nice data
                 pheno_data[, nice_name] <- gsub(".*:", "", pheno_data[, descr_col])
@@ -115,8 +128,6 @@ class GeoFetcher(DatasetFetcher):
 
              # remove keyword columns
              pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
-             # make some column names nicer
-             colnames(pheno_data) <- gsub("[._]ch1", "", colnames(pheno_data))
 
              # get the other metadata fields
              title <- experimentData(gse)@title
