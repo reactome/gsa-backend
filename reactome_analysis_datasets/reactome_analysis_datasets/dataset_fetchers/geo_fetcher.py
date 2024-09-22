@@ -91,13 +91,20 @@ class GeoFetcher(DatasetFetcher):
              # remove all supplementary file columns
              pheno_data <- pheno_data[, !grepl("supplementary_file.*", colnames(pheno_data))]
 
+<<<<<<< HEAD
+=======
              # remove keyword columns
              pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
 
+>>>>>>> develop
              # remove specific columns
              cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
              pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
 
+<<<<<<< HEAD
+             # add the sample_id as dedicated column
+             pheno_data$sample_id <- rownames(pheno_data)
+=======
              # make some column names nicer
              colnames(pheno_data) <- gsub("_ch1", "", colnames(pheno_data))
 
@@ -105,6 +112,7 @@ class GeoFetcher(DatasetFetcher):
              org_colnames <- colnames(pheno_data)
              pheno_data$sample_id <- rownames(pheno_data)
              pheno_data <- pheno_data[, c("sample_id", org_colnames)]
+>>>>>>> develop
              rownames(pheno_data) <- NULL
 
              # change the description columns
@@ -120,6 +128,11 @@ class GeoFetcher(DatasetFetcher):
                 # delete the old one
                 pheno_data[, descr_col] <- NULL
              }
+
+             # remove keyword columns
+             pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
+             # make some column names nicer
+             colnames(pheno_data) <- gsub("[._]ch1", "", colnames(pheno_data))
 
              # get the other metadata fields
              title <- experimentData(gse)@title
@@ -140,7 +153,7 @@ class GeoFetcher(DatasetFetcher):
         for index, sample_field in enumerate(ri.globalenv["pheno_cols"]):
             field_metadata = {
                 "name": sample_field,
-                "values": [str(value) for value in ri.globalenv["pheno_data"][index]]
+                "values": [str(value).strip() for value in ri.globalenv["pheno_data"][index]]
             }
 
             sample_metadata.append(field_metadata)
@@ -149,10 +162,10 @@ class GeoFetcher(DatasetFetcher):
         stored_type = ri.globalenv["type"][0]
 
         if stored_type == "Expression profiling by array":
-            LOGGER.info("Dataset is microarray")
+            LOGGER.debug("Dataset is microarray")
             experiment_type = "microarray_norm"
         elif stored_type == "Expression profiling by high throughput sequencing":
-            LOGGER.info("Dataset is RNA-seq")
+            LOGGER.debug("Dataset is RNA-seq")
             experiment_type = "rnaseq_counts"
         else:
             LOGGER.warning(f"Unknown experiment type {stored_type}")
@@ -164,7 +177,7 @@ class GeoFetcher(DatasetFetcher):
                                     type=experiment_type,
                                     description=ri.globalenv["abstract"][0],
                                     group=None,
-                                    sample_ids=[i for i in ri.globalenv["sample_ids"]],
+                                    sample_ids=[i.strip() for i in ri.globalenv["sample_ids"]],
                                     sample_metadata=sample_metadata,
                                     default_parameters=None)
         
