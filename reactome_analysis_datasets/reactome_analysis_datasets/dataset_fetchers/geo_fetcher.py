@@ -45,7 +45,7 @@ class GeoFetcher(DatasetFetcher):
                 f"{identifier} is not a valid geo_accession")
         
         # download the R GSE object
-        self._update_status(progress=0.2, message="Downloading data from GEO...")
+        self._update_status(progress=0.2, message="Downloading data from GEO (may take several minutes)...")
         gse_object = self._download_gse(identifier)
 
         self._update_status(progress=0.7, message="Extracting metadata...")
