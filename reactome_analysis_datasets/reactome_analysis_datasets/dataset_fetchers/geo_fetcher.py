@@ -91,28 +91,12 @@ class GeoFetcher(DatasetFetcher):
              # remove all supplementary file columns
              pheno_data <- pheno_data[, !grepl("supplementary_file.*", colnames(pheno_data))]
 
-<<<<<<< HEAD
-=======
-             # remove keyword columns
-             pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
-
->>>>>>> develop
              # remove specific columns
              cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
              pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
 
-<<<<<<< HEAD
              # add the sample_id as dedicated column
              pheno_data$sample_id <- rownames(pheno_data)
-=======
-             # make some column names nicer
-             colnames(pheno_data) <- gsub("_ch1", "", colnames(pheno_data))
-
-             # add the sample_id as first column and remove the rownames
-             org_colnames <- colnames(pheno_data)
-             pheno_data$sample_id <- rownames(pheno_data)
-             pheno_data <- pheno_data[, c("sample_id", org_colnames)]
->>>>>>> develop
              rownames(pheno_data) <- NULL
 
              # change the description columns
