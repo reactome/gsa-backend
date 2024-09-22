@@ -91,15 +91,9 @@ class GeoFetcher(DatasetFetcher):
              # remove all supplementary file columns
              pheno_data <- pheno_data[, !grepl("supplementary_file.*", colnames(pheno_data))]
 
-             # remove keyword columns
-             pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
-
              # remove specific columns
              cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
              pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
-
-             # make some column names nicer
-             colnames(pheno_data) <- gsub("_ch1", "", colnames(pheno_data))
 
              # add the sample_id as first column and remove the rownames
              org_colnames <- colnames(pheno_data)
@@ -121,6 +115,11 @@ class GeoFetcher(DatasetFetcher):
                 pheno_data[, descr_col] <- NULL
              }
 
+             # remove keyword columns
+             pheno_data <- pheno_data[, !grepl("[Kk]eywords.*", colnames(pheno_data))]
+             # make some column names nicer
+             colnames(pheno_data) <- gsub("[._]ch1", "", colnames(pheno_data))
+
              # get the other metadata fields
              title <- experimentData(gse)@title
              geo_accession <- experimentData(gse)@other$geo_accession
@@ -140,7 +139,7 @@ class GeoFetcher(DatasetFetcher):
         for index, sample_field in enumerate(ri.globalenv["pheno_cols"]):
             field_metadata = {
                 "name": sample_field,
-                "values": [str(value) for value in ri.globalenv["pheno_data"][index]]
+                "values": [str(value).strip() for value in ri.globalenv["pheno_data"][index]]
             }
 
             sample_metadata.append(field_metadata)
@@ -164,7 +163,7 @@ class GeoFetcher(DatasetFetcher):
                                     type=experiment_type,
                                     description=ri.globalenv["abstract"][0],
                                     group=None,
-                                    sample_ids=[i for i in ri.globalenv["sample_ids"]],
+                                    sample_ids=[i.strip() for i in ri.globalenv["sample_ids"]],
                                     sample_metadata=sample_metadata,
                                     default_parameters=None)
         
