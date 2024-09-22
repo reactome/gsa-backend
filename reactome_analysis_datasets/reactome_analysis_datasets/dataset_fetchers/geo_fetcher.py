@@ -95,10 +95,8 @@ class GeoFetcher(DatasetFetcher):
              cols_to_remove <- c("geo_accession", "status", "submission_date", "last_update_date")
              pheno_data <- pheno_data[, !colnames(pheno_data) %in% cols_to_remove]
 
-             # add the sample_id as first column and remove the rownames
-             org_colnames <- colnames(pheno_data)
+             # add the sample_id as dedicated column
              pheno_data$sample_id <- rownames(pheno_data)
-             pheno_data <- pheno_data[, c("sample_id", org_colnames)]
              rownames(pheno_data) <- NULL
 
              # change the description columns
@@ -148,10 +146,10 @@ class GeoFetcher(DatasetFetcher):
         stored_type = ri.globalenv["type"][0]
 
         if stored_type == "Expression profiling by array":
-            LOGGER.info("Dataset is microarray")
+            LOGGER.debug("Dataset is microarray")
             experiment_type = "microarray_norm"
         elif stored_type == "Expression profiling by high throughput sequencing":
-            LOGGER.info("Dataset is RNA-seq")
+            LOGGER.debug("Dataset is RNA-seq")
             experiment_type = "rnaseq_counts"
         else:
             LOGGER.warning(f"Unknown experiment type {stored_type}")
