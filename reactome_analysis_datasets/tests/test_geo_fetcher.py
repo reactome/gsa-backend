@@ -23,7 +23,23 @@ class GeoFetcherTest(unittest.TestCase):
     def test_load_dataset(self):
         parameters = [DatasetRequestParameter("dataset_id", self.test_dataset)]
         fetcher = GeoFetcher()
-        external_data = ExternalData()
-        external_data = fetcher.load_dataset(parameters, MockMQ)
-        self.assertEqual(len(external_data), 2, "Data missing in return")
+
+        (count_matrix, metadata_obj) = fetcher.load_dataset(parameters, MockMQ)
+        
+        self.assertIsNotNone(count_matrix)
+        self.assertIsNotNone(metadata_obj)
+
+        self.assertEqual("GSE1563", metadata_obj.id)
+        self.assertEqual("microarray_norm", metadata_obj.type)
+
+        # make sure all metadata fields have the correct length
+        n_samples = len(metadata_obj.sample_ids)
+
+        self.assertEqual(62, n_samples, "Incorrect number of samples")
+
+        for sample_metadata in metadata_obj.sample_metadata:
+            self.assertEqual(len(sample_metadata["values"]), n_samples, 
+                             f"Incorrect values for {sample_metadata['name']}. Expected {n_samples} but got {len(sample_metadata['values'])}")
+
+
     
