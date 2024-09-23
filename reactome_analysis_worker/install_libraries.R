@@ -6,7 +6,7 @@
 # set the CRAN mirror to use
 options(repos=structure(c(CRAN = 'http://cran.ma.imperial.ac.uk')))
 
-required_libraries <- c("limma", "edgeR", "GSVA", "PADOG", "DESeq2", "apeglm")
+required_libraries <- c("limma", "edgeR", "GSVA", "PADOG", "DESeq2", "apeglm", "TERAPADOG")
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
 	install.packages("BiocManager")
