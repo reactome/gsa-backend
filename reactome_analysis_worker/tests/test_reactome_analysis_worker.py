@@ -14,6 +14,7 @@ from reactome_analysis_api.input_deserializer import create_analysis_input_objec
 from reactome_analysis_api.models.analysis_result import AnalysisResult
 from reactome_analysis_utils import reactome_mq
 from reactome_analysis_utils import reactome_storage
+from reactome_analysis_utils import models
 
 from reactome_analysis_worker import geneset_builder
 from reactome_analysis_worker import reactome_analysis_worker
@@ -24,11 +25,11 @@ class TestReactome_analysis_worker(unittest.TestCase):
     """Tests for `reactome_analysis_worker` package."""
 
     def setUp(self):
-        os.environ["REDIS_HOST"] = "192.168.99.100"
-        os.environ["REDIS_PORT"] = "32725"
+        os.environ["REDIS_HOST"] = "localhost"
+        os.environ["REDIS_PORT"] = "32606"
         os.environ["REDIS_PASSWORD"] = "test"
-        os.environ["RABBIT_HOST"] = "192.168.99.100"
-        os.environ["RABBIT_PORT"] = "30186"
+        os.environ["RABBIT_HOST"] = "localhost"
+        os.environ["RABBIT_PORT"] = "32214"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
         
@@ -43,8 +44,8 @@ class TestReactome_analysis_worker(unittest.TestCase):
         os.environ["REACTOME_STORAGE_PATH"] = self.test_file_dir
 
     def test_process_all_messages(self):
-        if (True):
-            return
+        #if (True):
+        #    return
 
         if not os.path.isfile(os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl")):
             gene_set = self._get_gene_set()
@@ -115,9 +116,13 @@ class TestReactome_analysis_worker(unittest.TestCase):
         obj = json.loads(request_json)
         self.assertIsNotNone(obj)
 
+        # save the request in storage
+        storage = reactome_storage.ReactomeStorage()
+        storage.set_analysis_request_data("requ_test_1", request_json)
+
         # submit the request
         mq = reactome_mq.ReactomeMQ()
-        mq.post_analysis(request_json, "camera")
+        mq.post_analysis(models.analysis_request.AnalysisRequest("requ_test_1").to_json(), "camera")
 
         # download the gene sets
         gene_set_file = os.path.join(self.test_file_dir, "reactome_homo_sapiens.pkl")
@@ -133,7 +138,6 @@ class TestReactome_analysis_worker(unittest.TestCase):
         worker.process_single_message()
 
         # fetch the result
-        storage = reactome_storage.ReactomeStorage()
         result_text = storage.get_result("test_01")
 
         self.assertIsNotNone(result_text, "Result was not saved in redis")
@@ -301,3 +305,16 @@ class TestReactome_analysis_worker(unittest.TestCase):
 
         self.assertIsNotNone(filtered_df)
         self.assertEqual(2, len(filtered_df))
+
+    def test_version_update(self):
+      worker = reactome_analysis_worker.ReactomeAnalysisWorker()
+
+      # first call should perform an update
+      update_performed = worker._check_for_reactome_update()
+
+      self.assertTrue(update_performed)
+
+      # second call should not perform an update
+      update_performed = worker._check_for_reactome_update()
+
+      self.assertFalse(update_performed)
