@@ -109,38 +109,50 @@ def load_reactome_interactors(filename: str) -> dict:
     :param filename: File to load the interactors from. By default, the packaged file will be used.
     :return: Dict with molecule id as key and its interactors as value = set
     """
-    if not os.path.isfile(filename):
-        raise FileNotFoundError("Failed to find interactor file {}".format(filename))
-
     interactions = dict()
 
-    with open(filename, "r") as reader:
-        header = reader.readline()
-        header_fields = header.split("\t")
+    # support for URLs
+    if filename.startswith("http"):
+        interactor_request = urllib3.PoolManager().request("GET", filename)
+        if interactor_request.status != 200:
+            LOGGER.error("Failed to download interactor file from %s", filename)
+            raise FileNotFoundError("Failed to download interactor file")
+        
+        interactor_string = interactor_request.data.decode()
+    else:
+        if not os.path.isfile(filename):
+            raise FileNotFoundError("Failed to find interactor file {}".format(filename))
+    
+        with open(filename, "r") as reader:
+            interactor_string = reader.read()
 
-        if len(header_fields) < 2 or header_fields[0] != "A" or header_fields[1] != "B" or header_fields[2] != "Score":
-            raise SyntaxError("Invalid interaction file passed. Column 1 must be 'A', column 2 'B', "
-                              "and column 3 'Score'")
+    interactor_lines = interactor_string.split("\n")
+    header = interactor_lines.pop(0)
+    header_fields = header.split("\t")
 
-        for line in reader:
-            line = line.strip()
+    if len(header_fields) < 2 or header_fields[0] != "A" or header_fields[1] != "B" or header_fields[2] != "Score":
+        raise SyntaxError("Invalid interaction file passed. Column 1 must be 'A', column 2 'B', "
+                            "and column 3 'Score'")
 
-            # ignore empty lines
-            if len(line) == 0:
-                continue
+    for line in interactor_lines:
+        line = line.strip()
 
-            fields = line.split("\t")
+        # ignore empty lines
+        if len(line) == 0:
+            continue
 
-            score = float(fields[2])
+        fields = line.split("\t")
 
-            # ignore every interaction below a score of 0.45
-            if score < 0.45:
-                continue
+        score = float(fields[2])
 
-            if fields[0] not in interactions:
-                interactions[fields[0]] = set()
+        # ignore every interaction below a score of 0.45
+        if score < 0.45:
+            continue
 
-            interactions[fields[0]].add(fields[1])
+        if fields[0] not in interactions:
+            interactions[fields[0]] = set()
+
+        interactions[fields[0]].add(fields[1])
 
     return interactions
 
@@ -242,16 +254,19 @@ def load_disease_pathways() -> list:
     return pathways
 
 
-def main():
-    logging.basicConfig(level=logging.DEBUG)
+def perform_update(pathway_source: str = "https://reactome.org/download/current/", 
+                   interactor_file: str = "https://reactome.org/download/current/IntAct_Static.txt", 
+                   disease_pathway_file: str = "https://reactome.org/download/current/HumanDiseasePathways.txt"):
+    """Updates the stored mapping files based on the respective sources. By default.
+       all files are downloaded from the current Reactome release.
 
-    pathway_source = os.getenv("REACTOME_SOURCE", "https://reactome.org/download/current")
-    interactor_file = os.getenv("REACTOME_INTERACTOR_FILE", None)
-    disease_pathway_file = os.getenv("REACTOME_DISEASE_FILE", "https://dev.reactome.org/download/current/HumanDiseasePathways.txt")
-
-    if not interactor_file:
-        LOGGER.error("Missing required environmental variable REACTOME_INTERACTOR_FILE")
-        sys.exit(1)
+    :param pathway_source: General reactome source to use. May be a directory or URL.
+    :type pathway_source: str
+    :param interactor_file: Path to the interactor file. May be a URL.
+    :type interactor_file: str
+    :param disease_pathway_file: Path to the disease pathways. May be a URL.
+    :type disease_pathway_file: str
+    """
 
     # load the interactors
     LOGGER.info("Loading interactors from " + interactor_file)
@@ -311,6 +326,20 @@ def main():
 
         LOGGER.info("Saving gene set to " + target_filename)
         gene_set_no_disease.save(target_filename)
+
+
+def main():
+    logging.basicConfig(level=logging.DEBUG)
+
+    pathway_source = os.getenv("REACTOME_SOURCE", "https://reactome.org/download/current")
+    interactor_file = os.getenv("REACTOME_INTERACTOR_FILE", None)
+    disease_pathway_file = os.getenv("REACTOME_DISEASE_FILE", "https://dev.reactome.org/download/current/HumanDiseasePathways.txt")
+
+    if not interactor_file:
+        LOGGER.error("Missing required environmental variable REACTOME_INTERACTOR_FILE")
+        sys.exit(1)
+
+    perform_update(pathway_source=pathway_source, interactor_file=interactor_file, disease_pathway_file=disease_pathway_file)
 
 
 if __name__ == "__main__":

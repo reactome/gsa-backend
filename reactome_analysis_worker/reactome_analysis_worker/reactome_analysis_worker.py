@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import queue
 import time
+import requests
 
 import numpy
 import prometheus_client
@@ -34,6 +35,7 @@ from reactome_analysis_worker.geneset_builder import GeneSet, generate_pathway_f
 from reactome_analysis_worker.models.gene_set_mapping import GeneSetMapping
 from reactome_analysis_worker.testing_tools.experimental_design_tests import ExperimentalDesignTester, ExperimentalDesignException, ExperimentalDesignExceptionType
 from reactome_analysis_worker.processes.reactome_ora_analyser import ReactomeOraAnalyser
+from reactome_analysis_worker import geneset_builder
 
 
 LOGGER = logging.getLogger(__name__)
@@ -303,6 +305,10 @@ class ReactomeAnalysisWorker:
             LOGGER.debug("Analyser does not require designs. Removing them.")
             for n_dataset in range(0, len(request.datasets)):
                 request.datasets[n_dataset].design = None
+
+        # check the current reactome version
+        self._set_status(request.analysis_id, status="running", description="Updating to new REACTOME version...", completed=0.01)
+        self._check_for_reactome_update()
 
         # update the status and mark it as received
         self._set_status(request.analysis_id, status="running", description="Converting datasets...", completed=0.05)
@@ -802,6 +808,38 @@ class ReactomeAnalysisWorker:
             df = df[above_expression]
 
         return df
+    
+    def _check_for_reactome_update(self) -> bool:
+        """Checks the current version to the current Reactome version
+           and performs an on-the-fly update of the mapping files
+
+        :return: Indicates whether an update was performed
+        :rtype: bool
+        """
+        # get the reactome version
+        version_request = requests.get("https://reactome.org/ContentService/data/database/version")
+        
+        # simply ignore any issues
+        if version_request.status_code != 200:
+            return False
+        
+        # if the version is the same as the current one, continue
+        worker_version = os.getenv("REACTOME_VERSION", "68")
+        database_version = version_request.content.decode()
+
+        if worker_version == database_version:
+            LOGGER.debug("Reactome version up-to-date (%s)", worker_version)
+            return False
+
+        LOGGER.info("Updating to REACTOME version %s", database_version)
+
+        # perform the update
+        geneset_builder.perform_update()
+
+        # update the global variable
+        os.environ["REACTOME_VERSION"] = database_version
+
+        return True
 
 
 def convert_string_data(str_data: str, result_queue: multiprocessing.Queue) -> None:
