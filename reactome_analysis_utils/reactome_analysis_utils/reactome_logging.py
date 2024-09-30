@@ -66,7 +66,7 @@ class ReactomeSMTPHandler(logging.handlers.MemoryHandler):
             return
 
         # create the handler
-        self.smtp_server =  os.environ["SMTP_SERVER"]
+        self.smtp_server = os.environ["SMTP_SERVER"]
         self.smtp_port = os.environ["SMTP_PORT"]
         self.smtp_from = os.environ["FROM_ADDRESS"]
         self.smtp_user = user
