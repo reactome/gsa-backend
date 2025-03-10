@@ -68,7 +68,7 @@ load_libraries <- function() {
     suppressPackageStartupMessages(library(dplyr))
     suppressPackageStartupMessages(library(plyr))
     suppressPackageStartupMessages(library(apeglm))
-    suppressPackageStartupMessages(library(TERAPADOG))
+    suppressPackageStartupMessages(library(terapadog))
 }
 
 #' Main function to process the dataset
