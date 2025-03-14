@@ -17,7 +17,7 @@ if (!requireNamespace("plyr", quietly = TRUE))
 if (!requireNamespace("dplyr", quietly = TRUE))
 	install.packages("dplyr")
 
-for (library_name in required_libraries) {a
+for (library_name in required_libraries) {
 	BiocManager::install(library_name)
 }
 
