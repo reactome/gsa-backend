@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-requirements = ['reactome_analysis_utils', 'grein_loader']
+requirements = ['reactome_analysis_utils', 'grein_loader>=0.0.6']
 
 setup_requirements = [ ]
 
