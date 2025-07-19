@@ -1,6 +1,12 @@
-FROM alpine:3.18.3
+FROM docker.io/library/alpine:3.22.0
 
-RUN apk update && apk add --no-cache uwsgi-python3 py3-pip py3-numpy py3-pandas
+RUN apk update && \
+    apk add --no-cache py3-pip build-base linux-headers python3-dev && \
+    rm /usr/lib/python3.12/EXTERNALLY-MANAGED && \
+    pip install numpy pandas flask hypercorn && \
+    apk del build-base linux-headers python3-dev && \
+    rm -rf ~/.cache/pip && \
+    addgroup -S hypercorn && adduser -S hypercorn -G hypercorn
 
 RUN mkdir -p /usr/apps
 
@@ -22,15 +28,13 @@ RUN create_search_index
 
 EXPOSE 8080
 
-CMD ["uwsgi", \ 
-     "--socket", "0.0.0.0:8080", \
-     "--uid", "uwsgi", \
-     "--gid", "uwsgi", \
-     "--plugins", "python3", \
-     "--protocol", "http", \
-     "--die-on-term", \
-     "--log-master", \
-     "--enable-threads", \
-     "--disable-logging", \
-     "--wsgi", "reactome_analysis_api.__main__:app_dispatch"]
+# ?GID / UID
+# add routing
+CMD ["hypercorn", \ 
+     "--bind", "0.0.0.0:8080", \
+     "--log-file", "-", \
+     "--user", "100", \
+     "--group", "101", \
+     "--log-level", "DEBUG", \
+     "reactome_analysis_api.__main__:app_dispatch"]
      

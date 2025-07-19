@@ -13,8 +13,8 @@ VERSION = "1.0.0"
 # http://pypi.python.org/pypi/setuptools
 
 # markupsafe==2.0.1 is needed as 2.1 removed an important function
-REQUIRES = ["connexion", "flask<2", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", "markupsafe==2.0.1", 
-            "whoosh", "grein_loader"]
+REQUIRES = ["hypercorn", "connexion[flask]", "flask", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", 
+            "markupsafe", "whoosh", "grein_loader"]
 
 setup(
     name=NAME,
