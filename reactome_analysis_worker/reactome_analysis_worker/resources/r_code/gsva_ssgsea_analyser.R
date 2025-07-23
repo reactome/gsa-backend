@@ -16,6 +16,8 @@ load_libraries <- function() {
 #' @param max.sz maximum pathway size to consider
 #' @param pathways A comma delimited list of pathways to include in the analysis
 process <- function(expression.data, gene.indices, data.type, min.sz, max.sz, pathways) {
+    saveRDS(list(expression_data = expression.data, gene_indices = gene.indices, data_type = data.type, min.sz = min.sz, max.sz = max.sz, pathways = pathways), file = "/tmp/gsva_input.rds")
+
     kcdf <- "Gaussian"
 
     if (data.type %in% c("rnaseq_counts", "proteomics_sc")) {
@@ -30,6 +32,11 @@ process <- function(expression.data, gene.indices, data.type, min.sz, max.sz, pa
 
         # filter the gene set
         gene.indices <- gene.indices[names(gene.indices) %in% pathways_to_include]
+    }
+
+    # gene indices must be set to strings in the newest version
+    for (pathway_id in names(gene.indices)) {
+        gene.indices[[pathway_id]] <- as.character(gene.indices[[pathway_id]])
     }
 
     # change gene names to indexes to match the pathway mapping result
