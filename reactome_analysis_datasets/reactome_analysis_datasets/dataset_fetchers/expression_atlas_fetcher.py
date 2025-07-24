@@ -581,6 +581,8 @@ class RLoadingProcess(multiprocessing.Process):
                 metadata <- metadata[, c(ncol(metadata), 1:(ncol(metadata)-1))]
                 # convert to a standard data.frame
                 metadata <- data.frame(metadata)
+                     
+                saveRDS(metadata, "/tmp/metadata.rds")
 
                 # add a "gene" column for the expression values
                 expression_values$gene <- rownames(expression_values)
@@ -596,14 +598,14 @@ class RLoadingProcess(multiprocessing.Process):
             self.heartbeat()
 
             LOGGER.debug("Converting metadata data.frame to string")
-            metadata_string = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["metadata"])
+            metadata_string = ReactomeRAnalyser.data_frame_to_string(ro.r['metadata'])
             self.heartbeat()
 
             if self.exit:
                 return
 
             LOGGER.debug("Converting expression data.frame to string")
-            expression_value_string = ReactomeRAnalyser.data_frame_to_string(ri.globalenv["expression_values"])
+            expression_value_string = ReactomeRAnalyser.data_frame_to_string(ro.r["expression_values"])
             self.heartbeat()
 
             if self.exit:
