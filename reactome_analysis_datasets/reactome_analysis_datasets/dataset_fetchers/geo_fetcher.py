@@ -63,8 +63,6 @@ class GeoFetcher(DatasetFetcher):
         :param gse_identifier: The identifier of the dataset to download
         :type gse_identifier: str
         """
-        # activate R in Python
-        pandas2ri.activate()
         # Load R GEOquery library for temporary R code
         ro.r('library(GEOquery)')
         ro.r(f'gse <- getGEO("{gse_identifier}", GSEMatrix = TRUE)')
@@ -145,16 +143,16 @@ class GeoFetcher(DatasetFetcher):
         # sample-level metadata
         sample_metadata = list()
 
-        for index, sample_field in enumerate(ri.globalenv["pheno_cols"]):
+        for index, sample_field in enumerate(ro.r["pheno_cols"]):
             field_metadata = {
                 "name": sample_field,
-                "values": [str(value).strip() for value in ri.globalenv["pheno_data"][index]]
+                "values": [str(value).strip() for value in ro.r["pheno_data"][index]]
             }
 
             sample_metadata.append(field_metadata)
 
         # get the experiment type
-        stored_type = ri.globalenv["type"][0]
+        stored_type = ro.r["type"][0]
 
         if stored_type == "Expression profiling by array":
             LOGGER.debug("Dataset is microarray")
@@ -168,11 +166,11 @@ class GeoFetcher(DatasetFetcher):
             experiment_type = "microarray_norm"
 
         metadata_obj = ExternalData(id=gse_identifier,
-                                    title=ri.globalenv["title"][0],
+                                    title=ro.r["title"][0],
                                     type=experiment_type,
-                                    description=ri.globalenv["abstract"][0],
+                                    description=ro.r["abstract"][0],
                                     group=None,
-                                    sample_ids=[i.strip() for i in ri.globalenv["sample_ids"]],
+                                    sample_ids=[i.strip() for i in ro.r["sample_ids"]],
                                     sample_metadata=sample_metadata,
                                     default_parameters=None)
         
@@ -190,6 +188,6 @@ class GeoFetcher(DatasetFetcher):
         ro.r(f'count_matrix <- data.frame( exprs(gse) )')
 
         # Convert the R count_matrix to string with seperation
-        count_matrix = ri.globalenv["count_matrix"]
+        count_matrix = ro.r["count_matrix"]
         count_matrix_tsv = ReactomeRAnalyser.data_frame_to_string(count_matrix, add_rownames=True)
         return count_matrix_tsv
