@@ -22,7 +22,7 @@ class ExpressionAtlasFetcherTest(unittest.TestCase):
         fetcher = ExpressionAtlasFetcher()
 
         files_1 = fetcher.fetch_available_files("E-MTAB-970")
-        self.assertEqual(5, len(files_1))
+        self.assertEqual(7, len(files_1))
 
         files_2 = fetcher.fetch_available_files("E-PROT-5")
         self.assertEqual(2, len(files_2))
