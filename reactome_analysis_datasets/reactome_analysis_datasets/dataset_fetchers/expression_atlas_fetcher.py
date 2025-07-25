@@ -17,7 +17,7 @@ import reactome_analysis_worker
 import reactome_analysis_worker.util
 from reactome_analysis_worker.analysers import ReactomeRAnalyser
 from reactome_analysis_utils import reactome_mq
-from pkg_resources import resource_string
+import importlib.resources
 import urllib3
 import json
 import enum
@@ -505,7 +505,8 @@ class RLoadingProcess(multiprocessing.Process):
 
         # load the r_code
         LOGGER.debug("Loading required R preprocessing functions")
-        r_code = resource_string("reactome_analysis_worker.resources.r_code", "preprocessing_functions.R").decode()
+        with importlib.resources.files('reactome_analysis_worker.resources.r_code').joinpath("preprocessing_functions.R").open("r", encoding="UTF-8") as reader:
+            r_code = reader.read()
         self.preprocessing_functions = ro.packages.SignatureTranslatedAnonymousPackage(r_code, "reactome_preprocessing")
 
     def exit_gracefully(self, signum, frame):

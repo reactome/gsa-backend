@@ -12,7 +12,8 @@ import rpy2.rinterface as ri
 import rpy2.rinterface_lib
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri
-from pkg_resources import resource_string, resource_listdir
+import importlib.resources
+
 from reactome_analysis_api.models.analysis_result_results import AnalysisResultResults
 from rpy2.robjects.packages import importr
 
@@ -34,14 +35,16 @@ def load_r_code_file(filename: str) -> ro.packages.SignatureTranslatedAnonymousP
     :return: A SignatureTranslatedAnonymousPackage representing the package
     """
     # make sure the file is a resource file
-    resource_files = resource_listdir('reactome_analysis_worker.resources.r_code', '')
+    resource_files = importlib.resources.files('reactome_analysis_worker.resources.r_code').iterdir()
+    resource_file_names = [resource_obj.name for resource_obj in resource_files]
 
-    if filename not in resource_files:
+    if filename not in resource_file_names:
         LOGGER.error("Failed to load R analyser code: {} does not exist.".format(filename))
         raise AnalysisException("{} is not a valid resource file".format(filename))
 
     # load the code from file
-    r_code = resource_string('reactome_analysis_worker.resources.r_code', filename).decode("UTF-8")
+    with importlib.resources.files('reactome_analysis_worker.resources.r_code').joinpath(filename).open("r", encoding="UTF-8") as reader:
+        r_code = reader.read()
 
     r_package = ro.packages.SignatureTranslatedAnonymousPackage(r_code, "reactome_" + filename[:-2])
 
