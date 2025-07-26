@@ -4,24 +4,25 @@ import csv
 import json
 import logging
 import uuid
-import sys
 import os
 
 import connexion
-from flask import redirect, request, abort, make_response
-from prometheus_client import make_wsgi_app, Counter
+from connexion.jsonifier import Jsonifier
+from flask import redirect, request, make_response
+from prometheus_client import make_asgi_app, Counter
 from reactome_analysis_api import encoder
 from reactome_analysis_utils.reactome_storage import ReactomeStorage, ReactomeStorageException
 from reactome_analysis_utils.reactome_logging import get_default_logging_handlers
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from hypercorn.middleware.dispatcher import AsyncioDispatcherMiddleware
 from reactome_analysis_api.searcher.public_data_searcher import PublicDatasetSearcher
 
-app = connexion.App(__name__, specification_dir='./swagger/')
-app.app.json_encoder = encoder.JSONEncoder
+# create the app using our custom JSONEncoder
+app = connexion.App(__name__, specification_dir='./swagger/', jsonifier=Jsonifier(cls=encoder.JSONEncoder))
 
 # show the metrics on a specific path
-app_dispatch = DispatcherMiddleware(app, {
-    '/metrics': make_wsgi_app()
+app_dispatch = AsyncioDispatcherMiddleware({
+    '/metrics': make_asgi_app(),
+    '': app
 })
 
 app.add_api('swagger.yaml', arguments={'title': 'REACTOME Analysis Service'})
@@ -48,9 +49,8 @@ LOGGER.setLevel(logging.DEBUG)
 UPLOAD_ERRORS = Counter("reactome_api_upload_errors", 
                         "Invalid file uploads", labelnames=["extension"])
 
-
 def main():
-    app.run(port=8080, debug=True)
+    app.run(port=8090)
 
 def custom_abort(code: int, message: str):
     """Creates a custom error response. This is needed as
