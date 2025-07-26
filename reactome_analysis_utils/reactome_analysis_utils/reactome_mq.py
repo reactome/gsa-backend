@@ -19,7 +19,7 @@ parameters:
 import logging
 import os
 import sys
-import signal
+import atexit
 
 import pika
 import pika.exceptions
@@ -66,9 +66,8 @@ class ReactomeMQ:
         self._channel = None
         self._shutdown = False
 
-        # stop analyses on TERM signals
-        signal.signal(signal.SIGTERM, self._on_signal)
-        signal.signal(signal.SIGINT, self._on_signal)
+        # stop analyses on exit
+        atexit.register(self._on_signal)
 
     def _get_queue_arguments(self) -> dict:
         """Returns the arguments used to create the queues
