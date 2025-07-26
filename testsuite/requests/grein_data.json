@@ -72,13 +72,13 @@
             "name": "GSE100040 pathways",
             "dataset": "GSE100040",
             "type": "pathways",
-            "value": 2644
+            "value": 2740
         },
         {
             "name": "GSE100040 fold-changes",
             "dataset": "GSE100040",
             "type": "fold_changes",
-            "value": 10945
+            "value": 11038
         },
         {
             "name": "GSE100040 Visualizations",
