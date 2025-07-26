@@ -82,13 +82,14 @@ def start_analysis(body):  # noqa: E501
         user_client = "PathwayBrowser"
 
     # get the JSON-encoded dict from the request object
-    if connexion.request.is_json:
-        analysis_dict = connexion.request.get_json(cache=False)
+    if "json" in connexion.request.content_type:
+        analysis_dict = body
     # de-compress if it's a gzipped string
     elif connexion.request.content_type == "application/gzip":
+        # TODO: This still needs to be fixed
         LOGGER.debug("Received gzipped analysis request. Decompressing...")
 
-        decompressed_string = zlib.decompress(connexion.request.data)
+        decompressed_string = zlib.decompress(body)
         analysis_dict = json.loads(decompressed_string)
         
         # free the memory again

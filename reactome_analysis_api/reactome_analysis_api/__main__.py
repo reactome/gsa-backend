@@ -50,7 +50,7 @@ UPLOAD_ERRORS = Counter("reactome_api_upload_errors",
                         "Invalid file uploads", labelnames=["extension"])
 
 def main():
-    app.run(port=8090)
+    app.run(port=8090, log_level="debug")
 
 def custom_abort(code: int, message: str):
     """Creates a custom error response. This is needed as
