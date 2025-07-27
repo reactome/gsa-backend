@@ -47,9 +47,40 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
         formatted_string = "Gene" + formatted_string
 
     # Convert to a numpy array
+    
+    # Note: Due to some bug, the automatic type detection in numpy no longer works
+    #       properly in numpy, therefore, types are detected "manually"
+
+    # get the second line
+    lines = formatted_string.splitlines()
+    if len(lines) < 2:
+        raise ConversionException("Insuffcient number of lines found")
+    
+    fields = lines[1].split("\t")
+    field_types = list()
+
+    for field in fields:
+        # test for an integer first
+        try:
+            value = int(field)
+            field_types.append("i8")
+            continue
+        except Exception:
+            pass
+
+        # try a float as second option
+        try:
+            value = float(field)
+            field_types.append("f8")
+            continue
+        except Exception:
+            pass
+
+        # use string as last type
+        field_types.append("U15")
     try:
-        array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=None,
-                              encoding=None, missing_values="NA", filling_values=0)
+        array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=field_types,
+                                encoding=None, missing_values="NA", filling_values=0)
 
         # ensure that the first (identifier) column is a string
         if first_column_str and not str(array.dtype[0]).startswith("<U"):
