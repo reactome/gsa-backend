@@ -75,6 +75,10 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
 
         # use string as last type
         field_types.append("U30")
+
+    # change the first column to string (required for NCBI identifiers
+    field_types[0] = "U30"
+
     try:
         array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=field_types,
                                 encoding=None, missing_values="NA", filling_values=0)
