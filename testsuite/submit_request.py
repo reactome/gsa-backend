@@ -8,6 +8,7 @@ import numpy
 import click
 import os
 import sys
+import zlib
 
 
 """
@@ -454,7 +455,17 @@ def run_analysis(request: dict, service_url: str):
     :returns: The (analysis identifier, status object)
     """
     # start the analysis
-    analysis_request = requests.post(service_url + "analysis", json=request)
+    if "compress" in request and request["compress"]:
+        # compress the request if set
+        logger.info("Sending compressed request...")
+        json_string = json.dumps(request)
+        compressed_data = zlib.compress(json_string.encode())
+
+        analysis_request = requests.post(service_url + "analysis", 
+                                         data=compressed_data,
+                                         headers={"Content-Type": "application/gzip"})
+    else:
+        analysis_request = requests.post(service_url + "analysis", json=request)
 
     if analysis_request.status_code != 200:
         raise Exception("Failed to submit analysis: " + analysis_request.content.decode())
