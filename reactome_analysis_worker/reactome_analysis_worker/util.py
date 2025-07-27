@@ -77,7 +77,7 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
             pass
 
         # use string as last type
-        field_types.append("U15")
+        field_types.append("U30")
     try:
         array = np.genfromtxt(StringIO(formatted_string), names=True, autostrip=True, delimiter="\t", dtype=field_types,
                                 encoding=None, missing_values="NA", filling_values=0)
