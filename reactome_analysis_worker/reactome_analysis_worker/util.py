@@ -60,15 +60,7 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
     field_types = list()
 
     for field in fields:
-        # test for an integer first
-        try:
-            value = int(field)
-            field_types.append("i8")
-            continue
-        except Exception:
-            pass
-
-        # try a float as second option
+        # treat all numeric values as floats
         try:
             value = float(field)
             field_types.append("f8")
