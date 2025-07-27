@@ -68,6 +68,11 @@ def string_to_array(string: str, first_column_str: bool = True) -> np.ndarray:
         except Exception:
             pass
 
+        # treat "NA" columns as numeric
+        if field.strip().lower() == "na":
+            field_types.append("f8")
+            continue
+
         # use string as last type
         field_types.append("U30")
     try:
