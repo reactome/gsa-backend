@@ -3,7 +3,7 @@ FROM docker.io/library/alpine:3.22.0
 RUN apk update && \
     apk add --no-cache py3-pip build-base linux-headers python3-dev && \
     rm /usr/lib/python3.12/EXTERNALLY-MANAGED && \
-    pip install numpy pandas flask hypercorn && \
+    pip install numpy pandas hypercorn && \
     apk del build-base linux-headers python3-dev && \
     rm -rf ~/.cache/pip && \
     addgroup -S hypercorn && adduser -S hypercorn -G hypercorn
