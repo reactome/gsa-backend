@@ -89,10 +89,7 @@ def upload_ribo():
     store_file = request.args.get('store', 'true').lower() == "true"
 
     if 'fileRibo' not in request.files or 'fileRNA' not in request.files:
-        return custom_abort(400, "Incorrect number of uploaded files. Function requires two files.")
-
-    if "fileRibo" not in request.files or "fileRNA" not in request.files:
-        return custom_abort(400, "File must be uploaded as 'file' in the form.")
+        return custom_abort(400, "Incorrect number of uploaded files or not in 'file' form")
 
     # get the uploaded file
     file_rna = request.files['fileRNA']
@@ -103,8 +100,6 @@ def upload_ribo():
 
     # initialize the return object
     return_object = {"sample_names": None, "top_identifiers": list(), "n_lines": None}
-    return_lines = list()
-    n_samples = -1
 
     # read the file
     try:
@@ -115,13 +110,13 @@ def upload_ribo():
         (name, rna_extension) = os.path.splitext(user_file_rna)
         (name, ribo_extension) = os.path.splitext(user_file_ribo)
 
-        if rna_extension == ".xlsx" or ribo_extension == ".xlsx":
-            UPLOAD_ERRORS.labels(extension=rna_extension + ribo_extension).inc()
+        if rna_extension == ".xslx" or ribo_extension == ".xslx":
             LOGGER.debug("Excel file upload")
             return custom_abort(400, "MS Excel files are not supported. Please save as a text file (txt, csv, or tsv).")
         else:
             LOGGER.info(
-                "Invalid file {name} uploaded: {error}".format(name=user_file_rna + user_file_ribo, error=str(e)))
+                "Invalid files in RiboSeq upload RiboFile: {ribo}, RNAFile: {rna} with error: {error}".format(
+                    ribo=user_file_rna, rna=user_file_ribo, error=str(e)))
             UPLOAD_ERRORS.labels(extension="other").inc()
             return custom_abort(400, "Uploaded file is not a text file.")
 
@@ -130,28 +125,9 @@ def upload_ribo():
         LOGGER.info("Empty file uploaded.")
         return custom_abort(400, "The uploaded file seems to be empty.")
 
-    # guess the delimiter
-    delimiter_rna = None
-    if "\t" in all_lines_rna[0]:
-        delimiter_rna = "\t"
-    elif ";" in all_lines_rna[0]:
-        delimiter_rna = ";"
-    elif "," in all_lines_rna[0]:
-        delimiter_rna = ","
-
-    delimiter_ribo = None
-    if "\t" in all_lines_ribo[0]:
-        delimiter_ribo = "\t"
-    elif ";" in all_lines_ribo[0]:
-        delimiter_ribo = ";"
-    elif "," in all_lines_ribo[0]:
-        delimiter_ribo = ","
-
-    if not delimiter_ribo:
-        return custom_abort(500, "Failed to detect used delimiter for Ribo Seq File")
-
-    if not delimiter_rna:
-        return custom_abort(500, "Failed to detect used delimiter for RNA Seq File")
+    # guess and check for valid delimiter
+    delimiter_rna = get_delimiter(all_lines_rna)
+    delimiter_ribo = get_delimiter(all_lines_ribo) # check for valid delimiter
 
     if all_lines_ribo[0] != all_lines_rna[0]:
         LOGGER.info("RNA Seq and Ribo Seq are not equal")
@@ -204,10 +180,7 @@ def upload_ribo():
             return custom_abort(500, "Failed to store request data. Please try again later.")
 
     # return JSON
-    response_object = make_response(json.dumps(return_object))
-    response_object.headers["Content-Type"] = "text/html"
-
-    return response_object
+    return jsonify(return_object)
 
 
 @app.route("/upload", methods=["POST"])
@@ -253,17 +226,7 @@ def process_file_upload():
         return custom_abort(400, "The uploaded file seems to be empty.")
 
     # guess the delimiter
-    delimiter = None
-    if "\t" in all_lines[0]:
-        delimiter = "\t"
-    elif ";" in all_lines[0]:
-        delimiter = ";"
-    elif "," in all_lines[0]:
-        delimiter = ","
-
-    if not delimiter:
-        return custom_abort(500, "Failed to detect used delimiter")
-
+    delimiter = get_delimiter(all_lines)
     try:
         csv_reader = csv.reader(all_lines, delimiter=delimiter)
         header_line = csv_reader.__next__()
@@ -344,7 +307,6 @@ def process_file_upload():
     result_string = "\n".join(return_lines)
 
     # add the file if it shouldn't be saved
-    store_file = False  # remove when merging
     if not store_file:
         return_object["data"] = result_string
     else:
@@ -374,6 +336,21 @@ def process_file_upload():
     response_object.headers["Content-Type"] = "text/html"
 
     return response_object
+
+
+def get_delimiter(lines: list) -> str:
+    delimiter = None
+    if "\t" in lines[0]:
+        delimiter = "\t"
+    elif ";" in lines[0]:
+        delimiter = ";"
+    elif "," in lines[0]:
+        delimiter = ","
+
+    if not delimiter:
+        return custom_abort(500, "Failed to detect used delimiter for file")
+
+    return delimiter
 
 
 if __name__ == '__main__':

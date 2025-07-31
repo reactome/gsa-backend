@@ -1,3 +1,13 @@
+#' Function to convert (for discrete values) and normalise (if set) the data.
+#'
+#' This function evaluates two global values as parameters: \code{edger.norm.function}
+#' and \code{continuous.norm.function} which control the normalisation methods used
+#' for discrete and continuous data respectively.
+#'
+#' @param expression.data data.frame containing the expression values
+#' @param sample.data data.frame with all sample annotations (one sample per row)
+#' @param design model.matrix specifying the experimental design
+#' @param data.type type of data submitted only riboseq data is allowed in this case
 prepareData <- function(expression.data, sample.data, design, analysis.group.1, analysis.group.2) {
  # Copy sample.data to the exp_de dataframe
     exp_de <- sample.data
@@ -47,17 +57,31 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
     return(list(expression.data = expression.data, exp_de = exp_de))
 }
 
-
+#' "Public" function called by the analyzer to load the required libraries.
+#' This is mainly put in a separate function to be able to quicky see if
+#' required libraries are not available on the system.
+#'
 load_libraries <- function() {
     suppressPackageStartupMessages(library(edgeR))
-    suppressPackageStartupMessages(library(limma)) # maybe not needed
+    suppressPackageStartupMessages(library(limma))
     suppressPackageStartupMessages(library(DESeq2))
     suppressPackageStartupMessages(library(dplyr))
     suppressPackageStartupMessages(library(plyr))
     suppressPackageStartupMessages(library(apeglm))
+    suppressPackageStartupMessages(library(terapadog))
 }
 
-
+#' Main function to process the dataset
+#'
+#' @param expression.data data.frame containing the expression values
+#' @param sample.data data.frame with all sample annotations (one sample per row)
+#' @param design model.matrix specifying the experimental design
+#' @param gene.indices a named list with each gene set as entry (and its id as name) and the index of the member
+#'        genes based on the expression.data data.frame as values
+#' @param data.type type of data submitted (ie. rnaseq, proteomics-sc, proteomics-int)
+#' @param analysis.group.1 name of the first coefficient to test based on the experimental design. Must correspond
+#'        to a colname in the \code{design}
+#' @param analysis.group.2 name of the second coefficient to test based on the experimental design
 process <- function(expression.data, sample.data, design, gene.indices, data.type, analysis.group.1, analysis.group.2) {
 
     # Prepare the data for DeltaTE (expression.data and exp_de)
@@ -258,414 +282,4 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
     col_order <- c("Identifier", colnames(res_combined)[1:ncol(res_combined)])
 
     return(res_combined[, col_order])
-}
-
-
-# Implementation of TerraPadog algorithm
-
-
-terapadog <- function (esetm = NULL, exp_de = NULL, paired = FALSE,
-    gslist = "KEGGRESTpathway", organism = "hsa", annotation = NULL,
-    gs.names = NULL, NI = 1000, Nmin = 3, verbose = TRUE, parallel = FALSE, dseed = NULL,
-    ncr = NULL) {
-
-    # Initial checks on the data (as PADOG would do). Some have been modified/removed to fit new kind of data.
-    if (length(gslist) == 1 && gslist == "KEGGRESTpathway") {
-        stopifnot(nchar(organism) == 3)
-        res <- keggLink("pathway", organism)
-        a <- data.frame(path = gsub(paste0("path:", organism),
-                                    "", res), gns = gsub(paste0(organism, ":"),
-                                                         "", names(res)))
-        gslist <- tapply(a$gns, a$path, function(x) {
-            as.character(x)
-        })
-        gs.names <- keggList("pathway", organism)[paste0("path:",
-                                                        organism, names(gslist))]
-        names(gs.names) <- names(gslist)
-        stopifnot(length(gslist) >= 3)
-        rm(res, a)
-    }
-    stopifnot(is.matrix(esetm))
-    stopifnot(all(dim(esetm) > 4))
-    stopifnot(mode(gslist) == "list")
-    stopifnot(length(gslist) >= 3)
-
-    if (!is.null(gs.names)) {
-        stopifnot(length(gslist) == length(gs.names))
-    }
-    stopifnot(class(NI) == "numeric")
-    stopifnot(NI > 5)
-    if (!is.null(annotation)) {
-        if (!annotation %in% c("hgu133a.db", "hgu133plus2.db")) {
-            stopifnot(require(annotation, character.only = TRUE))
-        }
-        stopifnot(sum(rownames(esetm) %in% mappedkeys(get(paste0(substr(annotation,
-            1, nchar(annotation) - 3), "ENTREZID")))) > 4)
-    }
-    else {
-        stopifnot(sum(rownames(esetm) %in% as.character(unlist(gslist))) >
-            10 & !any(duplicated(rownames(esetm))))
-    }
-
-    # Initial operations on the gene set lists. Unchanged from PADOG.
-    gf <- table(unlist(gslist))
-    if (!(var(gf) == 0)) {
-        if (quantile(gf, 0.99) > mean(gf) + 3 * sd(gf)) {
-            gf[gf > quantile(gf, 0.99)] <- quantile(gf, 0.99)
-        }
-        gff <- function(x) {
-            1 + ((max(x) - x)/(max(x) - min(x)))^0.5
-        }
-        gf <- gff(gf)
-    }
-    else {
-        fdfd <- unique(unlist(gslist))
-        gf <- rep(1, length(fdfd))
-        names(gf) <- fdfd
-    }
-    allGallP <- unique(unlist(gslist))
-
-    restg <- setdiff(rownames(esetm), names(gf))
-    appendd <- rep(1, length(restg))
-    names(appendd) <- restg
-    gf <- c(gf, appendd)
-    stopifnot(all(!duplicated(rownames(esetm))))
-    stopifnot(sum(rownames(esetm) %in% allGallP) > 10)
-    if (verbose) {
-        cat(paste0("Starting with ", length(gslist), " gene sets!"))
-        cat("\n")
-    }
-    gslist <- gslist[unlist(lapply(gslist, function(x) {
-        length(intersect(rownames(esetm), x)) >= Nmin
-    }))]
-    gs.names <- gs.names[names(gslist)]
-    stopifnot(length(gslist) >= 3)
-    if (verbose) {
-        cat(paste0("Analyzing ", length(gslist), " gene sets with ", Nmin, " or more genes!"))
-        cat("\n")
-    }
-
-    if (!is.null(dseed))
-        set.seed(dseed)
-
-    # Here starts what was modified more heavily.
-
-    # This section groups matching RNA and RIBO samples under a single index, to keep the matching samples together
-    # during the group label shuffling step.
-
-    # Orders matching RIBO and RNA samples by the SampleName value (provided by the user when submitting data)
-    exp_de_ordered <- exp_de[do.call(order, exp_de["SampleName"]),]
-
-    # Retrieves the indexes (from exp_de) for each RNA and matching RIBO Sample.
-    ordered_indexes <- rownames(exp_de_ordered)
-    grouped_indexes <- as.data.frame(matrix(ordered_indexes, ncol = 2, byrow = TRUE))
-
-    # Adds to the dataframe info on the Group (c or d) for each couple of indices
-    grouped_indexes$Group <- exp_de_ordered[exp_de_ordered$SeqType != "RIBO", ]$Group
-
-    block <- NULL
-    if (paired) {
-        # Retrieves the info for paired samples from the dataframe
-        grouped_indexes$Block <- exp_de_ordered[exp_de_ordered$SeqType != "RIBO", ]$Block
-        block <- factor(grouped_indexes$Block)
-    }
-
-    # Extracts the group vector from the dataframe, to use it for permutations as PADOG does
-    group <- grouped_indexes$Group
-
-    # Global variables
-
-    G <- factor(group) # creates a vector of factors ("c" or "d" in riboNAV)
-    Glen <- length(G) # number of samples (since each factor is tied to a sample)
-    tab <- table(G) # counts frequency for each factor
-    idx <- which.min(tab) # finds factors with least number of samples assigned
-    minG <- names(tab)[idx] # retrieve its name
-    minGSZ <- tab[idx] # retrieves number of samples assigned to it
-    bigG <- rep(setdiff(levels(G), minG), length(G))
-
-    # Creates all the possible "Group" label permutations (c or d) for the given data.
-    combFun <- function(gi, countn = TRUE) {
-        g <- G[gi]
-        tab <- table(g)
-        if (countn) {
-            minsz <- min(tab)
-            ifelse(minsz > 10, -1, choose(length(g), minsz))
-        }
-        else {
-            dup <- which(g == minG)
-            cms <- combn(length(g), tab[minG])
-            del <- apply(cms, 2, setequal, dup)
-            if (paired) {
-                cms <- cms[, order(del, decreasing = TRUE), drop = FALSE]
-                cms[] <- gi[c(cms)]
-                cms
-            }
-            else {
-                cms[, !del, drop = FALSE]
-            }
-        }
-    }
-
-
-    if (paired) {
-        bct <- tapply(seq_along(G), block, combFun, simplify = TRUE)
-        nperm <- ifelse(any(bct < 0), -1, prod(bct))
-        if (nperm < 0 || nperm > NI) {
-            btab <- tapply(seq_along(G), block, `[`, simplify = FALSE)
-            bSamp <- function(gi) {
-                g <- G[gi]
-                tab <- table(g)
-                bsz <- length(g)
-                minsz <- tab[minG]
-                cms <- do.call(cbind, replicate(NI, sample.int(bsz,
-                  minsz), simplify = FALSE))
-                cms[] <- gi[c(cms)]
-                cms
-            }
-            combidx <- do.call(rbind, lapply(btab, bSamp))
-        }
-        else {
-            bcomb <- tapply(seq_along(G), block, combFun, countn = FALSE,
-                simplify = FALSE)
-            colb <- expand.grid(lapply(bcomb, function(x) 1:ncol(x)))[-1,
-                , drop = FALSE]
-            combidx <- mapply(function(x, y) x[, y, drop = FALSE],
-                bcomb, colb, SIMPLIFY = FALSE)
-            combidx <- do.call(rbind, combidx)
-        }
-    }
-    else {
-        # Checks number of permutations that would be created. Must be >0 and < 1000
-        nperm <- combFun(seq_along(G))
-        if (nperm < 0 || nperm > NI) {
-            combidx <- do.call(cbind, replicate(NI, sample.int(Glen,
-                minGSZ), simplify = FALSE))
-        } else {
-            # If nperm is acceptable, then permutation matrix combidx is generated (is the product of "cms" of combFun)
-            combidx <- combFun(seq_along(G), countn = FALSE)
-        }
-    }
-
-    NI <- ncol(combidx)
-    if (verbose) {
-        cat("# of permutations used:", NI, "\n")
-    }
-
-    deINgs <- intersect(rownames(esetm), unlist(gslist))
-    gslistINesetm <- lapply(gslist, match, table = deINgs, nomatch = 0)
-    MSabsT <- MSTop <- matrix(NA, length(gslistINesetm), NI +
-        1)
-
-    gsScoreFun <- function(G, block) {
-        force(G) # Forces evaluation of G
-        force(block) # Forces evaluation of block
-
-        # This bit re-assigns the "Group" label to the samples according to the combidx matrix, if past the first iteration
-
-        if (ite > 1) {
-            G <- bigG
-            G[combidx[, ite - 1]] <- minG
-            G <- factor(G)
-
-            # Unpacks grouped_indexes, so to have "group" labels for each sample (RNA count and RIBO count) in a vector
-            for (i in seq_along(G)) {
-
-                # Get the new label from G
-                value <- as.character(G[i])
-
-                # Updates exp_de according to the retrieved indexes (from grouped_indexes) with the new "group" label
-                exp_de[grouped_indexes[i,]$V1, ]$Group <- value
-                exp_de[grouped_indexes[i,]$V2, ]$Group <- value
-            }
-        }
-
-        if (paired) {
-            design_TE <- ~ Block + Group + SeqType+ Group:SeqType # Paired designs do not have batch effect correction!
-        }
-        else { # Add if statement, if there is batch, then do this, else do not
-            design_TE <- ~ Group + SeqType+ Group:SeqType
-        }
-
-        # Setup the ddsMat object
-        ddsMat <- DESeqDataSetFromMatrix(
-        countData = esetm,
-        colData = exp_de,
-        design = design_TE
-        )
-
-        # Calculate results (without printing messages on console)
-        ddsMat <- suppressMessages(DESeq(ddsMat))
-
-        # Extract specific comparison of interest
-        res <- results(ddsMat, name = "Groupd.SeqTypeRIBO")
-
-        # originally, moderated t-values (abs value) were retrived and stored in a df.
-        # Now it just extracts adjusted p-values.
-        de <- res$padj
-        names(de) <- rownames(res)
-
-        # The scaling happens.
-        degf <- scale(cbind(de, de * gf[names(de)]))
-        rownames(degf) <- names(de)
-        degf <- degf[deINgs, , drop = FALSE]
-
-        sapply(gslistINesetm, function(z) {
-            X <- na.omit(degf[z, , drop = FALSE])
-            colMeans(X, na.rm = TRUE) * sqrt(nrow(X))
-        })
-    }
-
-    if (parallel && requireNamespace("doParallel", quietly = TRUE) &&
-        requireNamespace("parallel", quietly = TRUE)) {
-        ncores <- parallel::detectCores()
-        if (!is.null(ncr))
-            ncores <- min(ncores, ncr)
-        if (verbose) {
-            clust <- parallel::makeCluster(ncores, outfile = "")
-        }
-        else {
-            clust <- parallel::makeCluster(ncores)
-        }
-        doParallel::registerDoParallel(clust)
-        tryCatch({
-            parRes <- foreach(ite = 1:(NI + 1), .combine = "c",
-                .packages = "DESeq2") %dorng% { # original: .packages = "limma"
-                Sres <- gsScoreFun(G, block)
-                tmp <- list(t(Sres))
-                names(tmp) <- ite
-                if (verbose && (ite%%10 == 0)) {
-                  cat(ite, "/", NI, "\n")
-                }
-                tmp
-            }
-            parRes <- do.call(cbind, parRes[order(as.numeric(names(parRes)))])
-            evenCol <- (1:ncol(parRes))%%2 == 0
-            MSabsT[] <- parRes[, !evenCol]
-            MSTop[] <- parRes[, evenCol]
-            rm(parRes)
-        }, finally = parallel::stopCluster(clust))
-    }
-    else {
-        if (parallel)
-            message("Execute in serial! Packages 'doParallel' and 'parallel'\n needed for parallelization!")
-        for (ite in 1:(NI + 1)) {
-            Sres <- gsScoreFun(G, block)
-            MSabsT[, ite] <- Sres[1, ]
-            MSTop[, ite] <- Sres[2, ]
-            if (verbose && (ite%%10 == 0)) {
-                cat(ite, "/", NI, "\n")
-            }
-        }
-    }
-    meanAbsT0 <- MSabsT[, 1]
-    padog0 <- MSTop[, 1]
-    MSabsT <- scale(MSabsT)
-    MSTop <- scale(MSTop)
-
-    # mff is what checks the real score against the ones obtained by iteratively shuffling the "Group" labels.
-    # Originally, PADOG compares t-scores (the bigger, the more significant).
-    # Since we are using adjusted p-values, the smaller the more significant, so the comparison sign was changed.
-
-    mff <- function(x) {
-        mean(x[-1] < x[1], na.rm = TRUE) # Original mean(x[-1] > x[1], na.rm = TRUE)
-    }
-    PSabsT <- apply(MSabsT, 1, mff)
-    PSTop <- apply(MSTop, 1, mff)
-    PSabsT[PSabsT == 0] <- 1/NI/100
-    PSTop[PSTop == 0] <- 1/NI/100
-
-    # Removed part for plots
-    if (!is.null(gs.names)) {
-        myn <- gs.names
-    }
-    else {
-        myn <- names(gslist)
-    }
-    SIZE <- unlist(lapply(gslist, function(x) {
-        length(intersect(rownames(esetm), x))
-    }))
-    res <- data.frame(Name = myn, ID = names(gslist), Size = SIZE,
-        meanAbsT0, padog0, PmeanAbsT = PSabsT, Ppadog = PSTop,
-        stringsAsFactors = FALSE)
-    ord <- order(res$Ppadog, -res$padog0)
-    res <- res[ord, ]
-    return(res)
-}
-
-
-assign_Regmode <- function(res_df) {
-    # Function checks padj (the padj value for the TE change), the RIBO_padj (same but for the FC from Ribo-Seq counts)
-    # and the RNA_padj (same as above, but for RNA FC).
-    res_df$RegMode <- NA
-    res_df$RegModeExplicit <- NA
-
-
-    #Applying the "Forwarded" RegMode (genes regulated by mRNA abundance, with no signficant changes in Translational Efficiency)
-    forwarded <- res_df$padj > 0.05 & res_df$RIBO_padj < 0.05 & res_df$RNA_padj < 0.05
-    res_df$RegMode[forwarded] <- "Forwarded"
-    # Checks directionality of FC and assigns a more "explicit" RegMode value
-    up_forwarded <- res_df$RegMode == "Forwarded" & res_df$RNA_FC > 0
-    res_df$RegModeExplicit[up_forwarded] <- "(Up)regulated, driven by mRNA transcription only"
-    down_forwarded <- res_df$RegMode == "Forwarded" & res_df$RNA_FC < 0
-    res_df$RegModeExplicit[down_forwarded] <- "(Down)regulated, driven by mRNA transcription only"
-
-
-    # Applying "Exclusive" RegMode (genes regulated by translation effiency, with no change in mRNA abundance.
-    exclusive <- res_df$padj < 0.05 & res_df$RIBO_padj < 0.05 & res_df$RNA_padj > 0.05
-    res_df$RegMode[exclusive] <- "Exclusive"
-    # Checks directionality of FC and assigns a more "explicit" RegMode value
-    up_exclusive <- res_df$RegMode == "Exclusive" & res_df$log2FoldChange > 0
-    res_df$RegModeExplicit[up_exclusive] <- "(Up)regulated, driven by mRNA translation only"
-    down_exclusive <- res_df$RegMode == "Exclusive" & res_df$log2FoldChange < 0
-    res_df$RegModeExplicit[down_exclusive] <- "(Down)regulated, driven by mRNA translation only"
-
-
-    # Applying "Buffered" RegMode. This requires a more complex condition. All padjs must be significant, but
-    # The directionality of the Fold change between TE and RNA must be opposite.
-    buffered <- (res_df$padj < 0.05 & res_df$RIBO_padj < 0.05 & res_df$RNA_padj < 0.05) &
-      res_df$log2FoldChange * res_df$RNA_FC < 0
-    res_df$RegMode[buffered] <- "Buffered"
-    # Buffered (special case, when the effect of TE and RNA cancels out the change in RIBO)
-    buffered_special <- res_df$padj < 0.05 & res_df$RIBO_padj > 0.05 & res_df$RNA_padj < 0.05
-    res_df$RegMode[buffered_special] <- "Buffered"
-    # Checks directionality of FC and assigns a more "explicit" RegMode value
-    buffered_mRNA_down <- res_df$RegMode == "Buffered" & res_df$RNA_FC < 0
-    res_df$RegModeExplicit[buffered_mRNA_down] <- "Buffered, decrease in mRNA levels counteracted by increase in translation"
-    buffered_mRNA_up <- res_df$RegMode == "Buffered" & res_df$RNA_FC > 0
-    res_df$RegModeExplicit[buffered_mRNA_up] <- "Buffered, increase in mRNA levels counteracted by decrease in translation"
-
-
-    # Applying "Intensified" RegMode. This requires a more complex condition. All padjs must be significant, but
-    # The directionality of the Fold change between TE and RNA must be the same.
-    intensified <- (res_df$padj < 0.05 & res_df$RIBO_padj < 0.05 & res_df$RNA_padj < 0.05) &
-      res_df$log2FoldChange * res_df$RNA_FC > 0
-    res_df$RegMode[intensified] <- "Intensified"
-    # Checks directionality of FC and assigns a more "explicit" RegMode value
-    intensified_down <- res_df$RegMode == "Intensified" & res_df$RNA_FC < 0
-    res_df$RegModeExplicit[intensified_down] <- "Synergic decrease in both transcription and translation"
-    insensified_up <- res_df$RegMode == "Intensified" & res_df$RNA_FC > 0
-    res_df$RegModeExplicit[insensified_up] <- "Synergic increase in both transcription and translation"
-
-
-    # No change case
-    no_change <- res_df$padj > 0.05 & res_df$RIBO_padj > 0.05 & res_df$RNA_padj > 0.05
-    res_df$RegMode[no_change] <- "No Change"
-    res_df$RegModeExplicit[no_change] <- "No significant change detected in transcription or translation"
-
-
-    # When a padj value is NA -> A padj is not calculated if the gene data is below a quality treshold enforced by DESeq2.
-    no_data <- is.na(res_df$padj) | is.na(res_df$RIBO_padj) | is.na(res_df$RNA_padj)
-    res_df$RegMode[no_data] <- "Undeterminable"
-    res_df$RegModeExplicit[no_data] <- "One or more adjusted p-values are missing (NA)"
-
-
-    # Combination of padjs not categorised by DeltaTE (Defined as "Undetermined" by Chotani et al. 2019)
-    undetermined <- (res_df$padj > 0.05 & res_df$RIBO_padj > 0.05 & res_df$RNA_padj < 0.05)  |
-        (res_df$padj > 0.05 & res_df$RIBO_padj < 0.05 & res_df$RNA_padj > 0.05) |
-        (res_df$padj < 0.05 & res_df$RIBO_padj > 0.05 & res_df$RNA_padj > 0.05)
-    res_df$RegMode[undetermined] <- "Undetermined"
-    res_df$RegModeExplicit[undetermined] <- "Cannot be assigned to any Regulatory Mode"
-
-
-    return(res_df)
 }

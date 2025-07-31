@@ -58,8 +58,8 @@ def list_types():
                  name="Microarray (normalized)",
                  description="Normalized and log2 transformed microarray-based gene expression values."),
         DataType(id="ribo_seq",
-                 name="Ribo-seq",
-                 description="Ribo seq data analysis using RNA-seq data and Ribo-seq data")
+                 name="Ribo-Seq",
+                 description="Translation efficiency analysis using Ribo-Seq data and paired RNA-Seq data")
     ]
 
     return data_types
