@@ -14,6 +14,7 @@ from reactome_analysis_datasets.dataset_fetchers.example_fetcher import ExampleD
 from reactome_analysis_datasets.dataset_fetchers.expression_atlas_fetcher import ExpressionAtlasFetcher
 from reactome_analysis_datasets.dataset_fetchers.sc_expression_atlas_fetcher import ScExpressionAtlasFetcher
 from reactome_analysis_datasets.dataset_fetchers.grein_fetcher import GreinFetcher
+from reactome_analysis_datasets.dataset_fetchers.geo_fetcher import GeoFetcher
 
 
 LOGGER = logging.getLogger(__name__)
@@ -227,5 +228,8 @@ class ReactomeAnalysisDatasetFetcher:
     
         if resource_id == "grein":
             return GreinFetcher()
+        
+        if resource_id == "geo_microarray":
+            return GeoFetcher()
 
         return None

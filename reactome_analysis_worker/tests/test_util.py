@@ -17,6 +17,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual("Gene 1", array[0][array.dtype.names[0]])
         self.assertEqual("Gene 2", array[1][array.dtype.names[0]])
 
+    def testNaConversion(self):
+        text = "\\tSample 1\\tSample2\\nGene 1\\tNA\\t20\\nGene 2\\t10\\t30\\nGene 3\\t10\\t30\\n"
+
+        array = util.string_to_array(text)
+        self.assertEqual(1, array.ndim)
+        self.assertEqual("Gene 1", array[0][array.dtype.names[0]])
+        self.assertEqual("Gene 2", array[1][array.dtype.names[0]])
+
+
     def testMissingValuesConversion(self):
         """
         Test basic data structure conversion

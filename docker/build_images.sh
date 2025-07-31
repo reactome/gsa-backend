@@ -13,13 +13,13 @@
 # CONFIG
 
 # The Docker Hub username to tag the images with
-DOCKER_USER="jgriss"
+DOCKER_USER="docker.io/jgriss"
 
 # The executable used to run docker (alternative could be "podman")
-DOCKER_EXEC="docker"
+DOCKER_EXEC="podman"
 
 # simply set this to an empty string if sudo is not needed
-SUDO_CMD="sudo"
+SUDO_CMD=""
 
 # make sure the working directory is the "docker" directory
 if [ ! -d "../reactome_analysis_api" -o ! -d "../reactome_analysis_utils" -o ! -d "../reactome_analysis_worker" -o ! -d "../reactome_analysis_datasets" ]; then
@@ -141,7 +141,9 @@ if [ -n "${REBUILD_API}" -a "${REBUILD_API}" != "n" ]; then
 fi
 
 if [ -n "${REBUILD_WORKER}" -a "${REBUILD_WORKER}" != "n" ]; then
-	${SUDO_CMD} ${DOCKER_EXEC} build -t ${DOCKER_USER}/reactome-analysis_worker:latest -f Dockerfile.worker .
+	# seccomp needs to be disabled to build the GSVA package - this may no longer be necessary
+	# when using a newer kernel - and it's only required for the build process
+	${SUDO_CMD} ${DOCKER_EXEC} build --security-opt seccomp=unconfined -t ${DOCKER_USER}/reactome-analysis_worker:latest -f Dockerfile.worker .
 	check_error $? "Failed to build worker"
 
 	# additionally tag the image

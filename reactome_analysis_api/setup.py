@@ -12,9 +12,9 @@ VERSION = "1.0.0"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-# markupsafe==2.0.1 is needed as 2.1 removed an important function
-REQUIRES = ["connexion", "flask<2", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", "markupsafe==2.0.1", 
-            "whoosh", "grein_loader"]
+# connexion 3.2.0 introduced a bug that caused the API not to be shown after an analysis request
+REQUIRES = ["hypercorn", "connexion[flask] == 3.1.0", "flask", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", 
+            "markupsafe", "whoosh", "grein_loader"]
 
 setup(
     name=NAME,

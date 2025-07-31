@@ -838,6 +838,10 @@ definitions:
         type: string
         description: A more detailed description of the resource.
         example: The EBI ExpressionAtlas resource (http://www.ebi.ac.uk/gxa)
+      url:
+        type: string
+        description: The URL of the respective resource.
+        example: https://www.ebi.ac.uk/gxa
       parameters:
         type: array
         items:

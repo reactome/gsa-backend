@@ -8,6 +8,7 @@ import numpy
 import click
 import os
 import sys
+import zlib
 
 
 """
@@ -104,6 +105,13 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
         request_object["datasets"][0]["data"] = loaded_id
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("GSE"):
         loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url, source="grein")
+
+        # replace the data with the id
+        request_object["datasets"][0]["data"] = loaded_id
+
+    if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("geo_GSE"):
+        dataset_id = request_object["datasets"][0]["data"][4:]
+        loaded_id = load_remote_data(dataset_id=dataset_id, service_url=service_url, source="geo_microarray")
 
         # replace the data with the id
         request_object["datasets"][0]["data"] = loaded_id
@@ -447,7 +455,17 @@ def run_analysis(request: dict, service_url: str):
     :returns: The (analysis identifier, status object)
     """
     # start the analysis
-    analysis_request = requests.post(service_url + "analysis", json=request)
+    if "compress" in request and request["compress"]:
+        # compress the request if set
+        logger.info("Sending compressed request...")
+        json_string = json.dumps(request)
+        compressed_data = zlib.compress(json_string.encode())
+
+        analysis_request = requests.post(service_url + "analysis", 
+                                         data=compressed_data,
+                                         headers={"Content-Type": "application/gzip"})
+    else:
+        analysis_request = requests.post(service_url + "analysis", json=request)
 
     if analysis_request.status_code != 200:
         raise Exception("Failed to submit analysis: " + analysis_request.content.decode())

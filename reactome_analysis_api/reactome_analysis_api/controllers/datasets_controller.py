@@ -60,6 +60,7 @@ def get_data_sources():  # noqa: E501
     return [
         ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
+                           url="https://reactome.org/gsa",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -67,12 +68,14 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
+                           url="https://www.ebi.ac.uk/gxa/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                                             description="Identifier of the dataset", required=True)
                            ]),
         ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
+                           url="https://www.ebi.ac.uk/gxa/sc/home",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -83,6 +86,13 @@ def get_data_sources():  # noqa: E501
                            ]),
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
+                           url="http://www.ilincs.org/apps/grein/?gse=",
+                           parameters=[
+                               ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
+                                                            type="string", description="Identifier of the dataset",
+                                                            required=True)]),
+        ExternalDatasource(id="geo_microarray", name="GEO query",
+                           description="Uses 'GEO query' to load datasets directly from GEO. Primarily supports microarray data.",
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -324,15 +334,14 @@ def search_data(keywords, species=None):  # noqa: E501
             loading_parameters.append(parameter.Parameter(name=param_name, value=original_parameters[param_name]))
 
         # create the search result object
-        search_response_result = data_search_result.DataSearchResult(id=search_result["id"], 
-                                                                     title=search_result["title"], 
-                                                                     description=search_result["description"], 
-                                                                     species=search_result["species"], 
+        search_response_result = data_search_result.DataSearchResult(id=search_result["id"],
+                                                                     title=search_result["title"],
+                                                                     description=search_result["description"],
+                                                                     species=search_result["species"],
                                                                      resource_name=search_result["data_source"],
                                                                      resource_loading_id=search_result["resource_id"], 
                                                                      loading_parameters=loading_parameters,
                                                                      web_link=search_result["web_link"])
-        
         search_response_list.append(search_response_result)
 
     return search_response_list

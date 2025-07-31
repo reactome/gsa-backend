@@ -246,7 +246,7 @@ spec:
         - name: RABBIT_MAX_QUEUE_LENGTH
           value: "10"
         - name: RABBITMQ_ERLANG_COOKIE
-          value: M3huMXZWUE9rbU5uVEhpdDRQN3B1WkNqcEVDV3ZpbzRqVWhDNFZmeldGZFJQOUUxdzY=
+          value: VUR6VzVYTkJxY3ZnOEt0Y1N3aElIaHNTeTZHS2sxY2V0cVhNN0JybEprb1V1OWtEZTc=
 
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -668,6 +668,7 @@ spec:
           limits:
             cpu: 1
             memory: 1000Mi
+            ephemeral-storage: 1Gi
       volumes:
       - name: redis-secret-volume
         secret:

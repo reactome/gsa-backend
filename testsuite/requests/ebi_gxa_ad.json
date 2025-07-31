@@ -272,13 +272,13 @@
             "name": "E-GEOD-58558 pathways",
             "dataset": "E-GEOD-58558",
             "type": "pathways",
-            "value": 2578
+            "value": 2687
         },
         {
             "name": "E-GEOD-58558 fold-changes",
             "dataset": "E-GEOD-58558",
             "type": "fold_changes",
-            "value": 9631
+            "value": 9110
         },
         {
             "name": "E-GEOD-58558 Visualizations",
