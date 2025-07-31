@@ -25,11 +25,11 @@ class TestReactome_analysis_worker(unittest.TestCase):
     """Tests for `reactome_analysis_worker` package."""
 
     def setUp(self):
-        os.environ["REDIS_HOST"] = "localhost"
-        os.environ["REDIS_PORT"] = "32606"
+        os.environ["REDIS_HOST"] = "149.148.148.222"
+        os.environ["REDIS_PORT"] = "31300"
         os.environ["REDIS_PASSWORD"] = "test"
-        os.environ["RABBIT_HOST"] = "localhost"
-        os.environ["RABBIT_PORT"] = "32214"
+        os.environ["RABBIT_HOST"] = "149.148.148.222"
+        os.environ["RABBIT_PORT"] = "30494"
         os.environ["RABBIT_USER"] = "test"
         os.environ["RABBIT_PASSWORD"] = "test"
         
@@ -42,6 +42,7 @@ class TestReactome_analysis_worker(unittest.TestCase):
 
         self.test_file_dir = os.path.join(os.path.dirname(__file__), "testfiles")
         os.environ["REACTOME_STORAGE_PATH"] = self.test_file_dir
+        os.environ["REACTOME_VERSION"] = "93"
 
     def test_process_all_messages(self):
         #if (True):
