@@ -340,10 +340,19 @@ definitions:
     type: object
     required:
       - name
+      - data_types
     properties:
       name:
         type: string
         example: Camera
+      data_types:
+        type: array
+        description: List of data types supported by this analysis method.
+        items:
+          type: string
+        example:
+          - "rnaseq_counts"
+          - "rnaseq_norm"
       description:
         type: string
         example: An extension of the classical Gene Set Enrichment Algorithm for generalized linear models.
