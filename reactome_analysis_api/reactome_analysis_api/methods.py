@@ -142,7 +142,14 @@ available_methods = [
                                 description="The maximum pathway size (determined as the number of submitted genes "
                                             "mapped to that pathway) to include a pathway in the analysis.",
                                 default="1000")
-           ])
+           ]),
+    Method(name="terapadog",
+           data_types=["ribo_rna_seq"],
+           description="Terapadog is an adaption of the PADOG algorithm to perform a simultaneous analysis "
+                        "of RNA-seq and Ribo-seq data. Thereby, both the transcriptional and the translational "
+                        "level can be captured simultaneously.",
+          parameters=[])
+    # TODO: Add method specific paramters
 ]
 
 

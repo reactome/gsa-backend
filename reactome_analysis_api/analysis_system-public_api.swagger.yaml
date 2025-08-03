@@ -465,6 +465,7 @@ definitions:
           - proteomics_int
           - proteomics_sc
           - microarray_norm
+          - ribo_rna_seq
         example: rnaseq_counts
         description: >-
           Specifies the type of dataset. Currently supported types are RNA-seq

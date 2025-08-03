@@ -180,7 +180,7 @@ def upload_ribo():
             return custom_abort(500, "Failed to store request data. Please try again later.")
 
     # return JSON
-    return encoder.jsonify(return_object)
+    return json.dumps(return_object)
 
 
 @app.route("/upload", methods=["POST"])
