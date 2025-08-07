@@ -33,8 +33,11 @@ app.app.public_searcher = PublicDatasetSearcher(path=os.getenv("SEARCH_INDEX_PAT
 # log all debug messages to a file
 logging.basicConfig(level=logging.DEBUG, handlers=get_default_logging_handlers())
 
+# only log connexion critical errors, in the new version, connexion re-throws
+# all HTTP exceptions returned by the application as ERRORs
+logging.getLogger("connexion").setLevel(logging.CRITICAL)
+
 # only log connexion and pika errors
-logging.getLogger("connexion").setLevel(logging.ERROR)
 logging.getLogger("pika").setLevel(logging.ERROR)
 logging.getLogger("redis").setLevel(logging.ERROR)
 
