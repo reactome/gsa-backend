@@ -140,6 +140,9 @@ def upload_ribo():
     csv_data_rna = ''.join(all_lines_rna)
     csv_data_ribo = ''.join(all_lines_ribo)
 
+    # set the sequencing type in the metadata
+    seq_type = ["RNA"] * len(df_rna.columns) + ["RIBO"] * len(df_ribo.columns)
+
     df_rna = pd.read_csv(StringIO(''.join(csv_data_rna)))
     df_rna.columns = [col + '_RNA' for col in df_rna.columns]
     df_ribo = pd.read_csv(StringIO(''.join(csv_data_ribo)))
@@ -149,12 +152,17 @@ def upload_ribo():
     df_ribo.set_index(df_ribo.columns[0], inplace=True)
     merged_ribo_seq_data = pd.merge(df_rna, df_ribo, left_index=True, right_index=True)
 
-    # only return sample name of one dataset for annotation
-    samples_id = all_lines_rna[0].split(delimiter_rna)
-    samples_id = samples_id[:0] + samples_id[1:]
-    samples_id[-1] = samples_id[-1].strip()
+    # return all sample ids
+    rna_sample_ids = all_lines_rna[0].split(delimiter_rna)
+    rna_sample_ids = rna_sample_ids[:0] + rna_sample_ids[1:]
+    rna_sample_ids[-1] = rna_sample_ids[-1].strip()
 
-    return_object["sample_names"] = samples_id
+    ribo_sample_ids = all_lines_ribo[0].split(delimiter_ribo)
+    ribo_sample_ids = ribo_sample_ids[:0] + ribo_sample_ids[1:]
+    ribo_sample_ids[-1] = ribo_sample_ids[-1].strip()
+
+    return_object["sample_names"] = rna_sample_ids + ribo_sample_ids
+    return_object["SeqType"] = seq_type
     return_object["top_identifiers"] = merged_ribo_seq_data.head(8).index.to_list()
     return_object["n_lines"] = len(merged_ribo_seq_data.index)
 

@@ -150,16 +150,6 @@ def start_analysis(body):  # noqa: E501
         for n_dataset in range(0, len(analysis_dict["datasets"])):
             data = analysis_dict["datasets"][n_dataset]["data"]
 
-            # check if dataset is riboseq data and process metadata accordingly
-            if analysis_dict["datasets"][n_dataset]["type"] == "ribo_seq":
-                # duplicate the analysis groups and the number of samples
-                analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"] *= 2
-                analysis_dict["datasets"][n_dataset]["design"]["samples"] *= 2
-                
-                # ensure that this resulted in the expected number of samples
-                if len(analysis_dict["datasets"][n_dataset]["design"]["samples"]) != analysis_dict["datasets"][n_dataset]["design"]["analysisGroup"]:
-                    abort(500, "Different number of samples specified in the analysis group and the data.")
-
             # Update for external datasets
             if data[0:4] == "rqu_" or len(data) < 20:
                 # make sure the request data exists

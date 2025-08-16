@@ -1,7 +1,3 @@
-ID	Sample5_RIBO	Sample10_RIBO	Sample15_RIBO	Sample20_RIBO	Sample1_RIBO	Sample6_RIBO	Sample11_RIBO	Sample16_RIBO	Sample5_RNA	Sample10_RNA	Sample15_RNA	Sample20_RNA	Sample1_RNA	Sample6_RNA	Sample11_RNA	Sample16_RNA
-
-
-
 {
   "description": "",
   "group": "RIBO_EXAMPLES",
@@ -79,6 +75,14 @@ ID	Sample5_RIBO	Sample10_RIBO	Sample15_RIBO	Sample20_RIBO	Sample1_RIBO	Sample6_R
         "1",
         "1",
         "1",
+        "1",
+        "2",
+        "2",
+        "2",
+        "2",
+        "1",
+        "1",
+        "1",
         "1"
       ]
     },
@@ -92,12 +96,28 @@ ID	Sample5_RIBO	Sample10_RIBO	Sample15_RIBO	Sample20_RIBO	Sample1_RIBO	Sample6_R
         "treated",
         "treated",
         "treated",
+        "treated",
+        "untreated",
+        "untreated",
+        "untreated",
+        "untreated",
+        "treated",
+        "treated",
+        "treated",
         "treated"
       ]
     },
     {
       "name": "batch",
       "values": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "1",
+        "2",
+        "3",
+        "4",
         "1",
         "2",
         "3",
