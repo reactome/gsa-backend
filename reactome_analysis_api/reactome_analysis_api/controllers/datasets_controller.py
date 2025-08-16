@@ -43,6 +43,9 @@ def get_examples():  # noqa: E501
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
                      description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
+        ExternalData(id="EXAMPLE_RIBO_SEQ", title="Ribo seq data example", type="riboseq_counts",
+                     description="Example containing matched ribosome profiling (Ribo-Seq) and transcriptomics (RNA-seq) data from the same samples.",
+                     group="RIBO_EXAMPLES")
     ]
 
 

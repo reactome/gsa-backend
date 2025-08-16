@@ -16,11 +16,13 @@ class Method(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, name: str=None, description: str=None, parameters: List[MethodParameters]=None):  # noqa: E501
+    def __init__(self, name: str=None, data_types: List[str]=None, description: str=None, parameters: List[MethodParameters]=None):  # noqa: E501
         """Method - a model defined in Swagger
 
         :param name: The name of this Method.  # noqa: E501
         :type name: str
+        :param data_types: The data_types of this Method.  # noqa: E501
+        :type data_types: List[str]
         :param description: The description of this Method.  # noqa: E501
         :type description: str
         :param parameters: The parameters of this Method.  # noqa: E501
@@ -28,17 +30,20 @@ class Method(Model):
         """
         self.swagger_types = {
             'name': str,
+            'data_types': List[str],
             'description': str,
             'parameters': List[MethodParameters]
         }
 
         self.attribute_map = {
             'name': 'name',
+            'data_types': 'data_types',
             'description': 'description',
             'parameters': 'parameters'
         }
 
         self._name = name
+        self._data_types = data_types
         self._description = description
         self._parameters = parameters
 
@@ -75,6 +80,31 @@ class Method(Model):
             raise ValueError("Invalid value for `name`, must not be `None`")  # noqa: E501
 
         self._name = name
+
+    @property
+    def data_types(self) -> List[str]:
+        """Gets the data_types of this Method.
+
+        List of data types supported by this analysis method.  # noqa: E501
+
+        :return: The data_types of this Method.
+        :rtype: List[str]
+        """
+        return self._data_types
+
+    @data_types.setter
+    def data_types(self, data_types: List[str]):
+        """Sets the data_types of this Method.
+
+        List of data types supported by this analysis method.  # noqa: E501
+
+        :param data_types: The data_types of this Method.
+        :type data_types: List[str]
+        """
+        if data_types is None:
+            raise ValueError("Invalid value for `data_types`, must not be `None`")  # noqa: E501
+
+        self._data_types = data_types
 
     @property
     def description(self) -> str:

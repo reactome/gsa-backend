@@ -56,10 +56,11 @@ def list_types():
                  description="Raw spectral-counts of label-free proteomics experiments"),
         DataType(id="microarray_norm",
                  name="Microarray (normalized)",
-                 description="Normalized and log2 transformed microarray-based gene expression values.")
-
+                 description="Normalized and log2 transformed microarray-based gene expression values."),
+        DataType(id="ribo_rna_seq",
+                 name="Combined Ribo-seq and RNA-seq",
+                 description="Simultaneous analysis of the same samples using Ribo-seq and RNA-seq.")
     ]
-
     return data_types
 
 
@@ -86,7 +87,6 @@ def start_analysis(body):  # noqa: E501
         analysis_dict = body
     # de-compress if it's a gzipped string
     elif connexion.request.content_type == "application/gzip":
-        # TODO: This still needs to be fixed
         LOGGER.debug("Received gzipped analysis request. Decompressing...")
 
         decompressed_string = zlib.decompress(body)
@@ -129,6 +129,12 @@ def start_analysis(body):  # noqa: E501
         if not analysis_request.datasets[n_dataset].design.comparison:
             LOGGER.debug("Analysis request misses design comparison")
             abort(406, "Invalid request. Dataset '{name}' misses the required comparison specification.".format(name=analysis_request.datasets[n_dataset].name))
+
+    # ensure that the data type is supported by the selected method
+    method = [m for m in methods.get_available_methods() if m.name == analysis_request.method_name][0]
+    for n_dataset in range(0, len(analysis_request.datasets)):
+        if analysis_request.datasets[n_dataset].type not in method.data_types:
+            abort(406, f"Invalid request. Method '{method.name}' does not support data of type '{analysis_request.datasets[n_dataset].type}'.")
 
     # generate an analysis id
     analysis_id = str(uuid.uuid1())
