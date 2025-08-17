@@ -9,7 +9,7 @@
 #' @param design model.matrix specifying the experimental design
 #' @param data.type type of data submitted only riboseq data is allowed in this case
 prepareData <- function(expression.data, sample.data, design, analysis.group.1, analysis.group.2) {
- # Copy sample.data to the exp_de dataframe
+    # Copy sample.data to the exp_de dataframe
     exp_de <- sample.data
 
     # Adds a column with the comparison groups, as defined in the design
@@ -22,24 +22,39 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
         stop("Error Number of samples in submitted data (columns) do not match the metadata (rows in sample.data)")
     }
     # Checks that the metadata has the required info
-    if (length(setdiff(c("SampleID", "SeqType", "SampleName"), colnames(exp_de))) > 0) {
-        stop("Error: column SampleID, SampleName and/or SeqType missing from sample.data")
+    if (!"SeqType" %in% colnames(exp_de)) {
+        stop("Error: Column SeqType is required for RiboSeq experiments-")
+    }
+    if (!all(exp_de$SeqType %in% c("RNA", "RIBO"))) {
+        stop("Error: SeqType must only contain the values 'RNA' and 'RIBO'.")
     }
 
     # It is important to ensure all columns are converted to factors!
     exp_de$Group <- factor(exp_de$Group, levels = c("c", "d"))
+    exp_de$Condition <- as.numeric(exp_de$Group)
     exp_de$SeqType <- factor(exp_de$SeqType, levels = c("RNA", "RIBO"))
+
+    # add the sample names - without the "_RNA" and "RIBO" at the end
+    sample_names <- colnames(expression.data)
+    sample_names <- gsub("_RIBO$", "", sample_names)
+    sample_names <- gsub("_RNA$", "", sample_names)
+    exp_de$SampleName <- sample_names
 
     # sample.groups is a global variable (string) defined in another script (needed for paired studies).
     # Checks if the column corresponding to the string "sample.groups" is among the sample.data columns
     # If so, it renames it to "Block" (used below to define paired-sample structure in analysis).
+    if (exists("sample.groups") && sample.groups != "") {
+        if (!sample.groups %in% colnames(sample.data)) {
+            stop("Error: Failed to find defined sample.groups '", sample.groups, "' in the sample metadata. ",
+                 "In the ReactomeGSA R package, this must also be specified as an 'additional_factor'")
+        }
+    }
 
     if (exists("sample.groups") && sample.groups %in% colnames(sample.data)) {
         colnames(exp_de)[colnames(exp_de) == sample.groups] <- "Block"
         # This ensures the Block column is a factor.
         exp_de$Block <- factor(exp_de$Block)
     }
-
 
     # Checks if the expression.data submitted is integers or floats.
     are_columns_integer <- sapply(expression.data, function(x) {all(x == as.integer(x), na.rm = TRUE)})
@@ -83,26 +98,15 @@ load_libraries <- function() {
 #'        to a colname in the \code{design}
 #' @param analysis.group.2 name of the second coefficient to test based on the experimental design
 process <- function(expression.data, sample.data, design, gene.indices, data.type, analysis.group.1, analysis.group.2) {
-
     # Prepare the data for DeltaTE (expression.data and exp_de)
     prepared_data <- prepareData(expression.data, sample.data, design, analysis.group.1, analysis.group.2)
     exp_de <- prepared_data$exp_de
     expression.data <- prepared_data$expression.data
 
-    # Creates a contrast vector where samples are categorised between "c" and "d" for the comparison.
-    padog_group <- exp_de$Group
-
-    # Creates a filter for samples that are not in any comparison group: a vector with all SampleIDs were Group == NA.
-    na_samples <- exp_de$SampleID[is.na(exp_de$Group)]
-
-    # Remove the NA samples from exp_de
-    exp_de <- exp_de[!exp_de$SampleID %in% na_samples, ]
-
-    # Remove the NA samples from sample_data as well.
-    sample.data <- sample.data[!sample.data$SampleID  %in% na_samples, ]
-
-    # Remove NA samples from expression.data
-    expression.data <- expression.data[, !colnames(expression.data) %in% na_samples, drop = FALSE]
+    # remove all samples that are not part of the current comparison
+    samples_to_remove <- is.na(exp_de$Group)
+    exp_de <- exp_de[!samples_to_remove, ]
+    expression.data <- expression.data[, !samples_to_remove]
 
     # Retrieves list of gene IDs from expression.data matching the ones in gene.indices
     gene_identifier_set <- lapply(gene.indices, function(gene_ids) {
@@ -110,19 +114,7 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
     })
 
     # Sets the paired design off by default
-    is_paired <- FALSE
-
-    # The following is needed for PAIRED samples.
-    # NB. It calls it "sample.groups" but is a different thing from the comparison groups ("c", "d").
-    # This just defines the paired structure in the data submitted.
-    if (exists("sample.groups")) {
-        if (!sample.groups %in% colnames(sample.data)) {
-            stop("Error: Failed to find defined sample.groups '", sample.groups, "' in the sample metadata. ",
-                 "In the ReactomeGSA R package, this must also be specified as an 'additional_factor'")
-        }
-        # Updates to TRUE if a paired design has been given
-        is_paired <- TRUE
-    }
+    is_paired <- "Block" %in% colnames(exp_de)
 
     # check padog's requirements and create nice error messages
     found_genes <- length(unique(as.numeric(unlist(gene.indices))))
@@ -132,7 +124,7 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
     }
 
     # there must be at least 6 samples
-    if (any(table(padog_group) < 3)) {
+    if (any(table(exp_de$Group) < 3)) {
         stop("Error: PADOG requires at least 3 samples per group.")
     }
 
@@ -142,6 +134,7 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
         exp_de = exp_de,
         paired = is_paired,
         gslist = gene_identifier_set,
+        gs.names = names(gene.indices),
         NI = 1000, # number of iterations
         Nmin = 0) # minimum gene set size
 
@@ -157,36 +150,27 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
 
 
 get_gene_fc <- function(expression.data, sample.data, design, data_type, analysis.group.1, analysis.group.2) {
+    save.image(file='/tmp/get_gene_fc.RData')
+    save(expression.data, sample.data, design, data_type, analysis.group.1, analysis.group.2, file = "/tmp/get_gene_fc_params.RData")
 
     # prepare the data
     prepared_data <- prepareData(expression.data, sample.data, design, analysis.group.1, analysis.group.2)
     exp_de <- prepared_data$exp_de
     expression.data <- prepared_data$expression.data
 
-    # DeltaTE cannot manage NA among the levels of a factor, so I need to remove them (code same as above)
-    na_samples <- exp_de$SampleID[is.na(exp_de$Group)]
-    # Remove the NA samples from exp_de
-    exp_de <- exp_de[!exp_de$SampleID %in% na_samples, ]
-    # Remove NA samples from expression.data
-    expression.data <- expression.data[, !colnames(expression.data) %in% na_samples, drop = FALSE]
+    # remove all samples that are not part of the current comparison
+    samples_to_remove <- is.na(exp_de$Group)
+    exp_de <- exp_de[!samples_to_remove, ]
+    expression.data <- expression.data[, !samples_to_remove]
 
     # Similarly to above, pired
-    paired <- FALSE
-
-    if (exists("sample.groups")) {
-        if (!sample.groups %in% colnames(sample.data)) {
-            stop("Error: Failed to find defined sample.groups '", sample.groups, "' in the sample metadata. ",
-                 "In the ReactomeGSA R package, this must also be specified as an 'additional_factor'")
-        }
-        paired <- TRUE
-    }
+    paired <- "Block" %in% colnames(exp_de)
 
     if (paired == TRUE) {
-        design_TE <- ~ Block + Group + SeqType+ Group:SeqType
+        design_TE <- ~ Block + Group + SeqType + Group:SeqType
         design_R <- ~ Block + Group
-    }
-    else {
-        design_TE <- ~ Group + SeqType+ Group:SeqType
+    } else {
+        design_TE <- ~ Group + SeqType + Group:SeqType
         design_R <- ~ Group
     }
 
@@ -205,12 +189,13 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
 
     # FC analysis for RNA counts:
     # Create filter using exp_de to find samples with SeqType "RNA"
-    rna_samples <- exp_de %>%
+    rna_sample_ids <- exp_de %>%
+      tibble::rownames_to_column(var = "SampleID") %>%
       filter(SeqType == "RNA") %>%
-      select(SampleID)
-
-    # Extract Sample IDs as a vector
-    rna_sample_ids <- rna_samples$SampleID
+      select(SampleID) %>%
+      as.vector() %>%
+      unlist() %>%
+      as.character()
 
     # Select columns from expression.data
     expression.data.rna <- expression.data[, rna_sample_ids]
@@ -227,15 +212,15 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
     res_rna <- results(ddsMat_rna, name="Group_d_vs_c")
     res_rna <- lfcShrink(ddsMat_rna,coef="Group_d_vs_c", res=res_rna)
 
-
     # FC analsysis for RIBO counts:
     # Create filter using exp_de to find samples with SeqType  "RIBO"
-    ribo_data <- exp_de %>%
+    ribo_sample_ids <- exp_de %>%
+      tibble::rownames_to_column(var = "SampleID") %>%
       filter(SeqType == "RIBO") %>%
-      select(SampleID)
-
-    # Extract Sample IDs as a vector
-    ribo_sample_ids <- ribo_data$SampleID
+      select(SampleID) %>%
+      as.vector() %>%
+      unlist() %>%
+      as.character()
 
     # Select columns from expression.data
     expression.data.ribo <- expression.data[, ribo_sample_ids]
@@ -272,14 +257,11 @@ get_gene_fc <- function(expression.data, sample.data, design, data_type, analysi
       left_join(res_ribo_slim, by = "Identifier") %>%
       left_join(res_rna_slim, by = "Identifier")
 
-    # Assignes the Regulatory Mode to each gene in the results df
-    res_combined <- assign_Regmode(res_combined)
-
     # Rename and reorder columns
     names(res_combined)[names(res_combined) == "log2FoldChange"] <- "logFC"
     names(res_combined)[names(res_combined) == "pvalue"] <- "P.Value"
     names(res_combined)[names(res_combined) == "padj"] <- "adj.P.Val"
-    col_order <- c("Identifier", colnames(res_combined)[1:ncol(res_combined)])
+    res_combined <- dplyr::relocate(res_combined, Identifier)
 
-    return(res_combined[, col_order])
+    return(res_combined)
 }
