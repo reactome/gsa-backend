@@ -774,6 +774,7 @@ definitions:
           - proteomics_int
           - proteomics_sc
           - microarray_norm
+          - ribo_rna_seq
         description: The data type of the dataset. This value is the same as for submitted datasets.
       description:
         type: string

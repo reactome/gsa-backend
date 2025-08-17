@@ -833,6 +833,7 @@ definitions:
         - "proteomics_int"
         - "proteomics_sc"
         - "microarray_norm"
+        - "ribo_rna_seq"
       description:
         type: "string"
         example: "RNA-seq analysis of human melanoma induced B cells."

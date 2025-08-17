@@ -149,7 +149,7 @@ class ExternalData(Model):
         :param type: The type of this ExternalData.
         :type type: str
         """
-        allowed_values = ["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"]  # noqa: E501
+        allowed_values = ["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm", "ribo_rna_seq"]  # noqa: E501
         if type not in allowed_values:
             raise ValueError(
                 "Invalid value for `type` ({0}), must be one of {1}"
