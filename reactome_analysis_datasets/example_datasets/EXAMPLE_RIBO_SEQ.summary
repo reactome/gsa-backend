@@ -3,7 +3,7 @@
   "group": "RIBO_EXAMPLES",
   "id": "EXAMPLE_RIBO_SEQ",
   "title": "Ribo and RNA seq data",
-  "type": "ribo_seq",
+  "type": "ribo_rna_seq",
   "sample_ids": [
     "Sample5_RIBO",
     "Sample10_RIBO",
