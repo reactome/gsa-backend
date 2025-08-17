@@ -1,0 +1,146 @@
+{
+  "description": "",
+  "group": "RIBO_EXAMPLES",
+  "id": "EXAMPLE_RIBO_SEQ",
+  "title": "Ribo and RNA seq data",
+  "type": "ribo_rna_seq",
+  "sample_ids": [
+    "Sample5_RIBO",
+    "Sample10_RIBO",
+    "Sample15_RIBO",
+    "Sample20_RIBO",
+    "Sample1_RIBO",
+    "Sample6_RIBO",
+    "Sample11_RIBO",
+    "Sample16_RIBO",
+    "Sample5_RNA",
+    "Sample10_RNA",
+    "Sample15_RNA",
+    "Sample20_RNA",
+    "Sample1_RNA",
+    "Sample6_RNA",
+    "Sample11_RNA",
+    "Sample16_RNA"
+  ],
+  "sample_metadata": [
+    {
+      "name": "patient.id",
+      "values": [
+        "Sample5",
+        "Sample10",
+        "Sample15",
+        "Sample20",
+        "Sample1",
+        "Sample6",
+        "Sample11",
+        "Sample16",
+        "Sample5",
+        "Sample10",
+        "Sample15",
+        "Sample20",
+        "Sample1",
+        "Sample6",
+        "Sample11",
+        "Sample16"
+      ]
+    },
+    {
+      "name": "SeqType",
+      "values": [
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RIBO",
+        "RNA",
+        "RNA",
+        "RNA",
+        "RNA",
+        "RNA",
+        "RNA",
+        "RNA",
+        "RNA"
+      ]
+    },
+    {
+      "name": "condition_id",
+      "values": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "1",
+        "1",
+        "1",
+        "1",
+        "2",
+        "2",
+        "2",
+        "2",
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    },
+    {
+      "name": "condition",
+      "values": [
+        "untreated",
+        "untreated",
+        "untreated",
+        "untreated",
+        "treated",
+        "treated",
+        "treated",
+        "treated",
+        "untreated",
+        "untreated",
+        "untreated",
+        "untreated",
+        "treated",
+        "treated",
+        "treated",
+        "treated"
+      ]
+    },
+    {
+      "name": "batch",
+      "values": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "1",
+        "2",
+        "3",
+        "4",
+        "1",
+        "2",
+        "3",
+        "4",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    }
+  ],
+  "default_parameters": [
+    {
+      "name": "analysis_group",
+      "value": "condition"
+    },
+    {
+      "name": "comparison_group_1",
+      "value": "treated"
+    },
+    {
+      "name": "comparison_group_2",
+      "value": "untreated"
+    }
+  ]
+}

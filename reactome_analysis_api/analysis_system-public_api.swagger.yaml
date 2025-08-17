@@ -340,10 +340,19 @@ definitions:
     type: object
     required:
       - name
+      - data_types
     properties:
       name:
         type: string
         example: Camera
+      data_types:
+        type: array
+        description: List of data types supported by this analysis method.
+        items:
+          type: string
+        example:
+          - "rnaseq_counts"
+          - "rnaseq_norm"
       description:
         type: string
         example: An extension of the classical Gene Set Enrichment Algorithm for generalized linear models.
@@ -456,6 +465,7 @@ definitions:
           - proteomics_int
           - proteomics_sc
           - microarray_norm
+          - ribo_rna_seq
         example: rnaseq_counts
         description: >-
           Specifies the type of dataset. Currently supported types are RNA-seq
@@ -764,6 +774,7 @@ definitions:
           - proteomics_int
           - proteomics_sc
           - microarray_norm
+          - ribo_rna_seq
         description: The data type of the dataset. This value is the same as for submitted datasets.
       description:
         type: string

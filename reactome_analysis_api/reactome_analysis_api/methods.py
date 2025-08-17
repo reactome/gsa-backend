@@ -58,8 +58,11 @@ global_parameters = [
     ]
 
 available_methods = [
-    Method(name="PADOG", description="Weighted gene set analysis method that down-weighs genes that are present in many"
-                                     " pathways.", parameters=[
+    Method(name="PADOG", 
+           data_types=["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"],
+           description="Weighted gene set analysis method that down-weighs genes that are present in many"
+                       " pathways. Supports multiple Omics data sources including Ribo-Seq data", 
+           parameters=[
         MethodParameters(name="sample_groups",
                          display_name="Sample Groups",
                          type="string",
@@ -89,8 +92,10 @@ available_methods = [
                                     "PSM or peptide level and not on the protein level.")
     ]),
 
-    Method(name="Camera", description="A gene set analysis algorithm similar to the classical GSEA algorithm "
-                                      "as implemented in the limma package.",
+    Method(name="Camera", 
+           data_types=["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"],
+           description="A gene set analysis algorithm similar to the classical GSEA algorithm "
+           "as implemented in the limma package.",
            parameters=[
                MethodParameters(name="discrete_norm_function",
                                 display_name="Discrete normalisation function",
@@ -111,8 +116,10 @@ available_methods = [
                                             "that it is generally advised that normalisation is performed on the "
                                             "PSM or peptide level and not on the protein level.")
            ]),
-    Method(name="ssGSEA", description="The ssGSEA approach to derive pathway expression values for every sample. " \
-                                      "Note: The Reactome visualization is only available for up to 15 samples.",
+    Method(name="ssGSEA", 
+           data_types=["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"],
+           description="The ssGSEA approach to derive pathway expression values for every sample. " \
+            "Note: The Reactome visualization is only available for up to 15 samples.",
            parameters=[
                MethodParameters(name="pathways",
                                 display_name="Pathways",
@@ -135,7 +142,14 @@ available_methods = [
                                 description="The maximum pathway size (determined as the number of submitted genes "
                                             "mapped to that pathway) to include a pathway in the analysis.",
                                 default="1000")
-           ])
+           ]),
+    Method(name="terapadog",
+           data_types=["ribo_rna_seq"],
+           description="Terapadog is an adaption of the PADOG algorithm to perform a simultaneous analysis "
+                        "of RNA-seq and Ribo-seq data. Thereby, both the transcriptional and the translational "
+                        "level can be captured simultaneously.",
+          parameters=[])
+    # TODO: Add method specific paramters
 ]
 
 
@@ -150,6 +164,8 @@ def get_available_methods():
     # add the global parameters to all methods (first)
     for method in methods:
         method.parameters = global_parameters + method.parameters
+
+    print("Completed method generation.")
 
     return methods
 

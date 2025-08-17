@@ -359,11 +359,20 @@ definitions:
   Method:
     type: "object"
     required:
+    - "data_types"
     - "name"
     properties:
       name:
         type: "string"
         example: "Camera"
+      data_types:
+        type: "array"
+        example:
+        - "rnaseq_counts"
+        - "rnaseq_norm"
+        description: "List of data types supported by this analysis method."
+        items:
+          type: "string"
       description:
         type: "string"
         example: "An extension of the classical Gene Set Enrichment Algorithm for\
@@ -397,6 +406,9 @@ definitions:
         description: "Number of permutations."
         display_name: "Permutations"
         type: "int"
+      data_types:
+      - "rnaseq_counts"
+      - "rnaseq_norm"
   DataType:
     type: "object"
     required:
@@ -513,6 +525,7 @@ definitions:
         - "proteomics_int"
         - "proteomics_sc"
         - "microarray_norm"
+        - "ribo_rna_seq"
       data:
         type: "string"
         example: "\tSample 1\tSample2\tSample 3\nCD19\t10\t20\t5\nCD20\t4\t7\t30\n\
@@ -820,6 +833,7 @@ definitions:
         - "proteomics_int"
         - "proteomics_sc"
         - "microarray_norm"
+        - "ribo_rna_seq"
       description:
         type: "string"
         example: "RNA-seq analysis of human melanoma induced B cells."
