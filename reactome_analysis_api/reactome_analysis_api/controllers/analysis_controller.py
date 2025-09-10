@@ -203,3 +203,8 @@ def start_analysis(body):  # noqa: E501
     except (socket.timeout, socket.gaierror) as e:
         LOGGER.error("Socket timeout connecting to storage or queuing system: " + str(e))
         abort(503, "Failed to connect to downstream system. Please try again in a few minutes.")
+    # catch any unexpectd problems
+    except Exception as e:
+        LOGGER.error("Unexpected API error occurred: " + str(e))
+        LOGGER.exception(e)
+        abort(505, "An unexpected error occurred. The development team was informed. Please try again later.")
