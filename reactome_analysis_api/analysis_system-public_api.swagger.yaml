@@ -426,6 +426,9 @@ definitions:
         example: >-
           Intensity-based quantitative proteomics data (for example, iTRAQ/TMT or intensity-based label-free
           quantitation).
+      doc_link:
+        type: string
+        description: An optional URL to a more extensive documentation.
   AnalysisInput:
     type: object
     required:
@@ -853,6 +856,14 @@ definitions:
         type: string
         description: The URL of the respective resource.
         example: https://www.ebi.ac.uk/gxa
+      data_types:
+        type: array
+        description: List of data types provided by this data source.
+        items:
+          type: string
+        example:
+          - "rnaseq_counts"
+          - "rnaseq_norm"
       parameters:
         type: array
         items:

@@ -41,9 +41,9 @@ def get_examples():  # noqa: E501
                      description="Quantitative (TMT-labelled) proteomics analysis of melanoma associated B cells.",
                      group="GRISS_MELANOMA"),
         ExternalData(id="EXAMPLE_SC_B_CELLS", title="B cell scRNAseq example", type="rnaseq_counts",
-                     description="Single-cell RNA-seq data of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
+                     description="Pseudo-bulk data from the single-cell RNA-seq dataset of B cells extracted from the Jerby-Arnon at al. study (Cell 2018).",
                      group="SC_EXAMPLES"),
-        ExternalData(id="EXAMPLE_RIBO_SEQ", title="Ribo seq data example", type="riboseq_counts",
+        ExternalData(id="EXAMPLE_RIBO_SEQ", title="Ribo seq data example", type="ribo_rna_seq",
                      description="Example containing matched ribosome profiling (Ribo-Seq) and transcriptomics (RNA-seq) data from the same samples.",
                      group="RIBO_EXAMPLES")
     ]
@@ -61,6 +61,7 @@ def get_data_sources():  # noqa: E501
         ExternalDatasource(id="example_datasets", name="Example datasets",
                            description="Example datasets to quickly test the application.",
                            url="https://reactome.org/gsa",
+                           data_types=["rnaseq_counts", "proteomics_int", "ribo_rna_seq"],
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -69,6 +70,7 @@ def get_data_sources():  # noqa: E501
         ExternalDatasource(id="ebi_gxa", name="Expression Atlas",
                            description="EBI's Expression Atlas resource for consistently reprocessed 'omics data.",
                            url="https://www.ebi.ac.uk/gxa/home",
+                           data_types=["rnaseq_counts", "proteomics_int"],
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", type="string", display_name="Dataset Id",
                                                             description="Identifier of the dataset", required=True)
@@ -76,6 +78,7 @@ def get_data_sources():  # noqa: E501
         ExternalDatasource(id="ebi_sc_gxa", name="Single Cell Expression Atlas",
                            description="EBI's Single Cell Expression Atlas resource for consistently reprocessed scRNA-seq data.",
                            url="https://www.ebi.ac.uk/gxa/sc/home",
+                           data_types=["rnaseq_counts"],
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
@@ -87,12 +90,14 @@ def get_data_sources():  # noqa: E501
         ExternalDatasource(id="grein", name="GREIN Data",
                            description="GREIN is an NCBI project that consistently reprocesses RNA-seq data from GEO.",
                            url="http://www.ilincs.org/apps/grein/?gse=",
+                           data_types=["rnaseq_counts"],
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",
                                                             required=True)]),
         ExternalDatasource(id="geo_microarray", name="GEO query",
                            description="Uses 'GEO query' to load datasets directly from GEO. Primarily supports microarray data.",
+                           data_types=["microarray_norm"],
                            parameters=[
                                ExternalDatasourceParameters(name="dataset_id", display_name="Dataset Id",
                                                             type="string", description="Identifier of the dataset",

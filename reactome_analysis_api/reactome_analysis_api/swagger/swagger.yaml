@@ -425,7 +425,11 @@ definitions:
         type: "string"
         example: "Intensity-based quantitative proteomics data (for example, iTRAQ/TMT\
           \ or intensity-based label-free quantitation)."
+      doc_link:
+        type: "string"
+        description: "An optional URL to a more extensive documentation."
     example:
+      doc_link: "doc_link"
       name: "Proteomics (intensity-based)"
       description: "Intensity-based quantitative proteomics data (for example, iTRAQ/TMT\
         \ or intensity-based label-free quantitation)."
@@ -907,6 +911,14 @@ definitions:
         type: "string"
         example: "https://www.ebi.ac.uk/gxa"
         description: "The URL of the respective resource."
+      data_types:
+        type: "array"
+        example:
+        - "rnaseq_counts"
+        - "rnaseq_norm"
+        description: "List of data types provided by this data source."
+        items:
+          type: "string"
       parameters:
         type: "array"
         items:
@@ -929,6 +941,9 @@ definitions:
         type: "string"
         required: true
       url: "https://www.ebi.ac.uk/gxa"
+      data_types:
+      - "rnaseq_counts"
+      - "rnaseq_norm"
   DataSearchResult:
     type: "object"
     required:

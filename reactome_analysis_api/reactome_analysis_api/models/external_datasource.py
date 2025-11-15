@@ -16,7 +16,7 @@ class ExternalDatasource(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, name: str=None, description: str=None, url: str=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
+    def __init__(self, id: str=None, name: str=None, description: str=None, url: str=None, data_types: List[str]=None, parameters: List[ExternalDatasourceParameters]=None):  # noqa: E501
         """ExternalDatasource - a model defined in Swagger
 
         :param id: The id of this ExternalDatasource.  # noqa: E501
@@ -27,6 +27,8 @@ class ExternalDatasource(Model):
         :type description: str
         :param url: The url of this ExternalDatasource.  # noqa: E501
         :type url: str
+        :param data_types: The data_types of this ExternalDatasource.  # noqa: E501
+        :type data_types: List[str]
         :param parameters: The parameters of this ExternalDatasource.  # noqa: E501
         :type parameters: List[ExternalDatasourceParameters]
         """
@@ -35,6 +37,7 @@ class ExternalDatasource(Model):
             'name': str,
             'description': str,
             'url': str,
+            'data_types': List[str],
             'parameters': List[ExternalDatasourceParameters]
         }
 
@@ -43,6 +46,7 @@ class ExternalDatasource(Model):
             'name': 'name',
             'description': 'description',
             'url': 'url',
+            'data_types': 'data_types',
             'parameters': 'parameters'
         }
 
@@ -50,6 +54,7 @@ class ExternalDatasource(Model):
         self._name = name
         self._description = description
         self._url = url
+        self._data_types = data_types
         self._parameters = parameters
 
     @classmethod
@@ -156,6 +161,29 @@ class ExternalDatasource(Model):
         """
 
         self._url = url
+
+    @property
+    def data_types(self) -> List[str]:
+        """Gets the data_types of this ExternalDatasource.
+
+        List of data types provided by this data source.  # noqa: E501
+
+        :return: The data_types of this ExternalDatasource.
+        :rtype: List[str]
+        """
+        return self._data_types
+
+    @data_types.setter
+    def data_types(self, data_types: List[str]):
+        """Sets the data_types of this ExternalDatasource.
+
+        List of data types provided by this data source.  # noqa: E501
+
+        :param data_types: The data_types of this ExternalDatasource.
+        :type data_types: List[str]
+        """
+
+        self._data_types = data_types
 
     @property
     def parameters(self) -> List[ExternalDatasourceParameters]:

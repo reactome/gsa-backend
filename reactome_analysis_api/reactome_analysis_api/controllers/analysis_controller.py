@@ -59,7 +59,8 @@ def list_types():
                  description="Normalized and log2 transformed microarray-based gene expression values."),
         DataType(id="ribo_rna_seq",
                  name="Combined Ribo-seq and RNA-seq",
-                 description="Simultaneous analysis of the same samples using Ribo-seq and RNA-seq.")
+                 description="Simultaneous analysis of the same samples using Ribo-seq and RNA-seq.",
+                 doc_link="https://master.bioconductor.org/packages/release/bioc/vignettes/terapadog/inst/doc/terapadog_vignette.html")
     ]
     return data_types
 

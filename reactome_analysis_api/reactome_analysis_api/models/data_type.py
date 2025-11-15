@@ -15,7 +15,7 @@ class DataType(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id: str=None, name: str=None, description: str=None):  # noqa: E501
+    def __init__(self, id: str=None, name: str=None, description: str=None, doc_link: str=None):  # noqa: E501
         """DataType - a model defined in Swagger
 
         :param id: The id of this DataType.  # noqa: E501
@@ -24,22 +24,27 @@ class DataType(Model):
         :type name: str
         :param description: The description of this DataType.  # noqa: E501
         :type description: str
+        :param doc_link: The doc_link of this DataType.  # noqa: E501
+        :type doc_link: str
         """
         self.swagger_types = {
             'id': str,
             'name': str,
-            'description': str
+            'description': str,
+            'doc_link': str
         }
 
         self.attribute_map = {
             'id': 'id',
             'name': 'name',
-            'description': 'description'
+            'description': 'description',
+            'doc_link': 'doc_link'
         }
 
         self._id = id
         self._name = name
         self._description = description
+        self._doc_link = doc_link
 
     @classmethod
     def from_dict(cls, dikt) -> 'DataType':
@@ -118,3 +123,26 @@ class DataType(Model):
         """
 
         self._description = description
+
+    @property
+    def doc_link(self) -> str:
+        """Gets the doc_link of this DataType.
+
+        An optional URL to a more extensive documentation.  # noqa: E501
+
+        :return: The doc_link of this DataType.
+        :rtype: str
+        """
+        return self._doc_link
+
+    @doc_link.setter
+    def doc_link(self, doc_link: str):
+        """Sets the doc_link of this DataType.
+
+        An optional URL to a more extensive documentation.  # noqa: E501
+
+        :param doc_link: The doc_link of this DataType.
+        :type doc_link: str
+        """
+
+        self._doc_link = doc_link
