@@ -23,7 +23,7 @@ prepareData <- function(expression.data, sample.data, design, analysis.group.1, 
     }
     # Checks that the metadata has the required info
     if (!"SeqType" %in% colnames(exp_de)) {
-        stop("Error: Column SeqType is required for RiboSeq experiments-")
+        stop("Error: Column SeqType is required for RiboSeq experiments. Available columns are ", paste(colnames(exp_de)))
     }
     if (!all(exp_de$SeqType %in% c("RNA", "RIBO"))) {
         stop("Error: SeqType must only contain the values 'RNA' and 'RIBO'.")
