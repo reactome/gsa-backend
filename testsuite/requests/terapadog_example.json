@@ -3,7 +3,7 @@
     "parameters": [
         {
             "name": "create_reactome_visualization",
-            "value": "FALSE"
+            "value": "TRUE"
         },
         {
             "name": "include_disease_pathways",
@@ -137,6 +137,11 @@
             "dataset": "Ribo Seq Example",
             "type": "fold_changes",
             "value": 8767
+        },
+        {
+            "name": "Visualisations",
+            "type": "visualisations",
+            "value": 1
         }
     ]
 }

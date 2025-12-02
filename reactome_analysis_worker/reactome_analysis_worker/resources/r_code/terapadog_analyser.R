@@ -144,6 +144,9 @@ process <- function(expression.data, sample.data, design, gene.indices, data.typ
         to = c("Pathway", "NGenes", "MeanAbsT0", "MeanWeightT0", "PValue", "FDR"),
         x = colnames(terapadog_result))
 
+    # filter invalid numbers
+    terapadog_result <- terapadog_result[!is.nan(terapadog_result$FDR), ]
+
     return(terapadog_result[, c("Pathway", "FDR", "PValue", "NGenes", "MeanAbsT0", "MeanWeightT0")])
 
 }
