@@ -336,7 +336,7 @@ ports:
     port: 443
 endpoints:
 - addresses:
-  - ip: 100.25.71.177
+  - ip: "100.25.71.177"
 ---
 ## REACTOME API service backend config
 apiVersion: cloud.google.com/v1
