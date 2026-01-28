@@ -99,17 +99,20 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
 
     # check if data needs to be loaded
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("E-"):
+        logger.info("Loading ExpressionAtlas data...")
         loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url)
 
         # replace the data with the id
         request_object["datasets"][0]["data"] = loaded_id
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("GSE"):
+        logger.info("Loading GREIN data...")
         loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url, source="grein")
 
         # replace the data with the id
         request_object["datasets"][0]["data"] = loaded_id
 
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("geo_GSE"):
+        logger.info("Loading GEO Microarray data...")
         dataset_id = request_object["datasets"][0]["data"][4:]
         loaded_id = load_remote_data(dataset_id=dataset_id, service_url=service_url, source="geo_microarray")
 
