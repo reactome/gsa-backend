@@ -3,6 +3,8 @@ debug: True
 base_url: "http://192.168.99.100:30966"
 # Errors are sent to this e-mail if specified
 mail_error_address: "notify@me.com"
+# Defines whether the Google specific backend config should be included
+google_backend_config: False
 # Report e-mails are only sent if a configuration is supplied
 mail:
   smtp_server: ""

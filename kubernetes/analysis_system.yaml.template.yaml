@@ -336,8 +336,9 @@ ports:
     port: 443
 endpoints:
 - addresses:
-  - ip: "100.25.71.177"
+  - "100.25.71.177"
 ---
+{% if google_backend_config %}
 ## REACTOME API service backend config
 apiVersion: cloud.google.com/v1
 kind: BackendConfig
@@ -349,7 +350,7 @@ spec:
   connectionDraining:
     drainingTimeoutSec: 60
   timeoutSec: 60
-
+{% endif %}
 --- 
 # REACTOME API service
 apiVersion: v1
