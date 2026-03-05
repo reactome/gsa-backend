@@ -36,6 +36,8 @@ RUN pip3 --cache-dir /tmp/pip_cache install setuptools && \
 ENV REACTOME_STORAGE_PATH /data
 ENV REACTOME_SOURCE /data
 ENV REACTOME_INTERACTOR_FILE /data/interactors.txt
+
+# current Reactome version at https://reactome.org/ContentService/data/database/version
 ENV REACTOME_VERSION 95
 
 # Copy the REACTOME related pathway files
