@@ -19,7 +19,7 @@ Files to download:
     * https://reactome.org/download/current/UniProt2ReactomeReactions.txt
     * https://reactome.org/download/current/Ensembl2ReactomeReactions.txt
   * Disease pathway ids:
-    * https://dev.reactome.org/download/current/HumanDiseasePathways.txt
+    * https://reactome.org/download/current/HumanDiseasePathways.txt
   * Reaction to pathways:
     * From REACTOME content service - for the specific species
 """
@@ -333,7 +333,7 @@ def main():
 
     pathway_source = os.getenv("REACTOME_SOURCE", "https://reactome.org/download/current")
     interactor_file = os.getenv("REACTOME_INTERACTOR_FILE", None)
-    disease_pathway_file = os.getenv("REACTOME_DISEASE_FILE", "https://dev.reactome.org/download/current/HumanDiseasePathways.txt")
+    disease_pathway_file = os.getenv("REACTOME_DISEASE_FILE", "https://reactome.org/download/current/HumanDiseasePathways.txt")
 
     if not interactor_file:
         LOGGER.error("Missing required environmental variable REACTOME_INTERACTOR_FILE")
