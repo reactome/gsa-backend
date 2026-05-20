@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-requirements = ['reactome_analysis_worker', 'reactome_analysis_utils']
+requirements = ['reactome_analysis_worker', 'reactome_analysis_utils', 'reactomegsa-viz']
 
 setup_requirements = [ ]
 

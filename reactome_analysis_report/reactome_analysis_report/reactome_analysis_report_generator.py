@@ -16,6 +16,7 @@ import prometheus_client
 import rpy2.rinterface as ri
 import rpy2.rinterface_lib
 import rpy2.robjects as ro
+from reactomegsa_viz import HtmlReportGenerator
 from reactome_analysis_api.models.report_status import ReportStatus
 from reactome_analysis_api.models.report_status_reports import ReportStatusReports
 from reactome_analysis_utils import reactome_mq, reactome_storage
@@ -236,6 +237,8 @@ class ReactomeAnalysisReportGenerator:
                         data_type = "pdf_report"
                     elif extension == ".r":
                         data_type = "r_script"
+                    elif extension == ".html":
+                        data_type = "html_report"
                     else:
                         LOGGER.error("Unknown extension encountered: " + extension)
                         continue
@@ -439,6 +442,8 @@ class ReactomeAnalysisReportGenerator:
             return "MS Excel Report (xlsx)"
         elif extension == ".r":
             return "R Script"
+        elif extension == ".html":
+            return "HTML Report"
         else:
             return "Report"
 
@@ -455,6 +460,8 @@ class ReactomeAnalysisReportGenerator:
             return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         elif extension == ".r":
             return "text/plain"
+        elif extension == ".html":
+            return "text/html"
         else:
             return None
 
@@ -541,6 +548,12 @@ class ReportGenerationProcess(multiprocessing.Process):
             self.create_r_script(r_filename)
 
             self.result_queue.put(r_filename)
+
+            # create the HTML report
+            html_filename = "/tmp/result_" + self.report_request.analysis_id + ".html"
+            HtmlReportGenerator.create_report(json_dict=self.analysis_result, r_script_token=self._analysis_id, out_html=html_filename)
+
+            self.result_queue.put(html_filename)
         except Exception as e:
             # put the error message in the queue
             LOGGER.error("Error during report generation: " + str(e))

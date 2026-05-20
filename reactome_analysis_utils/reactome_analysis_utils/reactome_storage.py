@@ -131,7 +131,7 @@ class ReactomeStorage:
         """
         Store the result for the specified analysis
         :param analysis_identifier: The analysis' identifier
-        :param data_type: The data type to get the status for ["analysis", "report", "pdf_report", "r_script"]
+        :param data_type: The data type to get the status for ["analysis", "report", "pdf_report", "r_script", "html_report"]
         :param result: The result as a string
         """
         try:
@@ -139,6 +139,8 @@ class ReactomeStorage:
                 result_key = self._get_report_result_key(analysis_identifier)
             elif data_type == "pdf_report":
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
+            elif data_type == "html_report":
+                result_key = self._get_html_report_result_key(analysis_identifier)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
 
@@ -424,6 +426,16 @@ class ReactomeStorage:
         :return: The matching redis key
         """
         return "pdf_report:{}:result".format(token)
+    
+    @staticmethod
+    def _get_html_report_result_key(token: str) -> str:
+        """
+        Creates the redis key for the specified PDF report data
+
+        :param token: The token identifying the report
+        :return: The matching redis key
+        """
+        return "html_report:{}:result".format(token)
 
     @staticmethod
     def _get_r_script_result_key(token: str) -> str:

@@ -43,6 +43,11 @@ def get_result(analysisId):  # noqa: E501
             if r_file is not None:
                 return Response(response=r_file, status=200, headers={"content-type": "text/plain", 
                                                                       "content-disposition": "attachment; filename=\"ReactomeGSA_analysis_script.R\""})
+        elif extension == "html":
+            html_file = storage.get_result(analysis_identifier=analysisId, data_type="html_report")
+
+            if html_file is not None:
+                return Response(response=html_file, status=200, headers={"content-type": "text/html"})
         else:
             result = storage.get_result(analysisId)
 
