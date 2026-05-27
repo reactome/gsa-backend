@@ -519,41 +519,65 @@ class ReportGenerationProcess(multiprocessing.Process):
             """)
 
             # create the Excel file
-            LOGGER.debug("Creating Excel file ...")
-            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating Excel file",
-                         completion=0.3)
+            try:
+                LOGGER.debug("Creating Excel file ...")
+                self._set_status(analysis_id=self._analysis_id, status="running", description="Creating Excel file",
+                            completion=0.3)
 
-            excel_filename = "/tmp/result_" + self.report_request.analysis_id + ".xlsx"
-            self.create_excel_file(excel_filename)
+                excel_filename = "/tmp/result_" + self.report_request.analysis_id + ".xlsx"
+                self.create_excel_file(excel_filename)
 
-            self.result_queue.put(excel_filename)
+                self.result_queue.put(excel_filename)
+            except Exception as e:
+                # put the error message in the queue
+                LOGGER.error("Error during report generation: " + str(e))
+                self.result_queue.put(e)
 
             # create the PDF report
-            LOGGER.debug("Creating PDF report...")
+            try:
+                LOGGER.debug("Creating PDF report...")
 
-            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating PDF file",
-                         completion=0.4)
+                self._set_status(analysis_id=self._analysis_id, status="running", description="Creating PDF file",
+                            completion=0.4)
 
-            pdf_filename = "/tmp/result_" + self.report_request.analysis_id + ".pdf"
-            self.create_pdf_report(pdf_filename)
+                pdf_filename = "/tmp/result_" + self.report_request.analysis_id + ".pdf"
+                self.create_pdf_report(pdf_filename)
 
-            self.result_queue.put(pdf_filename)
+                self.result_queue.put(pdf_filename)
+            except Exception as e:
+                # put the error message in the queue
+                LOGGER.error("Error during report generation: " + str(e))
+                self.result_queue.put(e)
 
             # create the R script
-            LOGGER.debug("Creating R script...")
-            self._set_status(analysis_id=self._analysis_id, status="running", description="Creating R script",
-                         completion=0.7)
+            try:
+                LOGGER.debug("Creating R script...")
+                self._set_status(analysis_id=self._analysis_id, status="running", description="Creating R script",
+                            completion=0.7)
 
-            r_filename = "/tmp/result_" + self.report_request.analysis_id + ".r"
-            self.create_r_script(r_filename)
+                r_filename = "/tmp/result_" + self.report_request.analysis_id + ".r"
+                self.create_r_script(r_filename)
 
-            self.result_queue.put(r_filename)
+                self.result_queue.put(r_filename)
+            except Exception as e:
+                # put the error message in the queue
+                LOGGER.error("Error during report generation: " + str(e))
+                self.result_queue.put(e)
 
             # create the HTML report
-            html_filename = "/tmp/result_" + self.report_request.analysis_id + ".html"
-            HtmlReportGenerator.create_report(json_dict=self.analysis_result, r_script_token=self._analysis_id, out_html=html_filename)
+            try:
+                LOGGER.debug("Creating HTML report...")
+                html_filename = "/tmp/result_" + self.report_request.analysis_id + ".html"
+                # convert the result into a dict
+                dict_result = json.loads(result)
+                HtmlReportGenerator.create_report(json_dict=dict_result, r_script_token=self._analysis_id, out_html=html_filename)
 
-            self.result_queue.put(html_filename)
+                self.result_queue.put(html_filename)
+            except Exception as e:
+                # put the error message in the queue
+                LOGGER.error("Error during report generation: " + str(e))
+                self.result_queue.put(e)
+
         except Exception as e:
             # put the error message in the queue
             LOGGER.error("Error during report generation: " + str(e))
