@@ -173,7 +173,7 @@ def get_reactome_url(reactome_server: str) -> str:
     :param reactome_server: The Reactome server to use. Available options are 'production', 'dev', and 'release'
     :return str The URL for the server.
     """
-    reactome_url = "www.reactome.org"
+    reactome_url = "reactome.org"
 
     if reactome_server == "dev":
         reactome_url = "release.reactome.org"
