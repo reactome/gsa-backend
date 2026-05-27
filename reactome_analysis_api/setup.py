@@ -13,7 +13,7 @@ VERSION = "1.0.0"
 # http://pypi.python.org/pypi/setuptools
 
 # connexion 3.2.0 introduced a bug that caused the API not to be shown after an analysis request
-REQUIRES = ["hypercorn", "connexion[flask] == 3.1.0", "flask", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", 
+REQUIRES = ["hypercorn", "connexion[flask] >= 3.3.0", "flask", "swagger-ui-bundle >= 0.0.2", "reactome_analysis_utils", "prometheus_client", 
             "markupsafe", "whoosh", "grein_loader"]
 
 setup(
