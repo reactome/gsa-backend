@@ -176,8 +176,8 @@ def get_reactome_url(reactome_server: str) -> str:
     reactome_url = "www.reactome.org"
 
     if reactome_server == "dev":
-        reactome_url = "dev.reactome.org"
-    if reactome_server == "release":
         reactome_url = "release.reactome.org"
+    if reactome_server == "release":
+        reactome_url = "reactome.org"
 
     return reactome_url
