@@ -574,7 +574,7 @@ class ReportGenerationProcess(multiprocessing.Process):
                 # get the ReactomeGSA URL
                 base_url = os.getenv("BASE_URL", "https://gsa.reactome.org")
 
-                HtmlReportGenerator.create_report(json_dict=dict_result, r_script_token=self._analysis_id, out_html=html_filename, reactome_url=base_url)                                                )
+                HtmlReportGenerator.create_report(json_dict=dict_result, r_script_token=self._analysis_id, out_html=html_filename, reactome_url=base_url)
 
                 self.result_queue.put(html_filename)
             except Exception as e:
