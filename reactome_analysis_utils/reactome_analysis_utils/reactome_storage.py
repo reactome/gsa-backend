@@ -113,6 +113,8 @@ class ReactomeStorage:
                 result_key = self._get_result_key(analysis_identifier)
             elif data_type == "r_script":
                 result_key = self._get_r_script_result_key(analysis_identifier)
+            elif data_type == "html_report":
+                result_key = self._get_html_report_result_key(analysis_identifier)
             else:
                 raise ReactomeStorageException("Unknown type passed: " + data_type)
 
@@ -120,7 +122,7 @@ class ReactomeStorage:
             result = self.r.get(result_key)
 
             # the result is the only data that improves with compression
-            if data_type == "analysis" and ReactomeStorage.USE_COMPRSSSION and result is not None:
+            if (data_type == "analysis" or data_type == "html_report") and ReactomeStorage.USE_COMPRSSSION and result is not None:
                 result = ReactomeStorage._decompress_data(result)
 
             return result
@@ -141,6 +143,10 @@ class ReactomeStorage:
                 result_key = self._get_pdf_report_result_key(analysis_identifier)
             elif data_type == "html_report":
                 result_key = self._get_html_report_result_key(analysis_identifier)
+
+                # the HTML improves with compression as well
+                if ReactomeStorage.USE_COMPRSSSION:
+                    result = ReactomeStorage._compress_data(result)
             elif data_type == "analysis":
                 result_key = self._get_result_key(analysis_identifier)
 
