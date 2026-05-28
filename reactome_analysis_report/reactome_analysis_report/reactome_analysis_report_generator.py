@@ -570,7 +570,11 @@ class ReportGenerationProcess(multiprocessing.Process):
                 html_filename = "/tmp/result_" + self.report_request.analysis_id + ".html"
                 # convert the result into a dict
                 dict_result = json.loads(result)
-                HtmlReportGenerator.create_report(json_dict=dict_result, r_script_token=self._analysis_id, out_html=html_filename)
+
+                # get the ReactomeGSA URL
+                base_url = os.getenv("BASE_URL", "https://gsa.reactome.org")
+
+                HtmlReportGenerator.create_report(json_dict=dict_result, r_script_token=self._analysis_id, out_html=html_filename, reactome_url=base_url)                                                )
 
                 self.result_queue.put(html_filename)
             except Exception as e:
@@ -683,7 +687,7 @@ class ReportGenerationProcess(multiprocessing.Process):
         :param r_filename: The target filename of the script
         """
         # the base_url is taken of an environmental parameter
-        base_url = os.getenv("BASE_URL", "http://193.62.55.4")
+        base_url = os.getenv("BASE_URL", "https://gsa.reactome.org")
 
         with open(r_filename, "w") as writer:
             writer.write("""
