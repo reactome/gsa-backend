@@ -136,6 +136,9 @@ def submit_result_to_reactome(result: AnalysisResult, result_type: ReactomeResul
         raise Exception("Invalid result_type '{}' passed to submit_result_to_reactome. Valid values are gsa, gsa_p, "
                         "or gsva")
 
+    # replace missing values with 0
+    _replace_missing_values(converted_result)
+
     # add the analysis token
     converted_result["summary"]["gsaToken"] = analysis_id
 
@@ -736,3 +739,25 @@ def _get_pathway_changes(pathway_fcs: list, all_pathways: set, min_p: float, ret
                     pathway_changes[missing_pathway].append(0)
 
     return pathway_changes
+
+  
+def _replace_missing_values(reactome_blueprint: dict) -> None:
+    """Replaces missing pathway abundance values (defined as 'NaN') with 0.
+    
+    This is necessary since the Reactome visualization is not supporting missing values. In terms
+    of the visualization, using 0 instead is acceptable.
+
+    Values are directly replaced within the object.
+
+    :param reactome_blueprint: The generated reactome_blueprint with the respective pathway expression values.
+    :type reactome_blueprint: dict
+    """
+    for pathway_index in range(0, len(reactome_blueprint["pathways"])):
+        for resource_index in range(0, len(reactome_blueprint["pathways"][pathway_index]["data"]["statistics"])):
+            org_expression = reactome_blueprint["pathways"][pathway_index]["data"]["statistics"][resource_index]["exp"]
+
+            # replace any "NaN" values
+            fixed_expression = [0 if math.isnan(value) else value for value in org_expression]
+
+            # replace the original values
+            reactome_blueprint["pathways"][pathway_index]["data"]["statistics"][resource_index]["exp"] = fixed_expression
