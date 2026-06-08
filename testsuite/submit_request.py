@@ -98,17 +98,21 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
         })
 
     # check if data needs to be loaded
+    org_dataset_id = None
+
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("E-"):
         logger.info("Loading ExpressionAtlas data...")
         loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url)
 
         # replace the data with the id
+        org_dataset_id = request_object["datasets"][0]["data"]
         request_object["datasets"][0]["data"] = loaded_id
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("GSE"):
         logger.info("Loading GREIN data...")
         loaded_id = load_remote_data(dataset_id=request_object["datasets"][0]["data"], service_url=service_url, source="grein")
 
         # replace the data with the id
+        org_dataset_id = request_object["datasets"][0]["data"]
         request_object["datasets"][0]["data"] = loaded_id
 
     if len(request_object["datasets"][0]["data"]) < 30 and request_object["datasets"][0]["data"].startswith("geo_GSE"):
@@ -117,6 +121,7 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
         loaded_id = load_remote_data(dataset_id=dataset_id, service_url=service_url, source="geo_microarray")
 
         # replace the data with the id
+        org_dataset_id = request_object["datasets"][0]["data"]
         request_object["datasets"][0]["data"] = loaded_id
 
     # submit the request
@@ -135,14 +140,14 @@ def process_file(server: str, filename: str, update_tests: bool=False, reactome_
 
     if "tests" in request_object:
         if update_tests:
-            update_file_tests(filename, request_object, result)
+            update_file_tests(filename, request_object, result, org_dataset_id=org_dataset_id)
         else:
             return run_tests(request_object["tests"], result, status)
     else:
         return True
 
 
-def update_file_tests(filename: str, request_object: dict, result: dict) -> None:
+def update_file_tests(filename: str, request_object: dict, result: dict, org_dataset_id: str=None) -> None:
     """Update the values stored for the number of pathways and the number of
        fold changes in the test definition of the request file.
 
@@ -152,6 +157,8 @@ def update_file_tests(filename: str, request_object: dict, result: dict) -> None
     :type request_object: dict
     :param result: The retrieved result
     :type result: dict
+    :param org_dataset_id: The original ID of the dataset. This is necessary for externally loaded datasets.
+    :type org_dataset_id: str
     """
     logger.info(f"Updating tests in {filename}...")
 
@@ -191,6 +198,10 @@ def update_file_tests(filename: str, request_object: dict, result: dict) -> None
             request_object["tests"][index]["value"] = n_pathways
 
             continue
+
+    # replace the dataset id if necessary
+    if org_dataset_id:
+        request_object["datasets"][0]["data"] = org_dataset_id
 
     # save the update file
     with open(filename, "w") as writer:
