@@ -53,6 +53,7 @@ def load_r_code_file(filename: str) -> ro.packages.SignatureTranslatedAnonymousP
 
 class ReactomeRAnalyser(ReactomeAnalyser):
     methods = {"camera": load_r_code_file("camera_analyser.R"),
+               "roast": load_r_code_file("roast_analyser.R"),
                "padog": load_r_code_file("padog_analyser.R"),
                "terapadog": load_r_code_file("terapadog_analyser.R")}
     preprocess = load_r_code_file("preprocessing_functions.R")

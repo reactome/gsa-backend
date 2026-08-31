@@ -116,6 +116,30 @@ available_methods = [
                                             "that it is generally advised that normalisation is performed on the "
                                             "PSM or peptide level and not on the protein level.")
            ]),
+    Method(name="Roast",
+           data_types=["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"],
+           description="A rotation-based gene set analysis algorithm from the limma package. "
+                       "This is currently configured identically to Camera.",
+           parameters=[
+               MethodParameters(name="discrete_norm_function",
+                                display_name="Discrete normalisation function",
+                                values=["TMM", "RLE", "upperquartile", "none"],
+                                type="string",
+                                scope="dataset",
+                                default="TMM",
+                                description="The normalisation function to use for raw RNA-seq read counts and "
+                                            "raw Proteomics spectral counts. By default, the TMM normalisation "
+                                            "is used."),
+               MethodParameters(name="continuous_norm_function",
+                                display_name="Continuous normalisation function",
+                                values=["none", "scale", "quantile", "cyclicloess"],
+                                type="string",
+                                scope="dataset",
+                                default="none",
+                                description="The normalisation function to use for proteomics intensity data. Note "
+                                            "that it is generally advised that normalisation is performed on the "
+                                            "PSM or peptide level and not on the protein level.")
+           ]),
     Method(name="ssGSEA", 
            data_types=["rnaseq_counts", "rnaseq_norm", "proteomics_int", "proteomics_sc", "microarray_norm"],
            description="The ssGSEA approach to derive pathway expression values for every sample. " \
